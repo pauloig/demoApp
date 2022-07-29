@@ -1,0 +1,52 @@
+{%extends 'base.html'%}
+{%load static%}
+{%block content%}
+<section class="login py-5 border-top-1">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-5 col-md-8 align-item-center">
+                <div class="border">
+                    <h3 class="p-4">Login Now</h3>
+                    {% if state == 2 %}
+                    <div class="container">
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert" id="alert">
+                            {{ message }}
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                              </button>
+                        </div>
+                    </div>
+
+                    {% endif %}
+                    <form action="/login/" method="post">
+                        {% csrf_token %}
+                        <fieldset class="p-4">
+
+                            <div class="form-group">
+                                <div class="form-outline">
+                                    <input type="text" name="username" id="username"
+                                        class="form-control form-control-lg" aria-describedby="Number of tracking"
+                                        autofocus required placeholder="Username" />
+                                    <label for="username" class="form-label">Username</label>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="form-outline">
+                                    <input name="password" id="password" type="password"
+                                        class="form-control form-control-lg" aria-describedby="Number of tracking"
+                                        autofocus required placeholder="Password" />
+                                    <label for="password" class="form-label">Password</label>
+                                </div>
+                            </div>
+
+                            <button type="submit"
+                                class="d-block py-3 px-5 bg-primary text-white border-0 rounded font-weight-bold mt-2">Log
+                                in</button>
+                        </fieldset>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{%endblock%}

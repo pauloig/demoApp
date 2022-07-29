@@ -14,8 +14,10 @@ COPY ./scripts /scripts
 WORKDIR /app
 EXPOSE 8000
 
-RUN python -m venv /py && \
-    /py/bin/pip install --upgrade pip && \
+RUN python -m venv /py 
+RUN pip install tk
+RUN apk add tk
+RUN /py/bin/pip install --upgrade pip && \
     apk add --update --no-cache postgresql-client && \
     apk add --update --no-cache --virtual .tmp-deps \
         build-base postgresql-dev musl-dev linux-headers && \

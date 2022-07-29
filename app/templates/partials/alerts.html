@@ -1,0 +1,31 @@
+<div class="container">
+  {% if state == 1 %}
+  <div class="alert alert-success alert-dismissible fade show" role="alert" id="alert">
+    {{ message }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" id="close_alert"></button>
+  </div>
+  {% endif %} {% if state == 2 %}
+  <div class="alert alert-danger alert-dismissible fade show" role="alert" id="alert">
+    {{ message }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" id="close_alert"></button>
+  </div>
+  {% endif %} {% if state == 3 %}
+  <div class="alert alert-warning alert-dismissible fade show" role="alert" id="alert">
+    {{ message }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" id="close_alert"></button>
+  </div>
+  {% endif %}
+
+  <div class="alert alert-success alert-dismissible fade show" role="alert-message-success" id="alert-message-success"
+    style="display: none">
+    <label id="alert-text"></label>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"
+      id="close_alert_success"></button>
+  </div>
+
+  <div class="alert alert-danger alert-dismissible fade show" role="alert-message-danger" id="alert-message-danger"
+    style="display: none">
+    <label id="alert-text"></label>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" id="close_alert_danger"></button>
+  </div>
+</div>
