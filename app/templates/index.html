@@ -38,20 +38,7 @@
         </div>
     
         <div class="w-100">
-          <nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom">
-            <h3>
-              {% if app_selected == 1 %} Receiving {% endif %}
-              {% if app_selected == 2 %} Inspection {% endif %}
-              {% if app_selected == 3 %} Outbound {% endif %}
-              {% if app_selected == 4 %} Outbound Report {% endif %}
-              {% if app_selected == 5 %} Upload files {% endif %}
-              {% if app_selected == 6 %} Classification {% endif %}
-              {% if app_selected == 7 %} Fulfillment Center {% endif %}
-              {% if app_selected == 8 %} Containers {% endif %}
-              {% if app_selected == 9 %} History classification {% endif %}
-              {% if app_selected == 10 %} User activity {% endif %}
-              
-            </h3>         
+          <nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom">        
             <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
               aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
               <span class="navbar-toggler-icon"></span>
@@ -92,28 +79,6 @@
             {% block container %}
       
             {% endblock %}
-      
-            
-            <br />
-
-            <h1> WELCOME TO WIRING CONNECTION ADMIN</h1>
-            <br />
-            <br />
-            <br />
-            <br />
-            <br />
-            <br />
-            <br />
-            <br />
-            <br />
-            <br />
-            <br />
-            <br />
-            <br />
-            <br />
-            <br />
-            <br />
-      
       
           </div>
           {% include 'partials/footer.html' %}
