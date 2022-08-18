@@ -1,0 +1,63 @@
+{% extends 'index.html' %} 
+{%load static%}
+{% block title %} upload Files {% endblock %} 
+
+{% block container %}
+
+<div class="container">
+    <form method='post' enctype="multipart/form-data">
+        {% csrf_token %}
+        
+        <br />
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="card rounded">
+                    <div class="card-header" style="background-color: #4f4f4f; color: white">
+                        Work Order List
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-lg-12 col-xs-12">
+                                <table border="1" style="border-collapse: collapse; width:100%;">
+                                        <tr>
+                                            <td>prism ID</td>
+                                            <td>work Order Id</td>
+                                            <td>PO</td>
+                                            <td>PO Amount</td>
+                                            <td>ConstType</td>
+                                            <td>ConstCoordinator</td>
+                                            <td>Work Order Date</td>
+                                            <td>Est Completion</td>
+                                            <td>Issue By</td>
+                                            <td>Job Name</td>
+                                            <td>Job Address</td>
+                                        </tr>
+
+                                        {% for order in orders %}
+                                            <tr>
+                                                <td>{{order.prismID}}</td>
+                                                <td>{{order.workOrderId}}</td>
+                                                <td>{{order.PO}}</td>
+                                                <td>{{order.POAmount}}</td>
+                                                <td>{{order.ConstType}}</td>
+                                                <td>{{order.ConstCoordinator}}</td>
+                                                <td>{{order.WorkOrderDate}}</td>
+                                                <td>{{order.EstCompletion}}</td>
+                                                <td>{{order.IssuedBy}}</td>
+                                                <td>{{order.JobName}}</td>
+                                                <td>{{order.JobAddress}}</td>
+                                            </tr>                                             
+                                        {% endfor %}
+                                                                      
+                                </table>
+                                
+                            </div>
+                        </div>
+                        
+                    </div>
+                </div>                 
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}
