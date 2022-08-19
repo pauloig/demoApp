@@ -85,6 +85,19 @@ def listOrders(request):
     return render(request,'order_list.html',
     {'orders': orders})
 
+def listOrdersFilter(request):
+    orders = workOrder.objects.all()
+    return render(request,'order_list.html',
+    {'orders': orders})
+
+def truncateData(request):
+    workOrder.objects.all().delete()
+    workOrderDuplicate.objects.all().delete()
+    return HttpResponse('<p>Data deleted successfully</p>')
+
+    return render(request,'order_list.html',
+    {'orders': orders})
+
 def duplicatelistOrders(request):
     orders = workOrderDuplicate.objects.all()
     return render(request,'duplicate_order_list.html',

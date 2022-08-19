@@ -7,9 +7,9 @@ from django.db import models
 
 class workOrder(models.Model):
     prismID = models.CharField(max_length=200)
-    workOrderId= models.CharField(max_length=200, blank=True, null=True)
+    workOrderId= models.CharField(max_length=200)
     PO = models.CharField(max_length=200)
-    POAmount	= models.CharField(max_length=200)
+    POAmount	= models.CharField(max_length=200, blank=True, null=True)
     ConstType	= models.CharField(max_length=200, blank=True, null=True)
     ConstCoordinator= models.CharField(max_length=200, blank=True, null=True)	
     WorkOrderDate= models.CharField(max_length=200, blank=True, null=True)
@@ -27,10 +27,10 @@ class workOrder(models.Model):
     UserName= models.CharField(max_length=200, blank=True, null=True)
 
     class Meta:
-        unique_together = ('prismID', 'PO','POAmount')
+        unique_together = ('prismID', 'workOrderId','PO')
 
     def __str__(self):
-        return self.prismID + " - " + self.PO + " - " + self.POAmount
+        return self.prismID + " - " + self.workOrderId + " - " + self.PO
 
 class workOrderDuplicate(models.Model):
     prismID = models.CharField(max_length=200, blank=True, null=True)
