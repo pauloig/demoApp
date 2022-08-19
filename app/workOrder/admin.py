@@ -1,10 +1,11 @@
 from django.contrib import admin
 from import_export.admin import ImportExportModelAdmin
-from workOrder.models import workOrder
+from workOrder.models import workOrder, workOrderDuplicate
 
 admin.site.register(workOrder)
 class  workOrderAdmin(ImportExportModelAdmin):
-    list_display = ( 'prismID',
+    list_display = ( 'id',
+    'prismID',
     'workOrderId',
     'PO',
     'POAmount',
@@ -23,3 +24,6 @@ class  workOrderAdmin(ImportExportModelAdmin):
     'WCSup',
     'UploadDate',
     'UserName' )
+
+
+admin.site.register(workOrderDuplicate)

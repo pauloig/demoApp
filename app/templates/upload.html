@@ -50,6 +50,16 @@
                               
                             </div>
                           </div>
+                          <div class="row">
+                            <div class="col-lg-12">
+                              {% if countRejected > 0 or  countInserted > 0 %}
+                                <p> Records Processed: {{countInserted}} </p>
+                                <p> Duplicate Records: {{countRejected}} </p>
+                                <p> Duplicate Records Rejected: {{duplicateRejected}} </p>
+                              {% endif %}
+                            </div>
+                          </div>
+                          
                     </div>
                 </div>                 
             </div>

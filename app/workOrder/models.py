@@ -29,7 +29,8 @@ class workOrder(models.Model):
     class Meta:
         unique_together = ('prismID', 'PO','POAmount')
 
-
+    def __str__(self):
+        return self.prismID + " - " + self.PO + " - " + self.POAmount
 
 class workOrderDuplicate(models.Model):
     prismID = models.CharField(max_length=200, blank=True, null=True)
@@ -51,3 +52,27 @@ class workOrderDuplicate(models.Model):
     WCSup	= models.CharField(max_length=200, blank=True, null=True)
     UploadDate	= models.CharField(max_length=200, blank=True, null=True)
     UserName= models.CharField(max_length=200, blank=True, null=True)
+
+    class Meta:
+        unique_together = ('prismID',
+        'workOrderId',
+        'PO',
+        'POAmount',
+        'ConstType',
+        'ConstCoordinator',
+        'WorkOrderDate',
+        'EstCompletion',
+        'IssuedBy',
+        'JobName',
+        'JobAddress',
+        'SiteContactName',
+        'SitePhoneNumber',
+        'Comments',
+        'Status',
+        'CloseDate',
+        'WCSup',
+        'UploadDate',
+        'UserName' )
+
+    def __str__(self):
+        return self.prismID + " - " + self.PO + " - " + self.POAmount
