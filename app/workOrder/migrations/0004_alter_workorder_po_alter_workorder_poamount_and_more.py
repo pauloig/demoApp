@@ -28,4 +28,9 @@ class Migration(migrations.Migration):
             field=models.CharField(default=0, max_length=200),
             preserve_default=False,
         ), 
+        migrations.AlterUniqueTogether(
+            name='workorder',
+            unique_together={('prismID', 'PO', 'POAmount')},
+        ),
+
     ]
