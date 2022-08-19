@@ -14,7 +14,7 @@ def simple_upload(request):
     countRejected = 0
     duplicateRejected = 0
     if request.method == 'POST':
-        # workOrder.objects.all().delete()
+        workOrder.objects.all().delete()
         workOrder_resource = workOrderResource()
         dataset = Dataset()
         new_workOrder = request.FILES['myfile']
