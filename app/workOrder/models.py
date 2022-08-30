@@ -57,22 +57,7 @@ class workOrderDuplicate(models.Model):
         unique_together = ('prismID',
         'workOrderId',
         'PO',
-        'POAmount',
-        'ConstType',
-        'ConstCoordinator',
-        'WorkOrderDate',
-        'EstCompletion',
-        'IssuedBy',
-        'JobName',
-        'JobAddress',
-        'SiteContactName',
-        'SitePhoneNumber',
-        'Comments',
-        'Status',
-        'CloseDate',
-        'WCSup',
-        'UploadDate',
-        'UserName' )
+        'POAmount')
 
     def __str__(self):
         return self.prismID + " - " + self.PO + " - " + self.POAmount

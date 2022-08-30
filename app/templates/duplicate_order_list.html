@@ -7,67 +7,27 @@
 <div class="container">
     <form method='post' enctype="multipart/form-data">
         {% csrf_token %}
+
+        <div class="row">
+            <h3>DUPLICATE ORDER LIST</h3>
+            <a style="color: black;"><hr></a>
+        </div>
         
         <br />
-        <div class="row">
-            <div class="col-lg-12">
-                <div class="card rounded">
-                    <div class="card-header" style="background-color: #4f4f4f; color: white">
-                       DUPLICATE Work Order List
-                    </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-lg-6">  
-                                <div class="form-outline">
-                                    <input type="text" id="prism_id" name="prism_id" class="form-control" focus />
-                                    <label class="form-label" for="prism_id">Prism ID</label>
-                                  </div>
-                            </div>
-                            <div class="col-lg-6">  
-                                <div class="form-outline">
-                                    <input type="text" id="work_order_id" name="work_order_id" class="form-control" focus />
-                                    <label class="form-label" for="prism_id">Work Order Id</label>
-                                  </div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-lg-6">  
-                                <div class="form-outline">
-                                    <input type="text" id="po" name="po" class="form-control" focus />
-                                    <label class="form-label" for="prism_id">PO</label>
-                                  </div>
-                            </div>
-                            <div class="col-lg-6">  
-                                <div class="form-outline">
-                                    <input type="text" id="address" name="address" class="form-control" focus />
-                                    <label class="form-label" for="address">Address</label>
-                                  </div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-lg-6">  
-                                <div class="form-outline" style="align-items: center;">
-                                    <button type="submit">Search</button>
-                                  </div>
-                            </div>
-                        </div>                        
-                    </div>
-                </div>                 
-            </div>
-        </div>
-        <table class="table">
-            <thead>
-                <th>prism ID</th>
-                <th>work Order Id</th>
-                <th>PO</th>
-                <th>PO Amount</th>
-                <th>ConstType</th>
-                <th>ConstCoordinator</th>
-                <th>Work Order Date</th>
-                <th>Est Completion</th>
-                <th>Issue By</th>
-                <th>Job Name</th>
-                <th>Job Address</th>
+    
+        <table id="orders" class="table table-bordered">
+            <thead class="table-dark">
+                <tr>
+                    <th scope="col">prism ID</th>
+                    <th scope="col">work Order Id</th>
+                    <th scope="col">PO</th>
+                    <th scope="col">PO Amount</th>    
+                    <th scope="col">Work Order Date</th>
+                    <th scope="col">Issue By</th>
+                    <th scope="col">Job Name</th>
+                    <th scope="col">Job Address</th>
+                    <th scope="col"></th>
+                </tr>              
             </thead>
             <tbody>                                       
                 {% for order in orders %}
@@ -76,13 +36,11 @@
                         <td>{{order.workOrderId}}</td>
                         <td>{{order.PO}}</td>
                         <td>{{order.POAmount}}</td>
-                        <td>{{order.ConstType}}</td>
-                        <td>{{order.ConstCoordinator}}</td>
                         <td>{{order.WorkOrderDate}}</td>
-                        <td>{{order.EstCompletion}}</td>
                         <td>{{order.IssuedBy}}</td>
                         <td>{{order.JobName}}</td>
                         <td>{{order.JobAddress}}</td>
+                        <td> <a href="/checkOrder/{{order.prismID}}"><i class="fa-solid fa-circle-arrow-right" style="color: green;"></i></a></td>
                     </tr>                                             
                 {% endfor %}
             </tbody>                              

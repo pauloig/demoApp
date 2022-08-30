@@ -1,0 +1,14 @@
+{% extends 'index.html' %} 
+{%load static%}
+{% block title %} Duplicate Order List {% endblock %} 
+
+{% block container %}
+
+<div class="container">
+    <div class="alert alert-{{alertType}}" role="alert">
+       {{message}}
+    </div>
+    <br>
+    <br>
+</div>
+{% endblock %}
