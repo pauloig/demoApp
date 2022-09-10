@@ -1,0 +1,49 @@
+{% extends 'index.html' %} 
+{%load static%}
+{% block title %} Duplicate Order List {% endblock %} 
+
+{% block container %}
+
+<div class="container">
+    <form method='post' enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <div class="row">
+            <h3>LOCATIONS LIST</h3>
+            <a style="color: black;"><hr></a>
+        </div>
+        
+        <br />
+        <div class="row">
+            <div class="col-lg-6">  
+                <div class="form-outline" style="align-items: center;">
+                    <a class="btn btn-success" href="/location/" role="button">Create New Location</a>
+                </div>
+            </div>
+        </div>                
+        <br />
+        <table id="orders" class="table table-bordered">
+            <thead class="table-dark">
+                <tr>
+                    <th scope="col" style="width: 8%">Id</th>
+                    <th scope="col" style="width: 32%">Name</th>
+                    <th scope="col" style="width: 15%">City</th>
+                    <th scope="col" style="width: 40%">Description</th>
+                    <th scope="col" style="width: 5%"></th>
+                </tr>              
+            </thead>
+            <tbody>                                       
+                {% for data in dataset %}
+                    <tr>
+                        <td>{{data.LocationID}}</td>
+                        <td>{{data.name}}</td>
+                        <td>{{data.city}}</td>
+                        <td>{{data.description}}</td>
+                        <td> <a href="/update_location/{{data.LocationID}}"><i class="fa-solid fa-pen-to-square" style="color: green;"></i></a></td>
+                    </tr>                                             
+                {% endfor %}
+            </tbody>                              
+        </table>
+    </form>
+</div>
+{% endblock %}

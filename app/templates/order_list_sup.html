@@ -9,18 +9,9 @@
         {% csrf_token %}
 
         <div class="row">
-            <h3>ORDER LIST</h3>
+            <h3>ORDER LIST BY SUPERVISOR - {{emp}}</h3>
             <a style="color: black;"><hr></a>
-        </div>
-        
-        <br />
-        <div class="row">
-            <div class="col-lg-6">  
-                <div class="form-outline" style="align-items: center;">
-                    <a class="btn btn-success" href="/create_order/" role="button">Create New Order</a>
-                </div>
-            </div>
-        </div>                
+        </div>              
         <br />
  
     
@@ -32,7 +23,7 @@
                     <th scope="col">PO</th>
                     <th scope="col">PO Amount</th>    
                     <th scope="col">Work Order Date</th>
-                    <th scope="col">Issue By</th>
+                    <th scope="col">WC Sup</th>
                     <th scope="col">Job Name</th>
                     <th scope="col">Job Address</th>
                     <th scope="col"></th>
@@ -40,17 +31,17 @@
             </thead>
             <tbody>                                       
                 {% for order in orders %}
-                    <tr>
-                        <td>{{order.prismID}}</td>
-                        <td>{{order.workOrderId}}</td>
-                        <td>{{order.PO}}</td>
-                        <td>{{order.POAmount}}</td>
-                        <td>{{order.WorkOrderDate}}</td>
-                        <td>{{order.IssuedBy}}</td>
-                        <td>{{order.JobName}}</td>
-                        <td>{{order.JobAddress}}</td>
-                        <td> <a href="/order/{{order.id}}"><i class="fa-solid fa-circle-arrow-right" style="color: green;"></i></a></td>
-                    </tr>                                             
+                        <tr>
+                            <td>{{order.prismID}}</td>
+                            <td>{{order.workOrderId}}</td>
+                            <td>{{order.PO}}</td>
+                            <td>{{order.POAmount}}</td>
+                            <td>{{order.WorkOrderDate}}</td>
+                            <td>{{order.WCSup}}</td>
+                            <td>{{order.JobName}}</td>
+                            <td>{{order.JobAddress}}</td>
+                            <td> <a href="/order/{{order.id}}"><i class="fa-solid fa-circle-arrow-right" style="color: green;"></i></a></td>
+                        </tr>   
                 {% endfor %}
             </tbody>                              
         </table>

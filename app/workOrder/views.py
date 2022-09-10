@@ -1,17 +1,19 @@
 from ast import Try
-from contextlib import redirect_stderr
+from contextlib import nullcontext, redirect_stderr
 from ctypes.wintypes import WORD
 from os import dup
 from telnetlib import WONT
 from unittest import TextTestResult
-from django.shortcuts import render
-from .models import workOrder, workOrderDuplicate
+from django.shortcuts import render, get_object_or_404, HttpResponseRedirect
+from .models import Employee, workOrder, workOrderDuplicate, Locations
 from .resources import workOrderResource
 from django.contrib import messages
 from tablib import Dataset
 from django.http import HttpResponse
 from django.db import IntegrityError
+from .forms import EmployeesForm, LocationsForm, workOrderForm
 import logging 
+
 
 def simple_upload(request):
     countInserted = 0
@@ -112,9 +114,32 @@ def simple_upload(request):
     return render(request,'upload.html', {'countInserted':countInserted, 'countRejected':countRejected,'duplicateRejected':duplicateRejected})
 
 def listOrders(request):
-    orders = workOrder.objects.all()
+    orders = workOrder.objects.filter(Location__isnull=True, WCSup__isnull=True)
     return render(request,'order_list.html',
     {'orders': orders})
+
+def order_list_location(request, userID):
+    emp = Employee.objects.filter(user__username__exact = userID).first()
+    if emp:
+        orders = workOrder.objects.filter(Location__LocationID__exact=emp.Location.LocationID, WCSup__isnull=True)
+        return render(request,'order_list_location.html',
+        {'orders': orders, 'emp': emp })
+    else:
+        orders = workOrder.objects.filter(Location__LocationID__exact=0, WCSup__isnull=True)
+        return render(request,'order_list_location.html',
+        {'orders': orders, 'emp': emp })
+
+def order_list_sup(request, userID):  
+    emp = Employee.objects.filter(user__username__exact = userID).first()
+
+    if emp:
+        orders = workOrder.objects.filter(WCSup__employeeID__exact=emp.employeeID)
+        return render(request,'order_list_sup.html',
+        {'orders': orders, 'emp': emp })
+    else:
+        orders = workOrder.objects.filter(WCSup__employeeID__exact=0, Location__isnull=False)
+        return render(request,'order_list_sup.html',
+        {'orders': orders, 'emp': emp })
 
 def listOrdersFilter(request):
     orders = workOrder.objects.all()
@@ -124,6 +149,8 @@ def listOrdersFilter(request):
 def truncateData(request):
     workOrder.objects.all().delete()
     workOrderDuplicate.objects.all().delete()
+    # Locations.objects.all().delete()
+    # Employee.objects.all().delete()
     return HttpResponse('<p>Data deleted successfully</p>')
 
 def duplicatelistOrders(request):
@@ -137,8 +164,27 @@ def checkOrder(request, pID):
     return render(request,'checkOrder.html',{'order': orders, 'dupOrder': duplicateOrder})
 
 def order(request, orderID):
-    order = workOrder.objects.filter(id=orderID).first()
-    return render(request,'order.html',{'order':order})
+
+    context ={}
+ 
+    # fetch the object related to passed id
+    obj = get_object_or_404(workOrder, id = orderID)
+ 
+    # pass the object as instance in form
+    form = workOrderForm(request.POST or None, instance = obj)
+ 
+    # save the data from the form and
+    # redirect to detail_view
+    if form.is_valid():
+        form.save()
+          # Return to Locations List
+        context["orders"] = workOrder.objects.filter(Location__isnull=True, WCSup__isnull=True)      
+        return render(request, "order_list.html", context)
+ 
+    # add form dictionary to context
+    context["form"] = form
+ 
+    return render(request, "order.html", context)
 
 def updateDupOrder(request,pID, dupID):
     try:
@@ -206,3 +252,95 @@ def deleteDupOrder(request,pID):
         return render(request,'landing.html',{'message':'Order Discarded Successfully', 'alertType':'success'})
     except Exception as e:
         return render(request,'landing.html',{'message':'Somenthing went Wrong!', 'alertType':'danger'})
+
+def create_order(request):
+    # dictionary for initial data with
+    # field names as keys
+    context ={}
+ 
+    # add the dictionary during initialization
+    form = workOrderForm(request.POST or None)
+    if form.is_valid():
+        form.save()
+        # Return to Locations List
+        context["orders"] = workOrder.objects.filter(Location__isnull=True, WCSup__isnull=True)        
+        return render(request, "order_list.html", context)
+                 
+    context['form']= form
+    return render(request, "create_order.html", context)
+
+def create_location(request):
+    # dictionary for initial data with
+    # field names as keys
+    context ={}
+ 
+    # add the dictionary during initialization
+    form = LocationsForm(request.POST or None)
+    if form.is_valid():
+        form.save()
+        # Return to Locations List
+        context["dataset"] = Locations.objects.all()         
+        return render(request, "location_list.html", context)
+         
+    context['form']= form
+    return render(request, "location.html", context)
+
+def location_list(request):
+    context ={}
+    context["dataset"] = Locations.objects.all()
+         
+    return render(request, "location_list.html", context)
+
+def update_location(request, id):
+
+    context ={}
+    obj = get_object_or_404(Locations, LocationID = id)
+ 
+    form = LocationsForm(request.POST or None, instance = obj)
+ 
+    if form.is_valid():
+        form.save()
+        context["dataset"] = Locations.objects.all()         
+        return render(request, "location_list.html", context)
+
+    context["form"] = form
+ 
+    return render(request, "update_location.html", context)
+
+
+def employee_list(request):
+    context ={}
+ 
+    context["dataset"] = Employee.objects.all()
+         
+    return render(request, "employee_list.html", context)
+ 
+def create_employee(request):
+    context ={}
+ 
+    form = EmployeesForm(request.POST or None)
+    if form.is_valid():
+        form.save()
+        # Return to Locations List
+        context["dataset"] = Employee.objects.all()         
+        return render(request, "employee_list.html", context)
+         
+    context['form']= form
+    return render(request, "create_employee.html", context)
+
+def update_employee(request, id):
+
+    context ={}
+
+    obj = get_object_or_404(Employee, employeeID = id)
+ 
+    form = EmployeesForm(request.POST or None, instance = obj)
+ 
+    if form.is_valid():
+        form.save()
+        context["dataset"] = Employee.objects.all()         
+        return render(request, "employee_list.html", context)
+
+    context["form"] = form
+ 
+    return render(request, "update_employee.html", context)

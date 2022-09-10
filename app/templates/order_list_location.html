@@ -9,18 +9,9 @@
         {% csrf_token %}
 
         <div class="row">
-            <h3>ORDER LIST</h3>
+            <h3>ORDER LIST BY LOCATION - {{emp.Location}}</h3>
             <a style="color: black;"><hr></a>
-        </div>
-        
-        <br />
-        <div class="row">
-            <div class="col-lg-6">  
-                <div class="form-outline" style="align-items: center;">
-                    <a class="btn btn-success" href="/create_order/" role="button">Create New Order</a>
-                </div>
-            </div>
-        </div>                
+        </div>              
         <br />
  
     
@@ -31,8 +22,8 @@
                     <th scope="col">work Order Id</th>
                     <th scope="col">PO</th>
                     <th scope="col">PO Amount</th>    
-                    <th scope="col">Work Order Date</th>
-                    <th scope="col">Issue By</th>
+                    <th scope="col">Location</th>
+                    <th scope="col">Issued By</th>
                     <th scope="col">Job Name</th>
                     <th scope="col">Job Address</th>
                     <th scope="col"></th>
@@ -45,7 +36,7 @@
                         <td>{{order.workOrderId}}</td>
                         <td>{{order.PO}}</td>
                         <td>{{order.POAmount}}</td>
-                        <td>{{order.WorkOrderDate}}</td>
+                        <td>{{order.Location}}</td>
                         <td>{{order.IssuedBy}}</td>
                         <td>{{order.JobName}}</td>
                         <td>{{order.JobAddress}}</td>
