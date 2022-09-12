@@ -1,12 +1,16 @@
 {%load static%}
 
 <div class="menu">
+  {% if emp.is_admin  or user.is_staff %}
     <a aria-current="page" class="d-block text-light p-2" href="/upload/">
       <i class="fa-solid fa-cloud-arrow-up"></i> upload Orders</a>
+  {% endif %}
     <a aria-current="page" class="d-block text-light p-2" href="/order_list/">
       <i class="fa-solid fa-memo-circle-check lead"></i> Orders</a>
+  {% if emp.is_admin  or user.is_staff %}
     <a aria-current="page" class="d-block text-light p-2" href="/duplicate_order_list/">
       <i class="fa-solid fa-memo-circle-info lead"></i> Duplicate Orders</a>
+  {% endif %}
 <a style="color: white;"><hr></a>
 {% if emp.is_admin  or user.is_staff %}
     <a aria-current="page" class="d-block text-light p-2" href="/location_list/"><i
