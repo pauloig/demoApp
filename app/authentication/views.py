@@ -3,17 +3,20 @@ from django.http import HttpResponse
 from datetime import datetime
 from django.contrib.auth import authenticate, login as login_process
 from django.contrib.auth.decorators import login_required
+from workOrder import models as woModels
 from . import views
 
 @login_required(login_url='/login/')
 def home(request):
- #       return HttpResponse("Bienvenido")
-      return render(
+    emp = woModels.Employee.objects.filter(user__username__exact = request.user.username).first()
+    
+    return render(
         request,
         'index.html',
         {
-            'title':'Home Page',
-           'year':datetime.now().year,
+        'title':'Home Page',
+        'year':datetime.now().year,
+        'emp': emp
         }
     )
 

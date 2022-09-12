@@ -35,7 +35,8 @@
                     <th scope="col">Issue By</th>
                     <th scope="col">Job Name</th>
                     <th scope="col">Job Address</th>
-                    <th scope="col"></th>
+                    <th scope="col" style="width: 3%"></th>
+                    <th scope="col" style="width: 3%"></th>
                 </tr>              
             </thead>
             <tbody>                                       
@@ -50,6 +51,11 @@
                         <td>{{order.JobName}}</td>
                         <td>{{order.JobAddress}}</td>
                         <td> <a href="/order/{{order.id}}"><i class="fa-solid fa-circle-arrow-right" style="color: green;"></i></a></td>
+                        {% if order.uploaded and order.linkedOrder is null %}
+                            <td> <a href="/link_order_list/{{order.id}}"><i class="fa-solid fa-link" style="color: green;"></i></a> </td>
+                        {% else %}
+                            <td></td>
+                        {% endif %}
                     </tr>                                             
                 {% endfor %}
             </tbody>                              

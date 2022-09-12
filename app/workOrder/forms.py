@@ -37,7 +37,8 @@ class EmployeesForm(forms.ModelForm):
              "Location",
              "user",
              "is_active",
-             "is_supervisor"
+             "is_supervisor",
+             "is_admin"
         ]
 
 class workOrderForm(forms.ModelForm):

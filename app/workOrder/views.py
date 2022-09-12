@@ -1,6 +1,7 @@
 from ast import Try
 from contextlib import nullcontext, redirect_stderr
 from ctypes.wintypes import WORD
+from multiprocessing import context
 from os import dup
 from telnetlib import WONT
 from unittest import TextTestResult
@@ -82,7 +83,8 @@ def simple_upload(request):
                         CloseDate = data[15],
                         WCSup = data[16],
                         UploadDate = data[17],
-                        UserName = data[18]
+                        UserName = data[18],
+                        uploaded = True
                     )
                     value.save()
                     countInserted = countInserted + 1
@@ -114,9 +116,25 @@ def simple_upload(request):
     return render(request,'upload.html', {'countInserted':countInserted, 'countRejected':countRejected,'duplicateRejected':duplicateRejected})
 
 def listOrders(request):
+
+    emp = Employee.objects.filter(user__username__exact = request.user.username).first()
+    
+    if emp:
+        if emp.is_admin:
+            orders = workOrder.objects.filter()
+            return render(request,'order_list.html',
+            {'orders': orders})
+
+    if request.user.is_staff:
+        orders = workOrder.objects.filter()
+        return render(request,'order_list.html',
+        {'orders': orders})
+
     orders = workOrder.objects.filter(Location__isnull=True, WCSup__isnull=True)
     return render(request,'order_list.html',
     {'orders': orders})
+
+   
 
 def order_list_location(request, userID):
     emp = Employee.objects.filter(user__username__exact = userID).first()
@@ -166,22 +184,16 @@ def checkOrder(request, pID):
 def order(request, orderID):
 
     context ={}
- 
-    # fetch the object related to passed id
     obj = get_object_or_404(workOrder, id = orderID)
  
-    # pass the object as instance in form
     form = workOrderForm(request.POST or None, instance = obj)
- 
-    # save the data from the form and
-    # redirect to detail_view
+
     if form.is_valid():
         form.save()
-          # Return to Locations List
+  
         context["orders"] = workOrder.objects.filter(Location__isnull=True, WCSup__isnull=True)      
         return render(request, "order_list.html", context)
  
-    # add form dictionary to context
     context["form"] = form
  
     return render(request, "order.html", context)
@@ -238,7 +250,8 @@ def insertDupOrder(request, dupID):
                             CloseDate = dupOrder.CloseDate,
                             WCSup = dupOrder.WCSup,
                             UploadDate = dupOrder.UploadDate,
-                            UserName = dupOrder.UserName )
+                            UserName = dupOrder.UserName,
+                            uploaded = True )
         order.save()
         dupOrder.delete()
         return render(request,'landing.html',{'message':'Order Inserted Successfully', 'alertType':'success'})
@@ -254,15 +267,12 @@ def deleteDupOrder(request,pID):
         return render(request,'landing.html',{'message':'Somenthing went Wrong!', 'alertType':'danger'})
 
 def create_order(request):
-    # dictionary for initial data with
-    # field names as keys
     context ={}
  
-    # add the dictionary during initialization
     form = workOrderForm(request.POST or None)
     if form.is_valid():
         form.save()
-        # Return to Locations List
+      
         context["orders"] = workOrder.objects.filter(Location__isnull=True, WCSup__isnull=True)        
         return render(request, "order_list.html", context)
                  
@@ -270,15 +280,11 @@ def create_order(request):
     return render(request, "create_order.html", context)
 
 def create_location(request):
-    # dictionary for initial data with
-    # field names as keys
     context ={}
  
-    # add the dictionary during initialization
     form = LocationsForm(request.POST or None)
     if form.is_valid():
         form.save()
-        # Return to Locations List
         context["dataset"] = Locations.objects.all()         
         return render(request, "location_list.html", context)
          
@@ -344,3 +350,34 @@ def update_employee(request, id):
     context["form"] = form
  
     return render(request, "update_employee.html", context)
+
+def linkOrderList(request, id):
+
+    context = {}    
+    context["order"] = workOrder.objects.filter(id=id).first()
+    context["manOrders"] = workOrder.objects.filter(uploaded = False, linkedOrder__isnull = True)
+
+    return render(request, "link_order_list.html", context)
+
+
+def linkOrder(request, id, manualid):
+    context = {}    
+    context["order"] = workOrder.objects.filter(id=id).first()
+    context["manOrder"] = workOrder.objects.filter(id=manualid).first()
+    
+    return render(request, "link_order.html", context)
+
+
+def updateLinkOrder(request, id, manualid):
+    try:
+        order = workOrder.objects.filter(id=id).first()
+        order.linkedOrder = "updated"
+        order.save ()
+
+        manOrder = workOrder.objects.filter(id=manualid).first()
+        manOrder.linkedOrder = id
+        manOrder.save()
+
+        return render(request,'landing.html',{'message':'Order Linked Successfully', 'alertType':'success'})
+    except Exception as e:
+        return render(request,'landing.html',{'message':'Somenthing went Wrong!', 'alertType':'danger'})

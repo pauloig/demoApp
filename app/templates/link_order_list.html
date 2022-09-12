@@ -1,0 +1,163 @@
+{% extends 'index.html' %} 
+{%load static%}
+{% block title %} Duplicate Order List {% endblock %} 
+
+{% block container %}
+
+<div class="container">
+    <form method='post' enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="row">
+            <h3> LINK ORDERS </h3>
+            <a style="color: black;"><hr></a>
+        </div>
+        
+
+        <br />
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="card rounded">
+                    <div class="card-body">                    
+                            <div class="row">
+                                <table class="table table-sm table-striped">  
+                                    <thead class="thead-dark">
+                                        <tr>
+                                            <th scope="col"></th>
+                                            <th scope="col"></th>
+                                            <th scope="col"></th>
+                                        </tr>
+                                    </thead>    
+                                    <tbody>                                                 
+                                            <tr>
+                                                <th scope="row" class="bg-dark" style="color: white">prismID</th>     
+                                                <td>{{order.prismID}}</td>     
+                                                <!-- <td>{{dupOrder.prismID}}</td>                    -->
+                                            </tr>  
+                                            <tr>
+                                                <th scope="row" class="bg-dark" style="color: white" >work Order</th>       
+                                                <td>{{order.workOrderId}}</td>     
+                                                <!-- <td>{{dupOrder.workOrderId}}</td>                    -->
+                                            </tr>  
+                                            <tr>
+                                                <th scope="row" class="bg-dark" style="color: white">PO</th>       
+                                                <td>{{order.PO}}</td>     
+                                                <!-- <td>{{dupOrder.PO}}</td>                    -->
+                                            </tr>   
+                                            <tr>
+                                                <th scope="row" class="bg-dark" style="color: white">PO Amount</th>       
+                                                <td>{{order.POAmount}}</td>     
+                                                <!-- <td>{{dupOrder.POAmount}}</td>                    -->
+                                            </tr>   
+                                            <tr>
+                                                <th scope="row" class="bg-dark" style="color: white">Const Type</th>       
+                                                <td>{{order.ConstType}}</td>     
+                                                <!-- <td>{{dupOrder.ConstType}}</td>                    -->
+                                            </tr>   
+                                            <tr>
+                                                <th scope="row" class="bg-dark" style="color: white">Const Coordinator</th>       
+                                                <td>{{order.ConstCoordinator}}</td>     
+                                                <!-- <td>{{dupOrder.ConstCoordinator}}</td>                    -->
+                                            </tr>                                                    
+                                            <tr>
+                                                <th scope="row" class="bg-dark" style="color: white">Work Order Date</th>      
+                                                <td>{{order.WorkOrderDate}}</td>     
+                                                <!-- <td>{{dupOrder.WorkOrderDate}}</td>                    -->
+                                            </tr>   
+                                            <tr>
+                                                <th scope="row" class="bg-dark" style="color: white">Est Completion</th>      
+                                                <td>{{order.EstCompletion}}</td>     
+                                                <!-- <td>{{dupOrder.EstCompletion}}</td>                    -->
+                                            </tr>   
+                                            
+                                            <tr>
+                                                <th scope="row" class="bg-dark" style="color: white">Issued By</th>       
+                                                <td>{{order.IssuedBy}}</td>     
+                                                <!-- <td>{{dupOrder.IssuedBy}}</td>                    -->
+                                            </tr>   
+                                            <tr>
+                                                <th scope="row" class="bg-dark" style="color: white">Job Name</th>     
+                                                <td>{{order.JobName}}</td>     
+                                                <!-- <td>{{dupOrder.JobName}}</td>                    -->
+                                            </tr>  
+                                            <tr>
+                                                <th scope="row" class="bg-dark" style="color: white">Job Address</th>    
+                                                <td>{{order.JobAddress}}</td>     
+                                                <!-- <td>{{dupOrder.JobAddress}}</td>                    -->
+                                            </tr>   
+                                            <tr>
+                                                <th scope="row" class="bg-dark" style="color: white">Site Contact Name</th>    
+                                                <td>{{order.SiteContactName}}</td>     
+                                                <!-- <td>{{dupOrder.SiteContactName}}</td>                    -->
+                                            </tr>   
+                                            <tr>
+                                                <th scope="row" class="bg-dark" style="color: white">Site Phone Number</th>    
+                                                <td>{{order.SitePhoneNumber}}</td>     
+                                                <!-- <td>{{dupOrder.SitePhoneNumber}}</td>                    -->
+                                            </tr>   
+                                            <tr>
+                                                <th scope="row" class="bg-dark" style="color: white">Comments</th>    
+                                                <td>{{order.Comments}}</td>     
+                                                <!-- <td>{{dupOrder.Comments}}</td>                    -->
+                                            </tr>   
+                                            <tr>
+                                                <th scope="row" class="bg-dark" style="color: white">Status</th>    
+                                                <td>{{order.Status}}</td>     
+                                                <!-- <td>{{dupOrder.Status}}</td>                    -->
+                                            </tr>   
+                                            <tr>
+                                                <th scope="row" class="bg-dark" style="color: white">Close Date</th>    
+                                                <td>{{order.CloseDate}}</td>     
+                                                <!-- <td>{{dupOrder.CloseDate}}</td>                    -->
+                                            </tr>   
+                                            <tr>
+                                                <th scope="row" class="bg-dark" style="color: white">WC Sup</th>    
+                                                <td>{{order.WCSup}}</td>     
+                                                <!-- <td>{{dupOrder.WCSup}}</td>                    -->
+                                            </tr>   
+                                            <tr>
+                                                <th scope="row" class="bg-dark" style="color: white">Upload Date</th>    
+                                                <td>{{order.UploadDate}}</td>     
+                                                <!-- <td>{{dupOrder.UploadDate}}</td>                    -->
+                                            </tr>                                                                                      
+                                    </tbody>                           
+                                </table>
+                            </div>
+                            <div class="row">
+                                <table id="orders" class="table table-bordered">
+                                    <thead class="table-dark">
+                                        <tr>
+                                            <th scope="col">prism ID</th>
+                                            <th scope="col">work Order Id</th>
+                                            <th scope="col">PO</th>
+                                            <th scope="col">PO Amount</th>    
+                                            <th scope="col">Work Order Date</th>
+                                            <th scope="col">Issue By</th>
+                                            <th scope="col">Job Name</th>
+                                            <th scope="col">Job Address</th>
+                                            <th scope="col" style="width: 3%"></th>
+                                        </tr>              
+                                    </thead>
+                                    <tbody>                                       
+                                        {% for manual in manOrders %}
+                                            <tr>
+                                                <td>{{manual.prismID}}</td>
+                                                <td>{{manual.workOrderId}}</td>
+                                                <td>{{manual.PO}}</td>
+                                                <td>{{manual.POAmount}}</td>
+                                                <td>{{manual.WorkOrderDate}}</td>
+                                                <td>{{manual.IssuedBy}}</td>
+                                                <td>{{manual.JobName}}</td>
+                                                <td>{{manual.JobAddress}}</td>
+                                                <td> <a href="/link_order/{{order.id}}/{{manual.id}}"><i class="fa-solid fa-circle-arrow-right" style="color: green;"></i></a></td>                                 
+                                            </tr>                                             
+                                        {% endfor %}
+                                    </tbody>                              
+                                </table>
+                            </div>                    
+                    </div>
+                </div>                 
+            </div>
+        </div>      
+    </form>
+</div>
+{% endblock %}
