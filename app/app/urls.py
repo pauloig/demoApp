@@ -11,6 +11,7 @@ from django.conf import settings
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('upload/',views.simple_upload),
+    path('upload_payroll/',views.upload_payroll),
     path('order_list/',views.listOrders),
     path('order_list_location/<str:userID>',views.order_list_location),
     path('order_list_sup/<str:userID>',views.order_list_sup),
@@ -31,6 +32,23 @@ urlpatterns = [
     path('link_order_list/<id>',views.linkOrderList),
     path('link_order/<id>/<manualid>',views.linkOrder),
     path('updateLinkOrder/<id>/<manualid>',views.updateLinkOrder),
+    path('item_list/',views.item_list),
+    path('create_item/',views.create_item),
+    path('update_item/<id>',views.update_item),
+    path('item_price/<id>',views.item_price),
+    path('create_item_price/',views.create_item_price),
+    path('update_item_price/<id>',views.update_item_price),
+    path('po_list/<id>',views.po_list),
+    path('update_po/<id>',views.update_po),
+    path('create_po/<id>',views.create_po),
+    path('report_pdf/',views.report_pdf),
+    path('estimate_preview/<id>',views.estimate_preview),
+    path('invoice_preview/<id>',views.invoice_preview),
+    path('estimate/<id>',views.estimate),
+    path('invoice/<id>',views.invoice),
+    path('upload_item/',views.upload_item),
+    path('upload_item_price/',views.upload_item_price),
+    path('upload_employees/',views.upload_employee),
     path('logout/', LogoutView.as_view(next_page='/login/'), name='logout'),
     path('', include('authentication.urls')),
      path('home/', include('authentication.urls')),
@@ -46,7 +64,7 @@ urlpatterns = [
          ),
          name='login'),
          path('login/',viewHome.login),
-]
+    ]
 
 if settings.DEBUG:
     urlpatterns += static(

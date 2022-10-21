@@ -1,0 +1,212 @@
+{% extends 'index.html' %} 
+{%load static%}
+{% block title %} CREATE ITEMS {% endblock %} 
+
+{% block container %}
+
+<div class="container">
+    <form method='post' enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="row">
+            <div class="col-lg-8" >
+                <img src="https://photos.google.com/share/AF1QipNF5bkj9DttdCX9SAf-yJ_FOiRw0-cvIO_KW-lltHVYjbGcz1_OM2uS0l0SEasL7w?key=aENuNDN6c1NBYWUxMmdmLTYtNzcyQnp1eU9YRU5B" alt="WC Logo">
+                <p>     
+                    <h3>
+                        Wiring Connection, Inc.<br>
+                        1718 W. 139th Street<br>
+                        Gardena, CA 90249<br>        
+                    </h3>                                
+                </p>
+            </div>
+            <div class="col-lg-4" >
+                <div class="row d-flex justify-content-end">
+                    <div class="col-lg-12">
+                        <p align="right">
+                            <h2>
+                                <strong>Invoice</strong>   
+                            </h2>                                         
+                        </p> 
+                    </div>                    
+                </div>
+                <div class="row d-flex justify-content-end">
+                    <div class="col-lg-12">
+                        <table class="table table-sm table-bordered text-center">
+                            <tr>
+                                <td>
+                                    Date
+                                </td>
+                                <td>
+                                    Invoice #
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    6/17/2022
+                                </td>
+                                <td>
+                                    52584
+                                </td>
+                            </tr>
+                        </table>
+                    </div>                    
+                </div>                
+            </div>           
+        </div>
+        <div class="row">
+            <div class="col-lg-6">
+                <table class="table table-bordered">
+                    <tr>
+                        <td>
+                            <p> Bill To </p> 
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <p>
+                                Charter Communications <br>
+                                8120 Camino Arroyo <br>
+                                Gilroy, CA 95020
+                            </p>
+                        </td>                        
+                    </tr>
+                </table>
+            </div>
+            <div class="col-lg-6 align-middle">
+                <table class="table table-sm table-bordered">
+                    <tr>
+                        <td>
+                            <p> Project </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <p>
+                                3333478 16250 Monterey St (9)
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>    
+        <div class="row">
+            <div class="col-lg-12"></div>
+        </div>  
+        <div class="row">
+            <div class="col-lg-12"></div>
+        </div>  
+        <div class="row" >
+            <div class="col-lg-12 ">
+                <table class="table table-sm table-bordered align-top" style = "margin: 0px !important; padding: 0px !important;">
+                    <tr>
+                        <td style="width: 14%; align-content: center;">PO#</td>
+                        <td style="width: 14%; align-content: center;">PO Amount</td>
+                        <td style="width: 10%; align-content: center;">Comp. Date</td>
+                        <td style="width: 25%; align-content: center;">Coordinator</td>
+                        <td style="width: 12%; align-content: center;">Work Order</td>
+                        <td style="width: 13%; align-content: center;">Const. Type</td>
+                        <td style="width: 12%; align-content: center;">PID #</td>
+                    </tr>
+                    <tr style="margin: 0px !important; padding: 0px !important;">
+                        <td>{{order.PO}}</td>
+                        <td>999999.99</td>
+                        <td>{{order.WorkOrderDate}}</td>
+                        <td>{{order.ConstCoordinator}}</td>
+                        <td>{{order.workOrderId}}</td>
+                        <td>{{order.ConstType}}</td>
+                        <td>{{order.prismID}}</td>
+                    </tr>
+                </table>
+                <table class="table table-sm table-bordered align-top" style="margin: 0px !important; padding: 0px !important;">
+                    <tr style="background-color: #e9e9e9;">
+                        <td style="width: 20%" class="align-middle"><strong>Item</strong></td>
+                        <td style="width: 43%" class="align-middle"><strong>Description</strong></td>
+                        <td style="width: 12%" class="align-middle"><strong>Qty</strong></td>
+                        <td style="width: 13%" class="align-middle"><strong>Rate</strong></td>
+                        <td style="width: 12%" class="align-middle"><strong>Amount</strong></td>
+                    </tr>                        
+                    <tr class="align-top" style="height: 400px;">
+                        <td class="align-top" colspan="5" style="margin: 0px !important; padding: 0px !important;">
+                            <table class="table table-sm table-bordered align-top table-striped2">
+                                <tbody>
+                                    <tr>
+                                        <td style="width: 20%">US06</td>
+                                        <td style="width: 43%">Place Each Fiber Cable in Occupied Duct</td>
+                                        <td style="width: 12%">1,606</td>
+                                        <td style="width: 13%">1.30</td>
+                                        <td style="width: 12%">2,087.80</td>
+                                    </tr>
+                                    <tr>
+                                        <td >US06</td>
+                                        <td>Place Each Fiber Cable in Occupied Duct</td>
+                                        <td>1,606</td>
+                                        <td>1.30</td>
+                                        <td>2,087.80</td>
+                                    </tr>
+                                    <tr>
+                                        <td>US06</td>
+                                        <td>Place Each Fiber Cable in Occupied Duct</td>
+                                        <td>1,606</td>
+                                        <td>1.30</td>
+                                        <td>2,087.80</td>
+                                    </tr>
+                                </tbody>  
+                            </table>   
+                        </td>                           
+                    </tr>   
+                </table>   
+            </div>            
+        </div>  
+        <div class="row" style = "margin: 0px !important; padding: 0px !important;">
+            <div class="col-lg-8">
+
+            </div>
+            <div class="col-lg-4" style = "margin: 0px !important; padding: 0px !important;">
+                <table class="table table-bordered" style = "margin: 0px !important; padding: 0px !important;">
+                    <tr>
+                        <td>
+                            <h5>Total</h5>
+                        </td>
+                        <td>
+                            <h5>$6,716.80</h5>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <div class="row" style = "margin: 0px !important; padding: 0px !important;">
+            <div class="col-lg-8">
+
+            </div>
+            <div class="col-lg-4" style = "margin: 0px !important; padding: 0px !important;">
+                <table class="table table-bordered" style = "margin: 0px !important; padding: 0px !important;">
+                    <tr>
+                        <td>
+                            <h4>Payments/Credits</h4>
+                        </td>
+                        <td>
+                            <h5>$6,716.80</h5>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <div class="row" style = "margin: 0px !important; padding: 0px !important;">
+            <div class="col-lg-8">
+
+            </div>
+            <div class="col-lg-4" style = "margin: 0px !important; padding: 0px !important;">
+                <table class="table table-bordered" style = "margin: 0px !important; padding: 0px !important;">
+                    <tr>
+                        <td>
+                            <h3>Balance Due</h3>
+                        </td>
+                        <td>
+                            <h5>$6,716.80</h5>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}

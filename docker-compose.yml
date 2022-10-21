@@ -15,7 +15,7 @@ services:
       - ./data/web:/vol/web
     environment:
       - SECRET_KEY=devsecretkey
-      - DEBUG=1
+      - DEBUG=0
       - DB_HOST=db
       - DB_NAME=devdb
       - DB_USER=devuser

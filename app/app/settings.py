@@ -47,6 +47,8 @@ INSTALLED_APPS = [
     'authentication',
     'workOrder',
     'import_export',
+    'sequences.apps.SequencesConfig',
+    'django.contrib.humanize'
 ]
 
 MIDDLEWARE = [

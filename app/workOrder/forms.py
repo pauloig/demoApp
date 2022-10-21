@@ -1,7 +1,7 @@
 import re
 from types import CoroutineType
 from django import forms
-from .models import Locations, workOrder, workOrderDuplicate, Employee
+from .models import Locations, item, workOrder, workOrderDuplicate, Employee, itemPrice, internalPO
 
 class LocationsForm(forms.ModelForm):
     LocationID = forms.CharField(max_length=10, widget=forms.TextInput(attrs={'class':'form-control'}))
@@ -88,3 +88,66 @@ class workOrderForm(forms.ModelForm):
             'UserName',
             "Location",
         ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['prismID'].disabled = True
+        self.fields['workOrderId'].disabled = True
+        self.fields['PO'].disabled = True
+
+
+
+class ItemForm(forms.ModelForm):
+    itemID = forms.CharField(max_length=10, widget=forms.TextInput(attrs={'class':'form-control'}))
+    name = forms.CharField(max_length=50, widget=forms.TextInput(attrs={'class':'form-control'}))
+    description = forms.CharField(max_length=150, widget=forms.Textarea(attrs={'class':'form-control'}))
+    is_active= forms.BooleanField(required=False)
+    createdBy = forms.CharField(max_length=150, widget=forms.TextInput(attrs={'class':'form-control'}), required=False)
+    created_date = forms.CharField(max_length=150, widget=forms.TextInput(attrs={'class':'form-control'}), required=False)
+    class Meta:
+        model = item
+        fields = [
+            "itemID",
+            "name",           
+            "description",
+            "is_active",
+            "createdBy",
+            "created_date"
+        ]
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['createdBy'].disabled = True
+        self.fields['created_date'].disabled = True
+
+class ItemPriceForm(forms.ModelForm):
+    
+    class Meta:
+        model = itemPrice
+        fields = [
+           'item',
+            'location',
+            'pay_perc',
+            'price',
+            'emp_payout',
+            'rate',
+        ]
+
+class InternalPOForm(forms.ModelForm):
+    
+    class Meta:
+        model = internalPO
+        fields = [
+           'woID',
+            'supervisor',
+            'pickupEmployee',
+            'product',
+            'quantity',
+            'total',
+            'subcontractor'
+        ]
+
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['woID'].disabled = True

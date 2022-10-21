@@ -31,7 +31,8 @@
     <style>
       /* Inicio Sidebar*/
         :root{
-          --primary: #262626;
+          /* --primary: #262626; */
+          --primary: #002973;
           --light: #ffffff;
           --grey: #efefef;
         }
@@ -129,51 +130,11 @@
           color: #951d32;
         }
 
-        .radio_check {
-          width: 49% !important;
-          text-align: center;
+        .table-striped2>tbody>tr:nth-child(even), 
+        .table-striped2>tbody>tr:nth-child(even) {
+          background-color: #e9e9e9 !important;; 
         }
-
-        .video_container {
-          width: 100%;
-          padding: 0px;
-        }
-
-        .none {
-          display: none;
-        }
-
-        .table-red {
-          background-color: #007bff;
-          color: #ffffff;
-        }
-
-        .form-control {
-          border-radius: 0px;
-        }
-
-        .btn-circle {
-          width: 35px;
-          height: 35px;
-          text-align: center;
-          padding: 6px 0;
-          font-size: 12px;
-          line-height: 1.428571429;
-          border-radius: 15px !important;
-        }
-
-        .form-label {
-          font-weight: bold !important;
-        }
-
-        #image-tracking {
-          width: 100%;
-        }
-
-        /* .btn {
-          border-radius: 0px;
-        } */
-
+        
         @media only screen and (max-width: 400px) {
           .video_container {
             width: 100%;
@@ -346,8 +307,7 @@
     <div class="d-flex">
         <div id="sidebar-container" class="bg-primary">
           <div class="logo">
-            <a class="navbar-brand" href="/home/"><img src="wc_logo_nuevo.png" alt=""
-                width="100px" /></a>
+            <a class="navbar-brand" href="/home/"><img src= "http://134.122.27.250/static/media/WC_logo.png" alt="" width="100px" /></a>
           </div>
           <a style="color: white;"><hr></a>
           {% include 'partials/navbar.html' %}

@@ -1,0 +1,53 @@
+{% extends 'index.html' %} 
+{%load static%}
+{% block title %} Duplicate Order List {% endblock %} 
+
+{% block container %}
+
+<div class="container">
+    <form method='post' enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <div class="row">
+            <h3>ITEM LIST</h3>
+            <a style="color: black;"><hr></a>
+        </div>
+        
+        <br />
+        <div class="row">
+            <div class="col-lg-6">  
+                <div class="form-outline" style="align-items: center;">
+                    <a class="btn btn-success" href="/create_item/" role="button">Create New Item</a>
+                </div>
+            </div>
+        </div>                
+        <br />
+        <table id="orders" class="table table-bordered">
+            <thead class="table-dark">
+                <tr>
+                    <th scope="col" style="width: 10%">Id</th>
+                    <th scope="col" style="width: 40%">Name</th>
+                    <th scope="col" style="width: 40%">Description</th>
+                    <th scope="col" style="width: 5%"></th>
+                    <th scope="col" style="width: 5%"></th>
+                </tr>              
+            </thead>
+            <tbody>                                       
+                {% for item in items %}
+                    <tr>
+                        <td>{{item.itemID}}</td>
+                        <td>{{item.name}}</td>
+                        <td>{{item.description}}</td>
+                        <td> <a href="/update_item/{{item.itemID}}"><i class="fa-solid fa-pen-to-square" style="color: green;"></i></a></td>
+                        {% if item.is_active %}
+                            <td> <a href="/item_price/{{item.itemID}}"><i class="fa-solid fa-hand-holding-dollar" style="color: green;"></i></a></td>
+                        {% else %}
+                            <td></td>
+                        {% endif %}
+                    </tr>                                             
+                {% endfor %}
+            </tbody>                              
+        </table>
+    </form>
+</div>
+{% endblock %}

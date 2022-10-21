@@ -31,12 +31,14 @@
                     <th scope="col">work Order Id</th>
                     <th scope="col">PO</th>
                     <th scope="col">PO Amount</th>    
-                    <th scope="col">Work Order Date</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">upload Date</th>
                     <th scope="col">Issue By</th>
                     <th scope="col">Job Name</th>
-                    <th scope="col">Job Address</th>
-                    <th scope="col" style="width: 3%"></th>
-                    <th scope="col" style="width: 3%"></th>
+                    <th scope="col">Job Address</th>                                
+                    <th scope="col" style="width: 3%">Estimate</th>
+                    <th scope="col" style="width: 3%">Invoice</th>
+                    <th scope="col" style="width: 5%"></th>
                 </tr>              
             </thead>
             <tbody>                                       
@@ -46,16 +48,51 @@
                         <td>{{order.workOrderId}}</td>
                         <td>{{order.PO}}</td>
                         <td>{{order.POAmount}}</td>
-                        <td>{{order.WorkOrderDate}}</td>
+                        <!-- <td>{{order.Status}}</td> -->
+                        {% if order.Status == "1" %}
+                            <td>Not Started</td>
+                        {% endif %}
+                        {% if order.Status == "2" %}
+                            <td>Work in Progress</td>
+                        {% endif %}
+                        {% if order.Status == "3" %}
+                            <td>Pending Docs</td>
+                        {% endif %}
+                        {% if order.Status == "4" %}
+                            <td>Pending Revised WO</td>
+                        {% endif %}
+                        {% if order.Status == "5" %}
+                            <td>Invoiced</td>
+                        {% endif %}
+
+                        <td>{{order.UploadDate}}</td>
                         <td>{{order.IssuedBy}}</td>
                         <td>{{order.JobName}}</td>
                         <td>{{order.JobAddress}}</td>
-                        <td> <a href="/order/{{order.id}}"><i class="fa-solid fa-circle-arrow-right" style="color: green;"></i></a></td>
-                        {% if order.uploaded and order.linkedOrder is null %}
-                            <td> <a href="/link_order_list/{{order.id}}"><i class="fa-solid fa-link" style="color: green;"></i></a> </td>
+                        {% if order.Status >= "2" %}
+                            <td>
+                                <a href="/estimate_preview/{{order.id}}"><i class="fa-sharp fa-solid fa-file-invoice-dollar" style="color: green;"></i></a>
+                            </td>
                         {% else %}
                             <td></td>
-                        {% endif %}
+                        {% endif %}    
+                        {% if order.Status >= "4" %}
+                            <td>
+                                <a href="/invoice_preview/{{order.id}}"><i class="fa-sharp fa-solid fa-file-invoice-dollar" style="color: green;"></i></a>
+                            </td>
+                        {% else %}
+                            <td></td>
+                        {% endif %}    
+                        <td> 
+                            <a href="/order/{{order.id}}"><i class="fa-solid fa-circle-arrow-right" style="color: green;"></i></a>
+                        
+                            {% if order.uploaded and order.linkedOrder is null %}
+                            
+                                 <a href="/link_order_list/{{order.id}}"><i class="fa-solid fa-link" style="color: green;"></i></a> 
+                           
+                            {% endif %}
+                            <a href="/po_list/{{order.id}}"><i class="fa-solid fa-cart-shopping" style="color: green;"></i></a> 
+                        </td>
                     </tr>                                             
                 {% endfor %}
             </tbody>                              
