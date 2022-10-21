@@ -962,7 +962,7 @@ def invoice(request, id):
 
     wo2 = workOrder.objects.filter(id=id).first()
 
-    fileName = "invoice-" + wo2.pre_invoice + ".pdf"
+    fileName = "invoice-" + wo2.invoice + ".pdf"
 
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename=' + fileName
