@@ -15,6 +15,31 @@
         
         <br />
         <div class="row">
+            <div class="col-lg-4"> 
+                <select class="form-select" aria-label="Default select example" name="status" id="status">
+                    <option value ="0" selected>Status</option>
+                    <option value="1">Not Started</option>
+                    <option value="2">Work in Progress</option>
+                    <option value="3">Pending Docs</option>
+                    <option value="4">Pending Revised WO</option>
+                    <option value="5">Invoiced</option>
+                  </select>
+            </div>
+            <div class="col-lg-4">
+                <select class="form-select" aria-label="Default select example" name="location" id="location">
+                    <option value ="0" selected>Location</option>
+                    {% for data in location %}                              
+                        <option value="{{data.LocationID}}">{{data.name}}</option>
+                    {% endfor %}
+                  </select>
+            </div>
+            <div class="col-lg-4">  
+                <input class="btn btn-primary" type="submit" value="Search">
+            </div>
+        </div>
+        <br />
+        <br />
+        <div class="row">           
             <div class="col-lg-6">  
                 <div class="form-outline" style="align-items: center;">
                     <a class="btn btn-success" href="/create_order/" role="button">Create New Order</a>
@@ -83,15 +108,17 @@
                         {% else %}
                             <td></td>
                         {% endif %}    
-                        <td> 
-                            <a href="/order/{{order.id}}"><i class="fa-solid fa-circle-arrow-right" style="color: green;"></i></a>
-                        
-                            {% if order.uploaded and order.linkedOrder is null %}
+                        <td>
+                            {% if order.Status != "5" %} 
+                                <a href="/order/{{order.id}}"><i class="fa-solid fa-circle-arrow-right" style="color: green;"></i></a>
                             
-                                 <a href="/link_order_list/{{order.id}}"><i class="fa-solid fa-link" style="color: green;"></i></a> 
-                           
+                                {% if order.uploaded and order.linkedOrder is null %}
+                                
+                                    <a href="/link_order_list/{{order.id}}"><i class="fa-solid fa-link" style="color: green;"></i></a> 
+                            
+                                {% endif %}
+                                <a href="/po_list/{{order.id}}"><i class="fa-solid fa-cart-shopping" style="color: green;"></i></a> 
                             {% endif %}
-                            <a href="/po_list/{{order.id}}"><i class="fa-solid fa-cart-shopping" style="color: green;"></i></a> 
                         </td>
                     </tr>                                             
                 {% endfor %}

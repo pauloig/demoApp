@@ -21,6 +21,7 @@ class LocationsForm(forms.ModelForm):
 class EmployeesForm(forms.ModelForm):   
 
     supervisor_name = forms.ModelChoiceField(queryset=Employee.objects.filter(is_supervisor=True, is_active=True),required=False)
+    employeeID = forms.CharField(required=False)
 
     class Meta:
         model = Employee
@@ -40,6 +41,10 @@ class EmployeesForm(forms.ModelForm):
              "is_supervisor",
              "is_admin"
         ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['employeeID'].disabled = True
 
 class workOrderForm(forms.ModelForm):
     # prismID = forms.CharField(max_length=10, widget=forms.TextInput(attrs={'class':'form-control'}))

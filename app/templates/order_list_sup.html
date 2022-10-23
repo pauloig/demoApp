@@ -37,12 +37,33 @@
                             <td>{{order.workOrderId}}</td>
                             <td>{{order.PO}}</td>
                             <td>{{order.POAmount}}</td>
-                            <td>{{order.Status}}</td>
+                            <!-- <td>{{order.Status}}</td> -->
+                            {% if order.Status == "1" %}
+                                <td>Not Started</td>
+                            {% endif %}
+                            {% if order.Status == "2" %}
+                                <td>Work in Progress</td>
+                            {% endif %}
+                            {% if order.Status == "3" %}
+                                <td>Pending Docs</td>
+                            {% endif %}
+                            {% if order.Status == "4" %}
+                                <td>Pending Revised WO</td>
+                            {% endif %}
+                            {% if order.Status == "5" %}
+                                <td>Invoiced</td>
+                            {% endif %}
                             <td>{{order.UploadDate}}</td>
                             <td>{{order.WCSup}}</td>
                             <td>{{order.JobName}}</td>
                             <td>{{order.JobAddress}}</td>
-                            <td> <a href="/order/{{order.id}}"><i class="fa-solid fa-circle-arrow-right" style="color: green;"></i></a></td>
+                            <td>
+                                {% if order.Status != "5" %}
+                                    <a href="/order/{{order.id}}"><i class="fa-solid fa-circle-arrow-right" style="color: green;"></i></a>
+                                {% endif %}
+                            </td>
+                            
+                            
                         </tr>   
                 {% endfor %}
             </tbody>                              

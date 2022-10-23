@@ -1,31 +1,26 @@
 {%load static%}
+{% load humanize %}
 
 <div class="menu">
+  <!-- {{ menu | safe }}     -->
   {% if emp.is_admin  or user.is_staff %}
-    <a aria-current="page" class="d-block text-light p-2" href="/upload/">
-      <i class="icon ion-md-cloud"></i> upload Orders</a>
-    <a aria-current="page" class="d-block text-light p-2" href="/upload_payroll/">
-        <i class="icon ion-md-cloud"></i> upload payroll</a>
+    <a aria-current="page" class="d-block text-light p-2" href="/upload/"><i class="icon ion-md-cloud"></i> upload Orders</a>
+    <a aria-current="page" class="d-block text-light p-2" href="/upload_payroll/"><i class="icon ion-md-cloud"></i> upload payroll</a>
   {% endif %}
-    <a aria-current="page" class="d-block text-light p-2" href="/order_list/">
-      <i class="icon ion-md-clipboard"></i> Orders</a>
+    <a aria-current="page" class="d-block text-light p-2" href="/order_list/"><i class="icon ion-md-clipboard"></i> Orders</a>
   {% if emp.is_admin  or user.is_staff %}
-    <a aria-current="page" class="d-block text-light p-2" href="/duplicate_order_list/">
-      <i class="icon ion-md-clipboard"></i> Duplicate Orders</a>
-  {% endif %}
+    <a aria-current="page" class="d-block text-light p-2" href="/duplicate_order_list/"><i class="icon ion-md-clipboard"></i> Duplicate Orders</a>
+  {% endif %} 
 <a style="color: white;"><hr></a>
 {% if emp.is_admin  or user.is_staff %}
-    <a aria-current="page" class="d-block text-light p-2" href="/location_list/">
-      <i class="icon ion-md-business mr-2"></i>  Locations</a>
-    <a aria-current="page" class="d-block text-light p-2" href="/employee_list/"> 
-      <i class="icon ion-md-people"></i> Employees</a>
-    <a aria-current="page" class="d-block text-light p-2" href="/item_list/">
-      <i class="icon ion-md-business mr-2 lead" lead></i> Items</a>
+    <a aria-current="page" class="d-block text-light p-2" href="/location_list/"><i class="icon ion-md-business mr-2"></i>  Locations</a>
+    <a aria-current="page" class="d-block text-light p-2" href="/employee_list/"><i class="icon ion-md-people"></i> Employees</a>
+    <a aria-current="page" class="d-block text-light p-2" href="/item_list/"><i class="icon ion-md-business mr-2 lead" lead></i> Items</a>
 {% endif %}
 <!-- <a aria-current="page" class="d-block text-light p-2" href="/order_list_location/{{user.username}}">
   <i class="icon ion-md-business mr-2 lead" lead></i> WOs by Location</a> -->
-<a aria-current="page" class="d-block text-light p-2" href="/order_list_sup/{{user.username}}">
-  <i class="icon ion-md-business mr-2 lead" lead></i> WOs by Sup</a>
+
+  <a aria-current="page" class="d-block text-light p-2" href="/order_list_sup/{{user.username}}"> <i class="icon ion-md-business mr-2 lead" lead></i> WOs by Sup</a>
   
 <!--<a style="color: white;"><hr></a>
 <a aria-current="page" class="d-block text-light p-2 {% if app_selected == 7 %} active {% endif %}" href="#"><i
