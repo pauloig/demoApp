@@ -1097,10 +1097,12 @@ def invoice(request, id):
 
 
 def estimate_preview(request, id):
+    emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context = {}    
     wo = workOrder.objects.filter(id=id).first()
 
     context["order"] = wo
+    context["emp"] = emp
 
     context["payroll"] = payroll.objects.filter(woId = wo, itemTotal__gte = 1 ).first()
 
@@ -1182,11 +1184,12 @@ def estimate_preview(request, id):
     return render(request, "pre_invoice.html", context)
 
 def invoice_preview(request, id):
+    emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context = {}    
     wo = workOrder.objects.filter(id=id).first()
 
     context["order"] = wo
-
+    context["emp"] = emp
     context["payroll"] = payroll.objects.filter(woId = wo, itemTotal__gte = 1 ).first()
 
     payItems = payrollDetail.objects.filter(prismID =wo.prismID , workOrderId = wo.workOrderId , PO = wo.PO)
