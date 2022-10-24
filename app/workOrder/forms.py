@@ -137,6 +137,9 @@ class ItemPriceForm(forms.ModelForm):
             'emp_payout',
             'rate',
         ]
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['item'].disabled = True
 
 class InternalPOForm(forms.ModelForm):
     

@@ -753,14 +753,12 @@ def item_price(request, id):
 
     return render(request, "item_price.html", context)
 
-def create_item_price(request):
+def create_item_price(request, id):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context ={}
- 
-    form = ItemPriceForm(request.POST or None)
+    it = item.objects.filter(itemID=id).first()
+    form = ItemPriceForm(request.POST or None, initial={'item': it})
     if form.is_valid():
-        # form.instance.createdBy = request.user.username
-        # form.instance.created_date = datetime.datetime.now()
         form.save()               
         return HttpResponseRedirect("/item_list/")
          
