@@ -35,6 +35,7 @@
           --primary: #002973;
           --light: #ffffff;
           --grey: #efefef;
+          --card-header: #262a4d;
         }
         
         body{
@@ -46,6 +47,11 @@
 
         .bg-primary{
           background-color: var(--primary) !important;
+        }
+
+        .card-header-wc{
+          background-color: var(--card-header) !important;
+          color: white !important;
         }
 
 
@@ -340,6 +346,7 @@
                   {% else %}
                       <ul class="navbar-nav ml-auto mt-10">
                         <li class="nav-item">
+                          <h5>el usuario no esta autenticado</h5> 
                           <a class="nav-link login-button" href="/login/">Login</a>
                         </li>
                       </ul>
@@ -364,7 +371,13 @@
           {% include 'partials/footer.html' %}
         </div>
         
-    
+        
+          <!-- Modal -->
+          <div id="modal" class="modal fade" tabindex="-1">
+            <div id ="dialog" class="modal-dialog modal-lg" style="width: 90% !important">
+
+            </div>
+          </div>
         
       </div>
 
@@ -373,6 +386,9 @@
       <script type="text/javascript" src="https://malsup.github.io/jquery.blockUI.js"></script>
       <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/3.5.0/mdb.min.js"></script>
       
+      <!-- HTMX -->
+      <script src="https://unpkg.com/htmx.org@1.8.4"></script>
+
       <!-- Bootstrap -->
       <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" 
       integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
@@ -384,10 +400,12 @@
       <!-- Statict js Files -->
         <script src="{% static '/scripts/main140721.js' %}"></script>
      
+ <!-- Datatables Script -->
+ <script>
+  $("#orders").DataTable();  
 
-      <!-- Datatables Script -->
-      <script>
-        $("#orders").DataTable();  
-      </script>
+  
+</script>
+
 </body>
 </html>

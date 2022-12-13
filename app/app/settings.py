@@ -48,7 +48,8 @@ INSTALLED_APPS = [
     'workOrder',
     'import_export',
     'sequences.apps.SequencesConfig',
-    'django.contrib.humanize'
+    'django.contrib.humanize',
+    'widget_tweaks',
 ]
 
 MIDDLEWARE = [

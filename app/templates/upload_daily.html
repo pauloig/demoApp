@@ -1,0 +1,70 @@
+{% extends 'base.html' %} 
+{%load static%}
+{% block title %} Order List {% endblock %} 
+{% load humanize %}
+{% block container %}
+
+<div class="container">
+    <form method='post' action="{{request.path}}" class="modal-content" id="daily_item">
+        {% csrf_token %}
+
+        <div class="modal-header">
+            <h5>Upload Daily</h5>           
+        </div>              
+       
+        <div class="modal-body">
+            <div class="row">
+                <div class="row">
+                    <div class="col-lg-12 col-xs-12">
+                      <label class="form-label" for="file">File</label>
+                      <div class="input-group">
+                        <input type="text" class="form-control" id="show_name_file" readonly />
+                        <div class="input-group-btn">
+                          <!--<span class="fileUpload btn btn-danger">
+                            <span class="upl" id="upload">Upload single file</span>
+                            </span>
+                          -->
+                          <input type="file" class="upload up" id="file" name="myfile" accept=".pdf" required />
+                        </div>
+                      </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-lg-12">
+                      <div class="row">
+                        <div class="col-lg-12">
+                        <!--  <p class="btn btn-danger" id="save-button-records">
+                            <i class="fas fa-save"></i> Upload file
+                          </p>-->
+                        </div>
+                      </div>
+
+                      <!--<input type="submit" style="display: none" class="save-submit"/>-->
+                      <button type="submit">upload</button>
+                      <br>
+                     <!-- <table>
+                        {{imported_data}}
+                      </table>-->
+                      
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-lg-12">
+                      {% if countRejected > 0 or  countInserted > 0 %}
+                        <p> Records Processed: {{countInserted}} </p>
+                        <p> Rejected Records: {{countRejected}} </p>
+                        <p> WO Updated : {{countUpdated}} </p>
+                      {% endif %}
+                    </div>
+                  </div>
+            </div>          
+        </div>
+        
+        <div class="modal-footer">          
+            <button type="submit" class="btn btn-primary" form="daily_item">Save</button>
+            <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button> 
+        </div>
+   
+    </form>
+</div>
+{% endblock %}

@@ -1,6 +1,6 @@
 from django.contrib import admin
 from import_export.admin import ImportExportModelAdmin
-from workOrder.models import workOrder, workOrderDuplicate, Locations, Employee, item, itemPrice, payroll, payrollDetail, internalPO
+from workOrder.models import workOrder, workOrderDuplicate, Locations, Employee, item, itemPrice, payroll, payrollDetail, internalPO, period, Daily, DailyEmployee, DailyItem
 
 
 admin.site.register(workOrder)
@@ -34,3 +34,7 @@ admin.site.register(itemPrice)
 admin.site.register(payroll)
 admin.site.register(payrollDetail)
 admin.site.register(internalPO)
+admin.site.register(period)
+admin.site.register(Daily)
+admin.site.register(DailyEmployee)
+admin.site.register(DailyItem)

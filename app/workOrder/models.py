@@ -134,6 +134,9 @@ class itemPrice(models.Model):
 
     class Meta:
         unique_together = ('item', 'location')
+    
+    def __str__(self):
+        return str(self.item) + " - " + str(self.location)
 
 
 class payroll(models.Model):
@@ -195,3 +198,66 @@ class internalPO(models.Model):
     class Meta:
         unique_together = ('id', 'woID')
         
+class period(models.Model):
+    periodID = models.IntegerField(null=False, blank=False)
+    periodYear = models.IntegerField(null=False, blank=False)
+    fromDate = models.DateField()
+    toDate = models.DateField()
+    payDate = models.DateField()
+    weekRange = models.CharField(max_length=100, blank=True, null=True)
+    status = models.IntegerField()
+
+    def __str__(self):
+        return str(self.periodID) + " - " + str(self.periodYear)
+
+class Daily(models.Model):
+    crew = models.IntegerField(null=False, blank=False)
+    Location = models.ForeignKey(Locations, on_delete=models.CASCADE, db_column ='Location', null=False, blank=False)
+    Period = models.ForeignKey(period, on_delete=models.CASCADE, db_column ='Period', null=False, blank=False)
+    day = models.DateField(null=False, blank=False)
+    woID = models.ForeignKey(workOrder, on_delete=models.CASCADE, db_column ='woID', null=True, blank=True)
+    supervisor = models.CharField(max_length=200, blank=True, null=True)
+    own_vehicle = models.FloatField(blank=True, null=True)
+    total_pay = models.IntegerField(null=True, blank=True)
+    split_paymet = models.BooleanField(default=False)
+
+    def __str__(self):
+        return str(self.Period) + " - " + str(self.day)
+    
+    class Meta:
+        unique_together = ('Period','Location','day', 'crew')
+
+class DailyEmployee(models.Model):
+    DailyID = models.ForeignKey(Daily, on_delete=models.CASCADE, db_column ='DailyID', null=False, blank=False)
+    EmployeeID = models.ForeignKey(Employee, on_delete=models.CASCADE, db_column ='EmployeeID', null=False, blank=False)
+    per_to_pay =  models.FloatField(null=True, blank=True)
+    on_call = models.FloatField(null=True, blank=True)
+    bonus =  models.FloatField(null=True, blank=True)
+    start_time = models.IntegerField(null=True, blank=True)
+    start_lunch_time = models.IntegerField(null=True, blank=True)
+    end_lunch_time = models.IntegerField(null=True, blank=True)
+    end_time = models.IntegerField(null=True, blank=True)
+    total_hours = models.FloatField(null=True, blank=True)
+    regular_hours = models.FloatField(null=True, blank=True)
+    ot_hour = models.FloatField(null=True, blank=True)
+    double_time = models.FloatField(null=True, blank=True)
+    payout =  models.FloatField(null=True, blank=True)
+
+    def __str__(self):
+        return str(self.DailyID) + " - " + str(self.EmployeeID)
+    
+    class Meta:
+        unique_together = ('DailyID','EmployeeID')
+
+class DailyItem(models.Model):
+    DailyID = models.ForeignKey(Daily, on_delete=models.CASCADE, db_column ='DailyID', null=False, blank=False)
+    itemID = models.ForeignKey(itemPrice, on_delete=models.CASCADE, db_column ='itemID', null=False, blank=False )
+    quantity = models.IntegerField(null=False, blank=False)
+    total = models.FloatField(null=True, blank=True)
+
+    def __str__(self):
+        return str(self.DailyID) + " - " + str(self.itemID)
+    
+    class Meta:
+        unique_together = ('DailyID','itemID')
+

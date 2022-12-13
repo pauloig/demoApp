@@ -9,21 +9,6 @@ from . import views
 @login_required(login_url='/login/')
 def home(request):
     emp = woModels.Employee.objects.filter(user__username__exact = request.user.username).first()
-    # menuHTML = ""
-    # if emp.is_admin or request.user.is_staff:
-    #     menuHTML = menuHTML + ' <a aria-current="page" class="d-block text-light p-2" href="/upload/"><i class="icon ion-md-cloud"></i> upload Orders</a> '  
-    #     menuHTML = menuHTML + ' <a aria-current="page" class="d-block text-light p-2" href="/upload_payroll/"><i class="icon ion-md-cloud"></i> upload payroll</a> '
-    #     menuHTML = menuHTML + '<a aria-current="page" class="d-block text-light p-2" href="/duplicate_order_list/"><i class="icon ion-md-clipboard"></i> Duplicate Orders</a>'
-    #     menuHTML = menuHTML + '<a style="color: white;"><hr></a>'
-    #     menuHTML = menuHTML + '<a aria-current="page" class="d-block text-light p-2" href="/location_list/"><i class="icon ion-md-business mr-2"></i>  Locations</a>'
-    #     menuHTML = menuHTML + '<a aria-current="page" class="d-block text-light p-2" href="/employee_list/"><i class="icon ion-md-people"></i> Employees</a>'
-    #     menuHTML = menuHTML + '<a aria-current="page" class="d-block text-light p-2" href="/item_list/"><i class="icon ion-md-business mr-2 lead" lead></i> Items</a>'
-    #     menuHTML = menuHTML + '<a style="color: white;"><hr></a>'
-
-    # menuHTML = menuHTML + '<a aria-current="page" class="d-block text-light p-2" href="/order_list/"><i class="icon ion-md-clipboard"></i> Orders</a>'
-    # menuHTML = menuHTML + '<a aria-current="page" class="d-block text-light p-2" href="/order_list_sup/' + request.user.username + '"> <i class="icon ion-md-business mr-2 lead" lead></i> WOs by Sup</a>'
-        
-
     return render(
         request,
         'index.html',

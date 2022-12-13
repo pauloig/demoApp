@@ -1,7 +1,7 @@
 import re
 from types import CoroutineType
 from django import forms
-from .models import Locations, item, workOrder, workOrderDuplicate, Employee, itemPrice, internalPO
+from .models import Locations, item, workOrder, workOrderDuplicate, Employee, itemPrice, internalPO, period, DailyEmployee, DailyItem
 
 class LocationsForm(forms.ModelForm):
     LocationID = forms.CharField(max_length=10, widget=forms.TextInput(attrs={'class':'form-control'}))
@@ -159,3 +159,57 @@ class InternalPOForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['woID'].disabled = True
+
+class periodForm(forms.ModelForm):
+
+    class Meta:
+        model = period
+        fields = [
+            'periodID',
+            'periodYear',
+            'fromDate',
+            'toDate',
+            'payDate',
+            'weekRange',
+            'status'
+        ]
+
+class DailyEmpForm(forms.ModelForm):
+
+    class Meta:
+        model = DailyEmployee
+        fields = [
+            'DailyID',
+            'EmployeeID',
+            'per_to_pay',
+            'on_call',
+            'bonus',
+            'start_time',
+            'start_lunch_time',
+            'end_lunch_time',
+            'end_time',
+            'total_hours'
+        ]
+
+    def __init__(self, *args, **kwargs):
+        qs = kwargs.pop('qs')
+        super().__init__(*args, **kwargs)
+        self.fields['DailyID'].disabled = True
+        self.fields['EmployeeID'].queryset = qs
+
+class DailyItemForm(forms.ModelForm):
+    """ itemID = forms.ModelChoiceField(queryset=itemPrice.objects.filter(location__LocationID = ),required=False)"""
+
+    class Meta:
+        model = DailyItem
+        fields = [
+            'DailyID',
+            'itemID',
+            'quantity',            
+        ]
+
+    def __init__(self, *args, **kwargs):
+        qs = kwargs.pop('qs')
+        super().__init__(*args, **kwargs)
+        self.fields['DailyID'].disabled = True
+        self.fields['itemID'].queryset = qs

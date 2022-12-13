@@ -1,0 +1,80 @@
+{% extends 'base.html' %} 
+{%load static%}
+{% block title %} Order List {% endblock %} 
+{% load humanize %}
+{% block container %}
+
+<div class="container">
+    <form method='post' enctype="multipart/form-data" class="modal-content">
+        {% csrf_token %}
+
+        <div class="modal-header">
+            <h5>ORDER LIST</h5>           
+        </div>              
+       
+        <div class="modal-body">
+            <table id="orders" class="table table-bordered">
+                <thead class="table-dark">
+                    <tr>
+                        <th scope="col">prism ID</th>
+                        <th scope="col">work Order Id</th>
+                        <th scope="col">PO</th>
+                        <!-- <th scope="col">PO Amount</th>     -->
+                        <th scope="col">Status</th>
+                        <!-- <th scope="col">Location</th>
+                        <th scope="col">Sup</th> -->
+                        <!-- <th scope="col">upload Date</th> -->
+                        <!-- <th scope="col">WC Sup</th> -->
+                        <!-- <th scope="col">Job Name</th> -->
+                        <!-- <th scope="col">Job Address</th> -->
+                        <th scope="col"></th>
+                    </tr>              
+                </thead>
+                <tbody>                                       
+                    {% for order in orders %}
+                            <tr>
+                                <td>{{order.prismID}}</td>
+                                <td>{{order.workOrderId}}</td>
+                                <td>{{order.PO}}</td>
+                                <!-- <td>${{order.POAmount|intcomma}}</td> -->
+                                <!-- <td>{{order.Status}}</td> -->
+                                {% if order.Status == "1" %}
+                                    <td>Not Started</td>
+                                {% endif %}
+                                {% if order.Status == "2" %}
+                                    <td>Work in Progress</td>
+                                {% endif %}
+                                {% if order.Status == "3" %}
+                                    <td>Pending Docs</td>
+                                {% endif %}
+                                {% if order.Status == "4" %}
+                                    <td>Pending Revised WO</td>
+                                {% endif %}
+                                {% if order.Status == "5" %}
+                                    <td>Invoiced</td>
+                                {% endif %}
+                                <!-- <td>{{order.Location}}</td>
+                                <td>{{order.WCSup}}</td> -->
+                                <!-- <td>{{order.UploadDate}}</td> -->
+                                <!-- <td>{{order.WCSup}}</td> -->
+                                <!-- <td>{{order.JobName}}</td> -->
+                                <!-- <td>{{order.JobAddress}}</td> -->
+                                <td>
+                                    <!-- {% if order.Status != "5" %} -->
+                                        <a href="/update_order_daily/{{order.id}}/{{daily}}"><i class="fa-solid fa-circle-arrow-right" style="color: green;"></i></a>
+                                    <!-- {% endif %} -->
+                                </td>
+                                
+                                
+                            </tr>   
+                    {% endfor %}
+                </tbody>                              
+            </table>
+        </div>
+        
+        <div class="modal-footer">
+
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,55 @@
+{% extends 'index.html' %} 
+{%load static%}
+{% block title %} Duplicate Order List {% endblock %} 
+
+{% block container %}
+
+<div class="container">
+    <form method='post' enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="row">
+            <h3>PERIOD LIST</h3>
+            <a style="color: black;"><hr></a>
+        </div>
+        <br />
+        <!-- <div class="row">
+            <div class="col-lg-6">  
+                <div class="form-outline" style="align-items: center;">
+                    <a class="btn btn-success" href="/create_period/" role="button">Create New Period</a>
+                </div>
+            </div>
+        </div>                 -->
+        <br />
+        <table id="orders" class="table table-bordered">
+            <thead class="table-dark">
+                <tr>
+                    <th scope="col" style="width: 5%">Id</th>
+                    <th scope="col" style="width: 10%">year</th>
+                    <th scope="col" style="width: 20%">from Date</th>
+                    <th scope="col" style="width: 20%">to Date</th>
+                    <th scope="col" style="width: 20%">pay Date</th>
+                    <th scope="col" style="width: 20%">week Range</th>
+                    <th scope="col" style="width: 5%"></th>
+                </tr>              
+            </thead>
+            <tbody>                                       
+                {% for item in period %}
+                    <tr>
+                        <td>{{item.periodID}}</td>
+                        <td>{{item.periodYear}}</td>
+                        <td>{{item.fromDate}}</td>
+                        <td>{{item.toDate}}</td>
+                        <td>{{item.payDate}}</td>
+                        <td>{{item.weekRange}}</td>
+                         <td> 
+                            <a href="/add_daily/{{item.id}}">
+                                <i class="fa-solid fa-file-invoice-dollar" style="color: green;"></i>
+                            </a>
+                        </td>
+                    </tr>                                             
+                {% endfor %}
+            </tbody>                              
+        </table>
+    </form>
+</div>
+{% endblock %}

@@ -9,13 +9,13 @@ from telnetlib import WONT
 from unittest import TextTestResult
 from urllib import response
 from django.shortcuts import render, get_object_or_404, HttpResponseRedirect, redirect
-from .models import Employee, payrollDetail, workOrder, workOrderDuplicate, Locations, item, itemPrice, payroll, internalPO
+from .models import Employee, payrollDetail, workOrder, workOrderDuplicate, Locations, item, itemPrice, payroll, internalPO, period, Daily, DailyEmployee, DailyItem
 from .resources import workOrderResource
 from django.contrib import messages
 from tablib import Dataset
 from django.http import HttpResponse, FileResponse
 from django.db import IntegrityError
-from .forms import EmployeesForm, InternalPOForm, ItemForm, ItemPriceForm, LocationsForm, workOrderForm
+from .forms import EmployeesForm, InternalPOForm, ItemForm, ItemPriceForm, LocationsForm, workOrderForm, DailyEmpForm, DailyItemForm
 from sequences import get_next_value, Sequence
 from datetime import date
 from django.utils.dateparse import parse_date
@@ -30,6 +30,7 @@ from xhtml2pdf import pisa
 from .classes import itemPriceList
 from decimal import Decimal
 from django.db.models import Max
+from django.db.models import Sum
 
 
 
@@ -818,55 +819,12 @@ def create_po(request, id):
     wo = workOrder.objects.filter(id=id).first()
     form = InternalPOForm(request.POST or None, initial={'woID': wo})
     if form.is_valid():
-        # form.instance.createdBy = request.user.username
-        # form.instance.created_date = datetime.datetime.now()
         form.save()               
         return HttpResponseRedirect("/order_list/")
          
     context['form']= form
     context["emp"] = emp
     return render(request, "create_po.html", context)
-
-def report_pdf(request):
-    emp = Employee.objects.filter(user__username__exact = request.user.username).first()
-
-    buf = io.BytesIO()
-    c = canvas.Canvas(buf, pagesize=letter, bottomup=0)
-    textObj = c.beginText()
-    textObj.setTextOrigin(inch,inch)
-    textObj.setFont("Helvetica",14)
-
-    lines = [
-        "Wiring Connection, Inc.",
-        "1718 W. 139th Street",
-        "Gardena, CA 90249",
-        "",
-        "",
-        "Bill To",
-        "Charter Communications"
-        "8120 Camino Arroyo"
-        "Gilroy, CA 95020"
-        ""
-        "",
-        "PO#          PO Amount   Comp. Date     Coordinator     Work Order     Const. Type      PID#",
-        "4501026881   27668.50                  Tony Aguilar      1544467       Hospitality    3333478",
-        "Item                    Description                           Qty        Rate             Amount",
-        "US06            Place Each Fiber Cable in Occupied Duct       1,606      1.30             2,087.80",
-        "US28            Proof and Place, per conduit foot               962      0.50               481.00",
-        "NS005           Materials and Fees Pass-through               2,080      1.10             2,288.00",
-    ]
-    
-    for line in lines:
-        textObj.textLine(line)
-
-    c.drawText(textObj)
-    c.showPage()
-    c.save()
-    buf.seek(0)
-
-    return FileResponse(buf, as_attachment=True, filename='report.pdf')
-
-
 
 def estimate(request, id):
     context = {}    
@@ -1384,3 +1342,578 @@ def upload_employee(request):
                 countRejected = countRejected + 1                
                        
     return render(request,'upload_employee.html', {'countInserted':countInserted, 'countRejected':countRejected })
+
+def period_list(request):
+    emp = Employee.objects.filter(user__username__exact = request.user.username).first()
+    context = {}    
+    context["period"] = period.objects.all().order_by('-id')
+    context["emp"] = emp
+    
+    return render(request, "period_list.html", context)
+
+def create_period(request):
+    periodRange = 13 #Period Rage 14 days
+    payRange = 7 #Pay Range, number of days to pay  
+
+    emp = Employee.objects.filter(user__username__exact = request.user.username).first()
+    context = {}   
+    context["emp"] = emp
+
+    #get the last period created
+    lastPeriod = period.objects.all().order_by('id').last()
+
+    if lastPeriod:
+        try:
+
+            fromD = lastPeriod.toDate + datetime.timedelta(days=1)
+            toD = fromD + datetime.timedelta(days=periodRange)
+            payD = toD + datetime.timedelta(days=payRange)
+            newYear = int(payD.year)
+            perId = 0
+            weekR = 'W' + str(fromD.isocalendar()[1]) + ' - ' + str(toD.isocalendar()[1])
+
+            if newYear > lastPeriod.periodYear:
+                perId = 1
+            else:
+                perId = lastPeriod.periodID + 1
+
+            newPeriod = period(
+                periodID = perId,
+                periodYear = newYear,
+                fromDate = fromD,
+                toDate = toD,
+                payDate = payD,
+                weekRange = weekR,
+                status = 1
+            )
+
+            newPeriod.save()
+        except Exception as e:
+            print('********** Error: ', e, '**********')
+
+    return HttpResponseRedirect('/period_list/')
+
+def orders_payroll(request, dailyID):
+    emp = Employee.objects.filter(user__username__exact = request.user.username).first()
+    wo = workOrder.objects.all()
+    context = {}    
+    context["orders"] = wo
+    context["emp"] = emp    
+    context["daily"] = dailyID
+
+    return render(request, "orders_payroll.html", context)
+
+def update_order_daily(request, woID, dailyID):
+    emp = Employee.objects.filter(user__username__exact = request.user.username).first()
+
+    context = {}    
+    context["emp"] = emp    
+
+    crew = Daily.objects.filter(id = dailyID).first()
+    wo = workOrder.objects.filter(id = woID).first()
+
+    if crew and wo:
+        crew.woID = wo
+        crew.save()
+        per = crew.Period.id
+
+        return HttpResponseRedirect('/payroll/' + str(per) + '/' + crew.day.strftime("%d")  + '/'+ str(crew.crew) +'/0')
+    else:
+        return HttpResponseRedirect('/payroll/0/0/0/0')
+
+
+def create_daily(request, pID, dID, LocID):
+    emp = Employee.objects.filter(user__username__exact = request.user.username).first()
+    
+    context = {}    
+    context["emp"] = emp    
+    per = period.objects.filter(id = pID).first()
+
+    if int(LocID) > 0:
+        loc = Locations.objects.filter(LocationID = LocID).first()
+    else:
+        loc = Locations.objects.filter(LocationID = emp.Location.LocationID).first()
+
+    if per:
+        #Selecting the day date
+        startDate = per.fromDate
+        selectedDate = per.fromDate
+        numDays = 14
+        for x in range(0,numDays):            
+            fullDate = startDate + datetime.timedelta(days = x)            
+            day = fullDate.strftime("%d")
+            if int(dID) == int(day):
+                 selectedDate = fullDate
+
+        crewNumber = Daily.objects.filter( Period = per, day = selectedDate, Location = loc).count()
+
+        crew  = Daily(
+            Period = per,
+            Location = loc,
+            day = selectedDate,
+            crew = int(crewNumber) + 1
+        )
+
+        crew.save()
+        per = crew.Period.id
+
+        return HttpResponseRedirect('/payroll/' + str(per) + '/' + crew.day.strftime("%d")  + '/'+ str(crew.crew) +'/'+LocID)
+    else:
+        return HttpResponseRedirect('/payroll/0/0/0/0')
+
+def update_daily(request, daily):
+    emp = Employee.objects.filter(user__username__exact = request.user.username).first()
+    
+    context = {}    
+    context["emp"] = emp    
+
+    crew = Daily.objects.filter(id = daily).first()
+
+    if crew:
+        sup = request.POST.get('supervisor') 
+
+        crew.supervisor = "12345"
+        crew.save()
+
+        per = crew.Period.id          
+
+        return HttpResponseRedirect('/payroll/' + str(per) + '/' + crew.day.strftime("%d")  + '/'+ str(crew.crew) +'/0')
+    else:
+        return HttpResponseRedirect('/payroll/0/0/0/0')
+
+
+def update_ptp_Emp(dailyID, split):
+    emp_ptp = 0
+    crew = Daily.objects.filter(id = dailyID).first()
+    if crew:                     
+        if bool(split):
+            empCount = DailyEmployee.objects.filter(DailyID = crew).count()                
+           
+
+            if empCount > 0:
+                empPtp = 100 / empCount                
+                empList = DailyEmployee.objects.filter(DailyID = crew)               
+
+                for empl in empList:
+                    empD = DailyEmployee.objects.filter(id = empl.id).first()
+                    empD.per_to_pay = empPtp                                       
+                    empD.save()    
+      
+
+        itemCount = DailyItem.objects.filter(DailyID = crew).count()
+        if itemCount > 0:
+            itemSum = 0
+            itemList = DailyItem.objects.filter(DailyID = crew)
+
+            for iteml in itemList:
+                itemSum += iteml.total 
+
+        if crew.own_vehicle != None:
+            ovp = (itemSum * crew.own_vehicle) / 100
+            itemSum += ovp                     
+                                      
+        empList = DailyEmployee.objects.filter(DailyID = crew)
+        
+        for empl in empList:
+            empD = DailyEmployee.objects.filter(id = empl.id).first()    
+            if empD.per_to_pay != None:                                         
+                emp_ptp += empD.per_to_pay
+
+            if itemCount > 0:
+                pay_out = ((itemSum * empD.per_to_pay) / 100)
+            else: 
+                if empD.EmployeeID.hourly_rate != None: 
+                    empRate = float(empD.EmployeeID.hourly_rate)
+                else:
+                    empRate = 0
+
+                pay_out = (empD.regular_hours * empRate) + (empD.ot_hour * (empRate * 1.5)) + (empD.double_time * (empRate * 2))
+
+            if empD.on_call != None:
+                pay_out += empD.on_call
+
+            if empD.bonus != None:
+                pay_out += empD.bonus
+            
+            empD.payout = pay_out
+            empD.save()
+        
+        crew.total_pay = emp_ptp
+        crew.save()
+    return emp_ptp
+
+def payroll(request, perID, dID, crewID, LocID):
+    twTitle = 'TIME WORKED'
+    emp = Employee.objects.filter(user__username__exact = request.user.username).first()
+    per = period.objects.filter(status=1).first()
+   
+    context = {}    
+    context["period"] = per
+    context["emp"] = emp
+
+    if int(LocID) > 0:
+        loca = Locations.objects.filter(LocationID = LocID).first()
+    else:
+        if emp.Location is None or not emp.Location:        
+            return render(request,'landing.html',{'message':'This user does not have a location assigned', 'alertType':'danger', 'emp':emp})
+        elif not per:
+            return render(request,'landing.html',{'message':'no active period found', 'alertType':'danger', 'emp':emp})
+
+        loca = Locations.objects.filter(LocationID = emp.Location.LocationID).first()
+
+    
+    context["location"] = loca
+
+    #getting the list of days per week
+    startDate = per.fromDate
+    numDays = 7
+    week1 = []
+    for x in range(0,numDays):
+        selectedDay = False
+        fullDate = startDate + datetime.timedelta(days = x)
+        shortDate = fullDate.strftime("%a") + ' ' + fullDate.strftime("%d")
+        longDate = fullDate.strftime("%A") + ' ' + fullDate.strftime("%d")
+        day = fullDate.strftime("%d")
+        if dID == day:
+            selectedDay = True
+            selectedDate = fullDate
+            twTitle += ' - ' + fullDate.strftime("%A").upper() + ', ' + fullDate.strftime("%B %d, %Y").upper()
+        
+        #obtengo la cantidad de Items asociados
+        dItems = Daily.objects.filter(Period = per, Location = loca, day = fullDate)
+        totalItems = 0
+
+        for d in dItems:
+            dItemDetail = DailyItem.objects.filter(DailyID=d)
+
+            for i in dItemDetail:
+                totalItems += i.quantity
+
+        week1.append({'day':day, 'shortDate': shortDate, 'longDate': longDate, 'fullDate': fullDate, 'Total': totalItems, 'selected': selectedDay })
+
+    startDate += datetime.timedelta(days = numDays)
+    week2 = []
+    for x in range(0,numDays):
+        selectedDay = False
+        fullDate = startDate + datetime.timedelta(days = x)
+        shortDate = fullDate.strftime("%a") + ' ' + fullDate.strftime("%d")
+        longDate = fullDate.strftime("%A") + ' ' + fullDate.strftime("%d")
+        day = fullDate.strftime("%d")
+
+        if dID == day:
+            selectedDay = True
+            selectedDate = fullDate
+            twTitle += ' - ' + fullDate.strftime("%A").upper() + ', ' + fullDate.strftime("%B %d, %Y").upper()
+
+        #obtengo la cantidad de Items asociados
+        dItems = Daily.objects.filter(Period = per, Location = loca, day = fullDate)
+        totalItems = 0
+
+        for d in dItems:
+            dItemDetail = DailyItem.objects.filter(DailyID=d)
+
+            for i in dItemDetail:
+                totalItems += i.quantity
+
+        week2.append({'day':day, 'shortDate': shortDate, 'longDate': longDate, 'fullDate': fullDate, 'Total': 0, 'selected': selectedDay })
+    
+    
+    if request.user.is_staff or emp.is_admin:
+        superV = Employee.objects.filter(is_supervisor=True)
+    else:
+        superV = Employee.objects.filter(is_supervisor=True, Location = emp.Location)
+
+    if dID != "0":
+        # get the list of dailys for the period, Day selected and Location
+        crews = Daily.objects.filter(Period = perID, day=selectedDate, Location = loca)
+        context["crew"] = crews
+
+    if crewID != "0":
+        dailyID = Daily.objects.filter(Period = perID, day=selectedDate, crew = crewID, Location = loca ).first()
+        dailyEmp = DailyEmployee.objects.filter(DailyID = dailyID)
+        context["dailyEmp"] = dailyEmp
+
+        dailyItem = DailyItem.objects.filter(DailyID = dailyID)
+        dailyTotal = 0
+        ovT = 0
+        for di in dailyItem:
+            dailyTotal += di.total 
+
+
+        if dailyID.own_vehicle != None:
+            ovT = (dailyTotal * dailyID.own_vehicle) / 100
+        
+        granTotal = dailyTotal + ovT
+
+        context["dailyItem"] = dailyItem
+        context["TotalItem"] = dailyTotal
+        context["ovTotal"] = ovT
+        context["GranTotalItem"] = granTotal
+
+    
+
+    
+    if request.method == 'POST':
+        dailyID = request.POST.get('daily')
+        sup = request.POST.get('supervisor') 
+        split = request.POST.get('split')
+        ptp = request.POST.get('ptp')
+        ov = request.POST.get('ov')
+        crew = Daily.objects.filter(id = dailyID).first()
+        if crew:            
+            crew.supervisor = sup                      
+            crew.split_paymet = bool(split)   
+
+            if ov != '':
+                crew.own_vehicle = ov
+            else:
+                crew.own_vehicle = None    
+
+            emp_ptp = update_ptp_Emp(dailyID, bool(split))
+
+            crew.total_pay = emp_ptp     
+            crew.save()
+            per = crew.Period.id 
+                   
+    context["week1"] = week1
+    context["week2"] = week2
+    context["selectedDate"] = twTitle
+    context["superV"] = superV
+    context["selectedCrew"] = int(crewID)
+    context["selectedDay"] = int(dID)
+    context["selectedLocation"] = LocID
+    
+    return render(request, "payroll.html", context)
+
+
+def calculate_hours(startTime, endTime, lunch_startTime, lunch_endTime):
+    if startTime != None and endTime != None:
+        if startTime > endTime:
+            total = 0
+        else:
+            total = int(str(endTime)) - int(str(startTime))            
+    else:
+        total = 0            
+    
+    if lunch_startTime != None and lunch_endTime != None:
+        if lunch_startTime > lunch_endTime:
+            total_lunch = 0
+        elif lunch_startTime > endTime or lunch_endTime > endTime:
+            total_lunch = 0
+        else:
+            total_lunch = int(str(lunch_endTime)) - int(str(lunch_startTime))
+    else:
+        total_lunch = 0
+
+    endTotal = total - total_lunch
+
+    if endTotal > 100:
+        endTotal = endTotal / 100
+    elif endTotal < 0:
+        endTotal = 0
+
+    total_hours = endTotal
+
+    if endTotal <= 8:
+        regular_hours =  endTotal
+        ot_hours = 0
+        double_time = 0
+    elif endTotal > 8 and endTotal <= 12:
+        regular_hours =  8
+        ot_hours = int(endTotal) - 8
+        double_time = 0
+    elif endTotal > 12:
+        regular_hours =  8
+        ot_hours = 4
+        double_time = endTotal - 12
+    else:
+        regular_hours =  0
+        ot_hours = 0
+        double_time = 0  
+
+    return total_hours, regular_hours, ot_hours, double_time
+        
+    
+def create_daily_emp(request, id):
+    emp = Employee.objects.filter(user__username__exact = request.user.username).first()
+    context ={}
+    dailyID = Daily.objects.filter(id = id).first()
+
+    dailyE = DailyEmployee.objects.filter(DailyID = dailyID)
+    empList = []
+
+    for i in dailyE:
+       empList.append(i.EmployeeID.employeeID) 
+
+    EmpLocation = Employee.objects.filter().exclude(employeeID__in = empList)
+
+
+    form = DailyEmpForm(request.POST or None, initial={'DailyID': dailyID}, qs = EmpLocation)
+    if form.is_valid():                
+        startTime = form.instance.start_time
+        endTime = form.instance.end_time
+        lunch_startTime = form.instance.start_lunch_time
+        lunch_endTime = form.instance.end_lunch_time
+
+        form.instance.total_hours, form.instance.regular_hours,form.instance.ot_hour, form.instance.double_time = calculate_hours(startTime, endTime, lunch_startTime, lunch_endTime)
+
+        form.save()  
+
+        update_ptp_Emp(id, dailyID.split_paymet)             
+        return HttpResponseRedirect('/payroll/' + str(dailyID.Period.id) + '/' + dailyID.day.strftime("%d") + '/' + str(dailyID.crew) +'/0')        
+         
+    context['form']= form
+    context["emp"] = emp
+    context["daily"] = dailyID
+    return render(request, "create_daily_emp.html", context)
+
+
+def update_daily_emp(request, id):
+    emp = Employee.objects.filter(user__username__exact = request.user.username).first()
+    context ={}    
+    obj = get_object_or_404(DailyEmployee, id = id)
+
+    EmpLocation = Employee.objects.all()
+ 
+    form = DailyEmpForm(request.POST or None, instance = obj, qs = EmpLocation)
+ 
+    if form.is_valid():      
+        startTime = form.instance.start_time
+        endTime = form.instance.end_time
+        lunch_startTime = form.instance.start_lunch_time
+        lunch_endTime = form.instance.end_lunch_time
+
+        form.instance.total_hours, form.instance.regular_hours,form.instance.ot_hour, form.instance.double_time = calculate_hours(startTime, endTime, lunch_startTime, lunch_endTime)
+        form.save()
+
+        update_ptp_Emp(obj.DailyID.id, obj.DailyID.split_paymet) 
+
+        context["emp"] = emp       
+        return HttpResponseRedirect('/payroll/' + str(obj.DailyID.Period.id) + '/' + obj.DailyID.day.strftime("%d") + '/' + str(obj.DailyID.crew) +'/0') 
+
+    dailyID = Daily.objects.filter(id = obj.DailyID.id).first()
+
+    context["form"] = form
+    context["emp"] = emp
+    context["daily"] = dailyID
+    return render(request, "create_daily_emp.html", context)
+
+def delete_daily_emp(request, id):
+    emp = Employee.objects.filter(user__username__exact = request.user.username).first()
+    context ={}
+    obj = get_object_or_404(DailyEmployee, id = id)
+ 
+    context["form"] = obj
+    context["emp"] = emp
+ 
+    if request.method == 'POST':
+        obj.delete()
+
+        update_ptp_Emp(obj.DailyID.id, obj.DailyID.split_paymet) 
+
+        return HttpResponseRedirect('/payroll/' + str(obj.DailyID.Period.id) + '/' + obj.DailyID.day.strftime("%d") + '/' + str(obj.DailyID.crew) +'/0') 
+
+   
+    return render(request, "delete_daily_emp.html", context)
+
+
+def create_daily_item(request, id):
+    emp = Employee.objects.filter(user__username__exact = request.user.username).first()
+    context ={}
+    dailyID = Daily.objects.filter(id = id).first()
+
+    dailyI = DailyItem.objects.filter(DailyID = dailyID)
+    itemList = []
+
+    for i in dailyI:
+       itemList.append(i.itemID.item.itemID) 
+
+    itemLocation = itemPrice.objects.filter(location__LocationID = dailyID.Location.LocationID).exclude(item__itemID__in = itemList)
+
+    form = DailyItemForm(request.POST or None, initial={'DailyID': dailyID}, qs = itemLocation)
+    if form.is_valid():    
+        price = form.instance.itemID.emp_payout    
+        form.instance.total = form.instance.quantity * float(price)
+        form.save()      
+
+        update_ptp_Emp(id, dailyID.split_paymet)
+
+        return HttpResponseRedirect('/payroll/' + str(dailyID.Period.id) + '/' + dailyID.day.strftime("%d") + '/' + str(dailyID.crew) +'/0')        
+         
+    context['form']= form
+    context["emp"] = emp
+    return render(request, "create_daily_item.html", context)
+
+def update_daily_item(request, id):
+    emp = Employee.objects.filter(user__username__exact = request.user.username).first()
+    context ={}
+    obj = get_object_or_404(DailyItem, id = id)
+
+    itemLocation = itemPrice.objects.filter(location__LocationID = obj.DailyID.Location.LocationID)
+
+    form = DailyItemForm(request.POST or None, instance = obj, qs = itemLocation)
+ 
+    if form.is_valid():
+        price = form.instance.itemID.emp_payout    
+        form.instance.total = form.instance.quantity * float(price)
+
+        form.save()
+        context["emp"] = emp    
+
+        update_ptp_Emp(obj.DailyID.id, obj.DailyID.split_paymet) 
+
+        return HttpResponseRedirect('/payroll/' + str(obj.DailyID.Period.id) + '/' + obj.DailyID.day.strftime("%d") + '/' + str(obj.DailyID.crew) +'/0') 
+
+    context["form"] = form
+    context["emp"] = emp
+    return render(request, "create_daily_item.html", context)
+
+def delete_daily_item(request, id):
+    emp = Employee.objects.filter(user__username__exact = request.user.username).first()
+    context ={}
+    obj = get_object_or_404(DailyItem, id = id)
+ 
+    context["form"] = obj
+    context["emp"] = emp
+ 
+    if request.method == 'POST':
+        obj.delete()
+
+        update_ptp_Emp(obj.DailyID.id, obj.DailyID.split_paymet) 
+
+        return HttpResponseRedirect('/payroll/' + str(obj.DailyID.Period.id) + '/' + obj.DailyID.day.strftime("%d") + '/' + str(obj.DailyID.crew) +'/0') 
+
+   
+    return render(request, "delete_daily_item.html", context)
+
+def upload_daily(request):
+    countInserted = 0
+    countRejected = 0
+    countUpdated = 0
+    if request.method == 'POST':
+        dataset = Dataset()
+        new_item = request.FILES['myfile']
+
+        if not new_item.name.endswith('xlsx'):
+            messages.info(request, 'wrong format')
+            return render(request,'upload_daily.html', {'countInserted':countInserted, 'countRejected':countRejected  })
+
+        #imported_data = dataset.load(new_item.read(),format='xlsx')
+      
+
+        """for data in imported_data:             
+            try:         
+                value = item(
+                    itemID = data[0],
+                    name = data[1],
+                    description =  data[2],
+                    is_active = True ,
+                    created_date = datetime.datetime.now()                   
+                )
+                value.save()
+
+                countInserted = countInserted + 1
+            except Exception as e:
+                countRejected = countRejected + 1     """           
+                       
+    return render(request,'upload_daily.html', {'countInserted':countInserted, 'countRejected':countRejected })
