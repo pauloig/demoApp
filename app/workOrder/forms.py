@@ -1,7 +1,7 @@
 import re
 from types import CoroutineType
 from django import forms
-from .models import Locations, item, workOrder, workOrderDuplicate, Employee, itemPrice, internalPO, period, DailyEmployee, DailyItem
+from .models import Locations, item, workOrder, workOrderDuplicate, Employee, itemPrice, internalPO, period, DailyEmployee, DailyItem, Daily
 
 class LocationsForm(forms.ModelForm):
     LocationID = forms.CharField(max_length=10, widget=forms.TextInput(attrs={'class':'form-control'}))
@@ -173,6 +173,24 @@ class periodForm(forms.ModelForm):
             'weekRange',
             'status'
         ]
+
+
+class dailydForm(forms.ModelForm):   
+
+    class Meta:
+        model = Daily
+        fields = [
+            'crew',
+            'Period',
+            'Location',
+            'day',
+            'pdfDaily'
+        ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['crew'].disabled = True
+
 
 class DailyEmpForm(forms.ModelForm):
 

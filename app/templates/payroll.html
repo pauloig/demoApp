@@ -181,9 +181,16 @@
                                         <!--<button href="/payroll/{{period.id}}/{{selectedDay}}/{{selectedCrew}}/{{item.id}}" class="btn btn-success px-3" type="submit">update</button>--> 
                                         <button class="btn btn-success px-3" type="submit">update</button>                               
                                     </div> 
+                                </form>
                                     <div class="col-sm-4 pt-3">
-                                        <a class="btn btn-secondary p-3" hx-get="/upload_daily" hx-target="#dialog">Upload Daily  <i class="fa-solid fa-user-plus"></i></a></td>
-                                        <a class="btn btn-secondary p-3" hx-get="/create_daily_emp/{{item.id}}" hx-target="#dialog">SUmmary   <i class="fa-solid fa-user-plus"></i></a></td>
+                                        <button type="button" class="btn btn-primary p-3" data-bs-toggle="modal" data-bs-target="#staticBackdrop">
+                                            upload daily
+                                        </button> 
+                                        {% if item.pdfDaily != '' and item.pdfDaily != None %}                                        
+                                            <a class="btn btn-primary p-3" href="/static/media/{{item.pdfDaily}}" target="_blank"> View Daily</a>  
+                                        {% endif %}  
+                                        <!--<a class="btn btn-secondary p-3" hx-get="/upload_daily/{{item.id}}" hx-target="#dialog">Upload Daily  <i class="fa-solid fa-user-plus"></i></a></td>
+                                         <a class="btn btn-secondary p-3" hx-get="/create_daily_emp/{{item.id}}" hx-target="#dialog">SUmmary   <i class="fa-solid fa-user-plus"></i></a></td>-->
                                     </div>
                                 </div>   
                                 <div class="row">
@@ -228,14 +235,14 @@
                                                                 {%for emp in dailyEmp %}
                                                                     <tr>                                                       
                                                                         <td class="p-1">{{emp.EmployeeID}} </td>
-                                                                        <td class="p-1">{{emp.per_to_pay|floatformat:"2"}}</td>
-                                                                        <td class="p-1">{{emp.on_call}}</td>
-                                                                        <td class="p-1">{{emp.bonus}}</td>
+                                                                        <td class="p-1">{{emp.per_to_pay|floatformat:"2"}}%</td>
+                                                                        <td class="p-1">{%if emp.on_call > 0 %}${{emp.on_call}}{%else%}$0.00{%endif%}</td>
+                                                                        <td class="p-1">{%if emp.bonus > 0 %}${{emp.bonus}}{%else%}$0.00{%endif%}</td>
                                                                         <td class="p-1">{{emp.total_hours}}</td>
                                                                         <td class="p-1">{{emp.regular_hours}}</td>
                                                                         <td class="p-1">{{emp.ot_hour}}</td>
                                                                         <td class="p-1">{{emp.double_time}}</td>
-                                                                        <td class="p-1" style="color: red;">{{emp.payout|floatformat:"2"}}</td>
+                                                                        <td class="p-1" style="color: red;">{%if emp.on_call > 0 %}${{emp.payout|floatformat:"2"}}{%else%}$0.00{%endif%}</td>
                                                                         <td class="p-1">
                                                                             <a hx-get="/update_daily_emp/{{emp.id}}" hx-target="#dialog"><i class="fa-solid fa-user-pen" style="color: green;"></i></a>
                                                                             <a hx-get="/delete_daily_emp/{{emp.id}}" hx-target="#dialog">  <i class="fa-solid fa-user-minus" style="color: red;"></i></a>
@@ -251,7 +258,7 @@
                                     </div>
                                     <div class="col-sm-4 px-1">
                                         <div class="card">
-                                            <h6 class="card-header card-header-wc" >ITEM LIST  -     TOTAL: {{TotalItem}} + {{ovTotal}} = {{GranTotalItem}} </h6>
+                                            <h6 class="card-header card-header-wc" >ITEM LIST  -     TOTAL: ${{TotalItem}} + ${{ovTotal}} = ${{GranTotalItem}} </h6>
                                             
                                             <div class="card-body">
                                                 <div class="row">
@@ -275,8 +282,8 @@
                                                                     <tr>
                                                                         <td class="p-1">{{itemd.itemID.item.itemID}}</td>
                                                                         <td class="p-1">{{itemd.quantity}}</td>
-                                                                        <td class="p-1">{{itemd.itemID.emp_payout}}</td>
-                                                                        <td class="p-1">{{itemd.total}}</td>   
+                                                                        <td class="p-1">${{itemd.itemID.emp_payout}}</td>
+                                                                        <td class="p-1">${{itemd.total}}</td>   
                                                                         <td class="p-1">
                                                                             <a hx-get="/update_daily_item/{{itemd.id}}" hx-target="#dialog"><i class="fa-solid fa-pen-to-square" style="color: green;"></i></a>
                                                                             <a hx-get="/delete_daily_item/{{itemd.id}}" hx-target="#dialog"><i class="fa-solid fa-circle-minus" style="color: red;"></i></a>
@@ -291,7 +298,34 @@
                                         </div>  
                                         
                                     </div>                                                           
-                                </div>                   
+                                </div>  
+                                <!-- Modal -->
+                                <div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                        <h5 class="modal-title" id="staticBackdropLabel">Modal title</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <form method='post'  action="/upload_daily/{{item.id}}" enctype="multipart/form-data" id="daily_upload" >
+                                                {% csrf_token %}                                                                                                                                                                      
+                                                <label class="form-label" for="file">Select File</label>                                    
+                                                <div class="input-group-btn">
+                                                    <div class="input-group mb-3">
+                                                        <input type="file" class="form-control" id="myfile" name="myfile" accept=".pdf">                                                                                                            
+                                                        <!--<button type="submit" class="btn btn-primary" form="daily_upload">Save</button>-->
+                                                    </div>                                                    
+                                                </div>                                                                                      
+                                            </form>
+                                        </div>
+                                        <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                        <button type="submit" form="daily_upload" class="btn btn-primary">Upload</button>
+                                        </div>
+                                    </div>
+                                    </div>
+                                </div>                 
                             {%endif%} 
                         {%endfor%}
                        
@@ -302,7 +336,9 @@
             </div>    
         </div>
         
-    </form>
+
+
+    
 </div>
 
 <script src="https://unpkg.com/htmx.org@1.8.4"></script>

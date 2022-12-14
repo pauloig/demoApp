@@ -76,7 +76,7 @@
                             <td>{{item.item}}</td>
                             <td>{{item.location}}</td>
                             <td>{{item.pay_perc}}</td>
-                            <td>{{item.price}}</td>
+                            <td>{{item.price|floatformat:"2"}}</td>
                             <td>{{item.emp_payout}}</td>
                             <td>{{item.rate}}</td>
                             <td> <a href="/update_item_price/{{item.id}}"><i class="fa-solid fa-pen-to-square" style="color: green;"></i></a></td>

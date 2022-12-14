@@ -61,7 +61,7 @@ urlpatterns = [
     path('create_daily_item/<id>',views.create_daily_item),
     path('update_daily_item/<id>',views.update_daily_item),
     path('delete_daily_item/<id>',views.delete_daily_item),
-    path('upload_daily/',views.upload_daily),
+    path('upload_daily/<id>',views.upload_daily),
     path('logout/', LogoutView.as_view(next_page='/login/'), name='logout'),
     path('', include('authentication.urls')),
     path('home/', include('authentication.urls')),

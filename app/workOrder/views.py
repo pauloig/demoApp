@@ -5,6 +5,7 @@ from datetime import datetime
 from multiprocessing import context
 from os import WIFCONTINUED, dup
 import re
+import os
 from telnetlib import WONT
 from unittest import TextTestResult
 from urllib import response
@@ -15,7 +16,7 @@ from django.contrib import messages
 from tablib import Dataset
 from django.http import HttpResponse, FileResponse
 from django.db import IntegrityError
-from .forms import EmployeesForm, InternalPOForm, ItemForm, ItemPriceForm, LocationsForm, workOrderForm, DailyEmpForm, DailyItemForm
+from .forms import EmployeesForm, InternalPOForm, ItemForm, ItemPriceForm, LocationsForm, workOrderForm, DailyEmpForm, DailyItemForm, dailydForm
 from sequences import get_next_value, Sequence
 from datetime import date
 from django.utils.dateparse import parse_date
@@ -1370,7 +1371,7 @@ def create_period(request):
             payD = toD + datetime.timedelta(days=payRange)
             newYear = int(payD.year)
             perId = 0
-            weekR = 'W' + str(fromD.isocalendar()[1]) + ' - ' + str(toD.isocalendar()[1])
+            weekR = 'W' + str(fromD.isocalendar()[1]) + '-' + str(toD.isocalendar()[1])
 
             if newYear > lastPeriod.periodYear:
                 perId = 1
@@ -1413,8 +1414,33 @@ def update_order_daily(request, woID, dailyID):
     wo = workOrder.objects.filter(id = woID).first()
 
     if crew and wo:
+
+        if crew.woID != None:
+            anterior = workOrder.objects.filter(id = crew.woID.id).first()
+
+            if anterior:
+                anterior.Status = 1
+                anterior.Location = None
+                anterior.UploadDate = None
+                anterior.UserName = None
+                anterior.WCSup = None
+                anterior.save()
+
+
         crew.woID = wo
         crew.save()
+
+        wo.Status = 2
+        wo.Location = crew.Location
+        wo.UploadDate = datetime.datetime.now()
+        wo.UserName = request.user.username
+        if crew.supervisor != None:
+            sup = Employee.objects.filter(employeeID = crew.supervisor ).first()
+            if sup:                
+                wo.WCSup = sup
+
+        wo.save()
+
         per = crew.Period.id
 
         return HttpResponseRedirect('/payroll/' + str(per) + '/' + crew.day.strftime("%d")  + '/'+ str(crew.crew) +'/0')
@@ -1472,7 +1498,7 @@ def update_daily(request, daily):
     if crew:
         sup = request.POST.get('supervisor') 
 
-        crew.supervisor = "12345"
+        crew.supervisor = sup
         crew.save()
 
         per = crew.Period.id          
@@ -1485,7 +1511,12 @@ def update_daily(request, daily):
 def update_ptp_Emp(dailyID, split):
     emp_ptp = 0
     crew = Daily.objects.filter(id = dailyID).first()
-    if crew:                     
+    if crew:        
+
+        
+        itemCount = 0
+        itemSum = 0
+        
         if bool(split):
             empCount = DailyEmployee.objects.filter(DailyID = crew).count()                
            
@@ -1501,8 +1532,8 @@ def update_ptp_Emp(dailyID, split):
       
 
         itemCount = DailyItem.objects.filter(DailyID = crew).count()
-        if itemCount > 0:
-            itemSum = 0
+        if itemCount > 0:       
+            
             itemList = DailyItem.objects.filter(DailyID = crew)
 
             for iteml in itemList:
@@ -1619,9 +1650,9 @@ def payroll(request, perID, dID, crewID, LocID):
     
     
     if request.user.is_staff or emp.is_admin:
-        superV = Employee.objects.filter(is_supervisor=True)
+        superV = Employee.objects.filter(is_supervisor=True, Location = loca)
     else:
-        superV = Employee.objects.filter(is_supervisor=True, Location = emp.Location)
+        superV = Employee.objects.filter(is_supervisor=True, Location = loca)
 
     if dID != "0":
         # get the list of dailys for the period, Day selected and Location
@@ -1650,9 +1681,8 @@ def payroll(request, perID, dID, crewID, LocID):
         context["ovTotal"] = ovT
         context["GranTotalItem"] = granTotal
 
-    
 
-    
+
     if request.method == 'POST':
         dailyID = request.POST.get('daily')
         sup = request.POST.get('supervisor') 
@@ -1673,7 +1703,21 @@ def payroll(request, perID, dID, crewID, LocID):
 
             crew.total_pay = emp_ptp     
             crew.save()
-            per = crew.Period.id 
+            per = crew.Period.id         
+            
+            if int(sup)>0:
+                super = Employee.objects.filter(employeeID = sup ).first()
+                if super:   
+                    wo = workOrder.objects.filter( id = crew.woID.id).first()
+                    if wo:             
+                        wo.WCSup = super
+                        wo.save()            
+            
+        
+        return HttpResponseRedirect('/payroll/' + str(crew.Period.id) + '/' + crew.day.strftime("%d") + '/' + str(crew.crew) +'/0')        
+
+
+
                    
     context["week1"] = week1
     context["week2"] = week2
@@ -1886,34 +1930,25 @@ def delete_daily_item(request, id):
    
     return render(request, "delete_daily_item.html", context)
 
-def upload_daily(request):
-    countInserted = 0
-    countRejected = 0
-    countUpdated = 0
+def upload_daily(request, id):
+    emp = Employee.objects.filter(user__username__exact = request.user.username).first()    
+    context ={}  
+    context["emp"] = emp
+
+
     if request.method == 'POST':
-        dataset = Dataset()
-        new_item = request.FILES['myfile']
+        new_daily = request.FILES['myfile']
+        
+        d = Daily.objects.filter(id = id).first()
 
-        if not new_item.name.endswith('xlsx'):
-            messages.info(request, 'wrong format')
-            return render(request,'upload_daily.html', {'countInserted':countInserted, 'countRejected':countRejected  })
+        if d:
+            filename = d.day.strftime("%m%d%Y") + "-C" + str(d.crew) + "-" + d.Location.name + "-" + d.Period.weekRange + ".pdf"           
+            new_daily.name = filename
+            d.pdfDaily = new_daily            
+            d.save()           
+        else:
+            filename = "daily.pdf"
 
-        #imported_data = dataset.load(new_item.read(),format='xlsx')
-      
+        return HttpResponseRedirect('/payroll/' + str(d.Period.id) + '/' + d.day.strftime("%d") + '/' + str(d.crew) +'/0')   
 
-        """for data in imported_data:             
-            try:         
-                value = item(
-                    itemID = data[0],
-                    name = data[1],
-                    description =  data[2],
-                    is_active = True ,
-                    created_date = datetime.datetime.now()                   
-                )
-                value.save()
-
-                countInserted = countInserted + 1
-            except Exception as e:
-                countRejected = countRejected + 1     """           
-                       
-    return render(request,'upload_daily.html', {'countInserted':countInserted, 'countRejected':countRejected })
+    return render(request, "upload_daily.html", context)

@@ -220,6 +220,7 @@ class Daily(models.Model):
     own_vehicle = models.FloatField(blank=True, null=True)
     total_pay = models.IntegerField(null=True, blank=True)
     split_paymet = models.BooleanField(default=False)
+    pdfDaily = models.FileField(null=True, upload_to="dailys") 
 
     def __str__(self):
         return str(self.Period) + " - " + str(self.day)
