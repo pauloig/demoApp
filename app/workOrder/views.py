@@ -1656,7 +1656,7 @@ def payroll(request, perID, dID, crewID, LocID):
 
     if dID != "0":
         # get the list of dailys for the period, Day selected and Location
-        crews = Daily.objects.filter(Period = perID, day=selectedDate, Location = loca)
+        crews = Daily.objects.filter(Period = perID, day=selectedDate, Location = loca).order_by('crew')
         context["crew"] = crews
 
     if crewID != "0":
@@ -1703,7 +1703,9 @@ def payroll(request, perID, dID, crewID, LocID):
 
             crew.total_pay = emp_ptp     
             crew.save()
-            per = crew.Period.id         
+            per = crew.Period.id  
+
+            emp_ptp = update_ptp_Emp(dailyID, bool(split))       
             
             if int(sup)>0:
                 super = Employee.objects.filter(employeeID = sup ).first()
