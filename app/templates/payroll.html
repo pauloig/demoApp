@@ -242,7 +242,7 @@
                                                                         <td class="p-1">{{emp.regular_hours}}</td>
                                                                         <td class="p-1">{{emp.ot_hour}}</td>
                                                                         <td class="p-1">{{emp.double_time}}</td>
-                                                                        <td class="p-1" style="color: red;">{%if emp.on_call > 0 %}${{emp.payout|floatformat:"2"}}{%else%}$0.00{%endif%}</td>
+                                                                        <td class="p-1" style="color: red;">{%if emp.payout > 0 %}${{emp.payout|floatformat:"2"}}{%else%}$0.00{%endif%}</td>
                                                                         <td class="p-1">
                                                                             <a hx-get="/update_daily_emp/{{emp.id}}" hx-target="#dialog"><i class="fa-solid fa-user-pen" style="color: green;"></i></a>
                                                                             <a hx-get="/delete_daily_emp/{{emp.id}}" hx-target="#dialog">  <i class="fa-solid fa-user-minus" style="color: red;"></i></a>
