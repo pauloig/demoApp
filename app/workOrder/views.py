@@ -1396,7 +1396,11 @@ def create_period(request):
 
 def orders_payroll(request, dailyID):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
-    wo = workOrder.objects.all()
+    daily = Daily.objects.filter(id = dailyID).first()    
+    loca = list(Locations.objects.all().exclude(LocationID = daily.Location.LocationID))
+    
+
+    wo = workOrder.objects.filter(Status__in = [1,2]).exclude(Location__in = loca)
     context = {}    
     context["orders"] = wo
     context["emp"] = emp    
@@ -1707,7 +1711,7 @@ def payroll(request, perID, dID, crewID, LocID):
 
             emp_ptp = update_ptp_Emp(dailyID, bool(split))       
             
-            if int(sup)>0:
+            if int(sup)>0 and crew.woID != None:
                 super = Employee.objects.filter(employeeID = sup ).first()
                 if super:   
                     wo = workOrder.objects.filter( id = crew.woID.id).first()

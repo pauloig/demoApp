@@ -136,7 +136,9 @@
                                             <label for="PID" class="form-label">PID - Work Order - PO</label>                
                                             <div class="input-group mb-3">
                                                 <input type="text" class="form-control" placeholder="Enter PID" aria-label="PID" id="PID" name="PID" aria-describedby="basic-addon1" value="{{item.woID.prismID}} - {{item.woID.workOrderId}} - {{item.woID.PO}}" disabled>                                             
-                                                <button hx-get="/orders_payroll/{{item.id}}" class="btn btn-primary py-2" hx-target="#dialog" ><i class="fa-sharp fa-solid fa-magnifying-glass"></i></button>
+                                                {% if item.supervisor != None and item.supervisor != "0" %}
+                                                    <button hx-get="/orders_payroll/{{item.id}}" class="btn btn-primary py-2" hx-target="#dialog" ><i class="fa-sharp fa-solid fa-magnifying-glass"></i></button>
+                                                {%endif%}
                                             </div>                                      
                                         </div>        
                                     </div>                                  
