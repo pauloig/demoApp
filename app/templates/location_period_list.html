@@ -1,0 +1,119 @@
+{% extends 'index.html' %} 
+{%load static%}
+{% block title %} Duplicate Order List {% endblock %} 
+
+{% block container %}
+
+<div class="container">
+    <form method='post' enctype="multipart/form-data">
+        {% csrf_token %}
+        <!--<div class="row">
+            <h3>LOCATIONS LIST</h3>
+            <a style="color: black;"><hr></a>
+        </div>
+    -->
+        <div class="row">
+            <div class="col-sm-4">
+                <div class="card">
+                    <h6 class="card-header card-header-wc" >Period {{period.periodID}} </h6>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-sm-5 px-1"><strong>From</strong></div>
+                            <div class="col-sm-7 px-1">{{period.fromDate}}</div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-5 px-1"><strong>To</strong></div>
+                            <div class="col-sm-7 px-1">{{period.toDate}}</div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-5 px-1"><strong>Pay Date</strong></div>
+                            <div class="col-sm-7 px-1">{{period.payDate  }}</div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-5 px-1"><strong>Weeks</strong></div>
+                            <div class="col-sm-7 px-1">{{period.weekRange}}</div>
+                        </div>
+                    </div>
+                </div>
+                 
+            </div>    
+            <div class="col-sm-8">
+                <div class="card">
+                    <h6 class="card-header card-header-wc" >Actions</h6>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <a class="btn btn-success btn" href="/create_period/" ><i class="fa-solid fa-bars-staggered fa-2x m-2"></i></br>Summary</a>       
+                                <a class="btn btn-success btn" href="/create_period/" ><i class="fa-regular fa-folder-open fa-2x m-2"></i></br> Gen Recap</a>    
+                                <a class="btn btn-success btn" href="/create_period/" ><i class="fa-solid fa-envelopes-bulk fa-2x m-2"></i></br>Send Recap</a>                                                             
+                            </div>
+                        </div>
+                                     
+                    </div> 
+                </div>
+            </div>                          
+        </div> 
+        <div class="row">
+            <div class="col-sm-9">
+                <div class="card">
+                    <h6 class="card-header card-header-wc" >Locations</h6>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-sm-12 px-1">
+                                <table class="table table-sm table-bordered table-striped">
+                                    <thead>
+                                        <tr class="table-primary">                                                  
+                                            <th scope="col" style="width: 10%">Id</th>
+                                            <th scope="col" style="width: 50%">Location</th>  
+                                            <th scope="col" style="width: 15%">Production</th>             
+                                            <th scope="col" style="width: 15%">$ Total</th> 
+                                            <th scope="col" style="width: 5%"></th>                                            
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for item in locations %}
+                                            <tr>
+                                                <td>{{item.LocationID}}</td>
+                                                <td>{{item.name}}</td>
+                                                <td>0</td>
+                                                <td>$0.00</td>
+                                                <td> 
+                                                    <a href="/payroll/{{period.id}}/0/0/{{item.LocationID}}">
+                                                        <i class="fa-solid fa-circle-arrow-right" style="color: green;"></i>
+                                                    </a>
+                                                </td>
+                                            </tr>                                             
+                                        {% endfor %}
+                                    </tbody>                                                
+                                </table>
+                            </div>
+                        </div>                                                
+                    </div>
+                </div> 
+            </div>            
+            <div class="col-sm-3">
+                <div class="row">
+                    <div class="col-sm-12 m-2">
+                        <a class="btn btn-success" href="/create_period/" role="button">Super Admin Option 1</a>                    
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12 m-2">
+                        <a class="btn btn-success" href="/create_period/" role="button">Super Admin Option 1</a>                    
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12 m-2">
+                        <a class="btn btn-success" href="/create_period/" role="button">Super Admin Option 1</a>                    
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12 m-2">
+                        <a class="btn btn-success" href="/create_period/" role="button">Super Admin Option 1</a>                    
+                    </div>
+                </div>
+            </div> 
+        </div>               
+    </form>
+</div>
+{% endblock %}

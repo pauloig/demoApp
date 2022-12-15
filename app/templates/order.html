@@ -6,23 +6,26 @@
 
 <div class="container">
     <form method='post' enctype="multipart/form-data">
-        {% csrf_token %}
-        <div class="row">
-            <h3> WORK ORDER</h3>
-            <a style="color: black;"><hr></a>
-        </div>
-        <br/>
+        {% csrf_token %}      
         <div class="row">
             <div class="col-lg-12">
                 <div class="card rounded">
+                    <h6 class="card-header card-header-wc" >Work Order</h6>
                     <div class="card-body">                    
                             <div class="row">
-                                {{ form.as_p }}                             
+                                <div class="col-sm-12">
+                                    <table>
+                                        {{ form.as_table }}   
+                                    </table>
+                                </div>
+                                
+                                                          
                             </div>
                             <div class="row">
                                 <div class="col-lg-6">  
                                     <div class="form-outline" style="align-items: center;">
                                         <input class="btn btn-primary" type="submit" value="Save">
+                                        <a href="/order_list/" type="button" class="btn btn-danger">Close</a>
                                     </div>
                                 </div>
                             </div>

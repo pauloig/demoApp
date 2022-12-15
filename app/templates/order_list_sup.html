@@ -8,70 +8,84 @@
     <form method='post' enctype="multipart/form-data">
         {% csrf_token %}
 
+
         <div class="row">
-            <h3>ORDER LIST BY SUPERVISOR - {{emp}}</h3>
-            <a style="color: black;"><hr></a>
-        </div>              
-        <br />
- 
+            <div class="col-sm-12 my-3">
+                <div class="card">
+                    <h6 class="card-header card-header-wc" >Orders List By Supervisor - {{emp}}</h6>
+                    <div class="card-body">
+                        <div class="row">                   
+                            <div class="col-lg-12"> 
+
     
-        <table id="orders" class="table table-bordered">
-            <thead class="table-dark">
-                <tr>
-                    <th scope="col">prism ID</th>
-                    <th scope="col">work Order Id</th>
-                    <th scope="col">PO</th>
-                    <th scope="col">PO Amount</th>    
-                    <th scope="col">Status</th>
-                    <th scope="col">Location</th>
-                    <th scope="col">Sup</th>
-                    <th scope="col">upload Date</th>
-                    <th scope="col">WC Sup</th>
-                    <th scope="col">Job Name</th>
-                    <th scope="col">Job Address</th>
-                    <th scope="col"></th>
-                </tr>              
-            </thead>
-            <tbody>                                       
-                {% for order in orders %}
-                        <tr>
-                            <td>{{order.prismID}}</td>
-                            <td>{{order.workOrderId}}</td>
-                            <td>{{order.PO}}</td>
-                            <td>${{order.POAmount|intcomma}}</td>
-                            <!-- <td>{{order.Status}}</td> -->
-                            {% if order.Status == "1" %}
-                                <td>Not Started</td>
-                            {% endif %}
-                            {% if order.Status == "2" %}
-                                <td>Work in Progress</td>
-                            {% endif %}
-                            {% if order.Status == "3" %}
-                                <td>Pending Docs</td>
-                            {% endif %}
-                            {% if order.Status == "4" %}
-                                <td>Pending Revised WO</td>
-                            {% endif %}
-                            {% if order.Status == "5" %}
-                                <td>Invoiced</td>
-                            {% endif %}
-                            <td>{{order.Location}}</td>
-                            <td>{{order.WCSup}}</td>
-                            <td>{{order.UploadDate}}</td>
-                            <td>{{order.WCSup}}</td>
-                            <td>{{order.JobName}}</td>
-                            <td>{{order.JobAddress}}</td>
-                            <td>
-                                {% if order.Status != "5" %}
-                                    <a href="/order/{{order.id}}"><i class="fa-solid fa-circle-arrow-right" style="color: green;"></i></a>
-                                {% endif %}
-                            </td>
-                            
-                            
-                        </tr>   
-                {% endfor %}
-            </tbody>                              
-        </table>
+                                <table id="orders" class="table table-sm table-bordered table-striped">
+                                    <thead class="table-primary">
+                                        <tr>
+                                            <th scope="col">prism ID</th>
+                                            <th scope="col">work Order Id</th>
+                                            <th scope="col">PO</th>
+                                            <th scope="col">PO Amount</th>    
+                                            <th scope="col">Status</th>
+                                            <th scope="col">Location</th>
+                                            <th scope="col">Sup</th>
+                                            <th scope="col">upload Date</th>
+                                            <th scope="col">WC Sup</th>
+                                            <th scope="col">Job Name</th>
+                                            <th scope="col">Job Address</th>
+                                            <th scope="col"></th>
+                                        </tr>              
+                                    </thead>
+                                    <tbody>                                       
+                                        {% for order in orders %}
+                                                <tr>
+                                                    <td>{{order.prismID}}</td>
+                                                    <td>{{order.workOrderId}}</td>
+                                                    <td>{{order.PO}}</td>
+                                                    <td>${{order.POAmount|intcomma}}</td>
+                                                    <!-- <td>{{order.Status}}</td> -->
+                                                    {% if order.Status == "1" %}
+                                                        <td>Not Started</td>
+                                                    {% endif %}
+                                                    {% if order.Status == "2" %}
+                                                        <td>Work in Progress</td>
+                                                    {% endif %}
+                                                    {% if order.Status == "3" %}
+                                                        <td>Pending Docs</td>
+                                                    {% endif %}
+                                                    {% if order.Status == "4" %}
+                                                        <td>Pending Revised WO</td>
+                                                    {% endif %}
+                                                    {% if order.Status == "5" %}
+                                                        <td>Invoiced</td>
+                                                    {% endif %}
+                                                    <td>{{order.Location}}</td>
+                                                    <td>{{order.WCSup}}</td>
+                                                    <td>{{order.UploadDate}}</td>
+                                                    <td>{{order.WCSup}}</td>
+                                                    <td>{{order.JobName}}</td>
+                                                    <td>{{order.JobAddress}}</td>
+                                                    <td>
+                                                        {% if order.Status != "5" %}
+                                                            <a href="/order/{{order.id}}"><i class="fa-solid fa-circle-arrow-right" style="color: green;"></i></a>
+                                                        {% endif %}
+                                                    </td>
+                                                    
+                                                    
+                                                </tr>   
+                                        {% endfor %}
+                                    </tbody>                              
+                                </table>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-lg-12">                                                            
+                              <a href="/" type="button" class="btn btn-danger">Close</a>      
+                            </div>                        
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </form>
 </div>
 {% endblock %}

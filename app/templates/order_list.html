@@ -8,126 +8,145 @@
     <form method='post' enctype="multipart/form-data">
         {% csrf_token %}
 
-        <div class="row">
-            <h3>ORDER LIST</h3>
-            <a style="color: black;"><hr></a>
-        </div>
         
-        <br />
         <div class="row">
-            <div class="col-lg-4"> 
-                <select class="form-select" aria-label="Default select example" name="status" id="status">
-                    <option value ="0" selected>Status</option>
-                    <option value="1">Not Started</option>
-                    <option value="2">Work in Progress</option>
-                    <option value="3">Pending Docs</option>
-                    <option value="4">Pending Revised WO</option>
-                    <option value="5">Invoiced</option>
-                  </select>
-            </div>
-            <div class="col-lg-4">
-                <select class="form-select" aria-label="Default select example" name="location" id="location">
-                    <option value ="0" selected>Location</option>
-                    {% for data in location %}                              
-                        <option value="{{data.LocationID}}">{{data.name}}</option>
-                    {% endfor %}
-                  </select>
-            </div>
-            <div class="col-lg-4">  
-                <input class="btn btn-primary" type="submit" value="Search">
-            </div>
-        </div>
-        <br />
-        <br />
-        <div class="row">           
-            <div class="col-lg-6">  
-                <div class="form-outline" style="align-items: center;">
-                    <a class="btn btn-success" href="/create_order/" role="button">Create New Order</a>
+            <div class="col-sm-12">
+                <div class="card">
+                    <h6 class="card-header card-header-wc" >Filters</h6>
+                    <div class="card-body">
+                        <div class="row">                   
+                            <div class="col-lg-4"> 
+                                <select class="form-select" aria-label="Default select example" name="status" id="status">
+                                    <option value ="0" selected>Status</option>
+                                    <option value="1">Not Started</option>
+                                    <option value="2">Work in Progress</option>
+                                    <option value="3">Pending Docs</option>
+                                    <option value="4">Pending Revised WO</option>
+                                    <option value="5">Invoiced</option>
+                                  </select>
+                            </div>
+                            <div class="col-lg-4">
+                                <select class="form-select" aria-label="Default select example" name="location" id="location">
+                                    <option value ="0" selected>Location</option>
+                                    {% for data in location %}                              
+                                        <option value="{{data.LocationID}}">{{data.name}}</option>
+                                    {% endfor %}
+                                  </select>
+                            </div>
+                            <div class="col-lg-1">  
+                                <input class="btn btn-primary" type="submit" value="Search">
+                            </div>
+                            <div class="col-lg-2">  
+                                <div class="form-outline" style="align-items: center;">
+                                    <a class="btn btn-success" href="/create_order/" role="button">Create New Order</a>
+                                    
+                                </div>
+                            </div>
+                            <div class="col-lg-1">  
+                                <a href="/" type="button" class="btn btn-danger">Close</a>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>                
-        <br />
- 
+        </div>
+
+  
+        <div class="row">
+            <div class="col-sm-12 my-3">
+                <div class="card">
+                    <h6 class="card-header card-header-wc" >Orders List</h6>
+                    <div class="card-body">
+                        <div class="row">                   
+                            <div class="col-lg-12"> 
+                                <table id="orders" class="table table-sm table-bordered table-striped">
+                                    <thead class="table-primary">
+                                        <tr>
+                                            <th scope="col" class="p-1">prism ID</th>
+                                            <th scope="col" class="p-1">work Order Id</th>
+                                            <th scope="col" class="p-1">PO</th>
+                                            <th scope="col" class="p-1">PO Amount</th>    
+                                            <th scope="col" class="p-1">Status</th>
+                                            <th scope="col" class="p-1">Location</th>
+                                            <th scope="col" class="p-1">Sup.</th>
+                                            <th scope="col" class="p-1">upload Date</th>
+                                            <th scope="col" class="p-1">Issue By</th>
+                                            <th scope="col" class="p-1">Job Name</th>
+                                            <th scope="col" class="p-1">Job Address</th>                                
+                                            <th scope="col" class="p-1" style="width: 3%">Estimate</th>
+                                            <th scope="col" class="p-1" style="width: 3%">Invoice</th>
+                                            <th scope="col" class="p-1" style="width: 5%"></th>
+                                        </tr>              
+                                    </thead>
+                                    <tbody>                                       
+                                        {% for order in orders %}
+                                            <tr>
+                                                <td class="p-1">{{order.prismID}}</td>
+                                                <td class="p-1">{{order.workOrderId}}</td>
+                                                <td class="p-1">{{order.PO}}</td>
+                                                
+                                                <td class="p-1">${{order.POAmount|intcomma}}</td>
+                                                <!-- <td>{{order.Status}}</td> -->
+                                                {% if order.Status == "1" %}
+                                                    <td class="p-1">Not Started</td>
+                                                {% endif %}
+                                                {% if order.Status == "2" %}
+                                                    <td class="p-1">Work in Progress</td>
+                                                {% endif %}
+                                                {% if order.Status == "3" %}
+                                                    <td class="p-1">Pending Docs</td>
+                                                {% endif %}
+                                                {% if order.Status == "4" %}
+                                                    <td class="p-1">Pending Revised WO</td>
+                                                {% endif %}
+                                                {% if order.Status == "5" %}
+                                                    <td class="p-1">Invoiced</td>
+                                                {% endif %}
+                                                <td class="p-1">{{order.Location}}</td>
+                                                <td class="p-1">{{order.WCSup}}</td>
+                                                <td class="p-1">{{order.UploadDate}}</td>                   
+                                                <td class="p-1">{{order.IssuedBy}}</td>
+                                                <td class="p-1">{{order.JobName}}</td>
+                                                <td class="p-1">{{order.JobAddress}}</td>
+                                                {% if order.Status >= "2" %}
+                                                    <td class="p-1">
+                                                        <a href="/estimate_preview/{{order.id}}"><i class="fa-sharp fa-solid fa-file-invoice-dollar" style="color: green;"></i></a>
+                                                    </td>
+                                                {% else %}
+                                                    <td class="p-1"></td>
+                                                {% endif %}    
+                                                {% if order.Status >= "4" %}
+                                                    <td class="p-1">
+                                                        <a href="/invoice_preview/{{order.id}}"><i class="fa-sharp fa-solid fa-file-invoice-dollar" style="color: green;"></i></a>
+                                                    </td>
+                                                {% else %}
+                                                    <td class="p-1"></td>
+                                                {% endif %}    
+                                                <td class="p-1">
+                                                    {% if order.Status != "5" %} 
+                                                        <a href="/order/{{order.id}}"><i class="fa-solid fa-circle-arrow-right" style="color: green;"></i></a>
+                                                    
+                                                        {% if order.uploaded and order.linkedOrder is null %}
+                                                        
+                                                            <a href="/link_order_list/{{order.id}}"><i class="fa-solid fa-link" style="color: green;"></i></a> 
+                                                    
+                                                        {% endif %}
+                                                        <a href="/po_list/{{order.id}}"><i class="fa-solid fa-cart-shopping" style="color: green;"></i></a> 
+                                                    {% endif %}
+                                                </td>
+                                            </tr>                                             
+                                        {% endfor %}
+                                    </tbody>                              
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     
-        <table id="orders" class="table table-bordered">
-            <thead class="table-dark">
-                <tr>
-                    <th scope="col">prism ID</th>
-                    <th scope="col">work Order Id</th>
-                    <th scope="col">PO</th>
-                    <th scope="col">PO Amount</th>    
-                    <th scope="col">Status</th>
-                    <th scope="col">Location</th>
-                    <th scope="col">Sup.</th>
-                    <th scope="col">upload Date</th>
-                    <th scope="col">Issue By</th>
-                    <th scope="col">Job Name</th>
-                    <th scope="col">Job Address</th>                                
-                    <th scope="col" style="width: 3%">Estimate</th>
-                    <th scope="col" style="width: 3%">Invoice</th>
-                    <th scope="col" style="width: 5%"></th>
-                </tr>              
-            </thead>
-            <tbody>                                       
-                {% for order in orders %}
-                    <tr>
-                        <td>{{order.prismID}}</td>
-                        <td>{{order.workOrderId}}</td>
-                        <td>{{order.PO}}</td>
-                        
-                        <td>${{order.POAmount|intcomma}}</td>
-                        <!-- <td>{{order.Status}}</td> -->
-                        {% if order.Status == "1" %}
-                            <td>Not Started</td>
-                        {% endif %}
-                        {% if order.Status == "2" %}
-                            <td>Work in Progress</td>
-                        {% endif %}
-                        {% if order.Status == "3" %}
-                            <td>Pending Docs</td>
-                        {% endif %}
-                        {% if order.Status == "4" %}
-                            <td>Pending Revised WO</td>
-                        {% endif %}
-                        {% if order.Status == "5" %}
-                            <td>Invoiced</td>
-                        {% endif %}
-                        <td>{{order.Location}}</td>
-                        <td>{{order.WCSup}}</td>
-                        <td>{{order.UploadDate}}</td>                   
-                        <td>{{order.IssuedBy}}</td>
-                        <td>{{order.JobName}}</td>
-                        <td>{{order.JobAddress}}</td>
-                        {% if order.Status >= "2" %}
-                            <td>
-                                <a href="/estimate_preview/{{order.id}}"><i class="fa-sharp fa-solid fa-file-invoice-dollar" style="color: green;"></i></a>
-                            </td>
-                        {% else %}
-                            <td></td>
-                        {% endif %}    
-                        {% if order.Status >= "4" %}
-                            <td>
-                                <a href="/invoice_preview/{{order.id}}"><i class="fa-sharp fa-solid fa-file-invoice-dollar" style="color: green;"></i></a>
-                            </td>
-                        {% else %}
-                            <td></td>
-                        {% endif %}    
-                        <td>
-                            {% if order.Status != "5" %} 
-                                <a href="/order/{{order.id}}"><i class="fa-solid fa-circle-arrow-right" style="color: green;"></i></a>
-                            
-                                {% if order.uploaded and order.linkedOrder is null %}
-                                
-                                    <a href="/link_order_list/{{order.id}}"><i class="fa-solid fa-link" style="color: green;"></i></a> 
-                            
-                                {% endif %}
-                                <a href="/po_list/{{order.id}}"><i class="fa-solid fa-cart-shopping" style="color: green;"></i></a> 
-                            {% endif %}
-                        </td>
-                    </tr>                                             
-                {% endfor %}
-            </tbody>                              
-        </table>
+        
+        
     </form>
 </div>
 {% endblock %}

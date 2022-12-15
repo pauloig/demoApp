@@ -1352,6 +1352,16 @@ def period_list(request):
     
     return render(request, "period_list.html", context)
 
+def location_period_list(request, id):
+    emp = Employee.objects.filter(user__username__exact = request.user.username).first()
+    context = {}    
+    per = period.objects.filter(id = id).first
+    context["period"] = per
+    context["locations"] = Locations.objects.all()
+    context["emp"] = emp
+    
+    return render(request, "location_period_list.html", context)
+
 def create_period(request):
     periodRange = 13 #Period Rage 14 days
     payRange = 7 #Pay Range, number of days to pay  

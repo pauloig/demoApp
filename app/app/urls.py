@@ -49,6 +49,7 @@ urlpatterns = [
     path('upload_item_price/',views.upload_item_price),
     path('upload_employees/',views.upload_employee),
     path('period_list/',views.period_list),
+    path('location_period_list/<id>',views.location_period_list),
     path('create_period/',views.create_period),
     path('orders_payroll/<dailyID>',views.orders_payroll, name="orders_payroll"),   
     path('payroll/<perID>/<dID>/<crewID>/<LocID>',views.payroll),
