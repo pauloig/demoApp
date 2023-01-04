@@ -1,4 +1,8 @@
 from ast import Try, parse
+import xlwt
+from django.core.mail import send_mail, EmailMessage
+from django.core.files.base import ContentFile
+from io import BytesIO
 from contextlib import nullcontext, redirect_stderr
 from ctypes.wintypes import WORD
 from datetime import datetime
@@ -10,13 +14,13 @@ from telnetlib import WONT
 from unittest import TextTestResult
 from urllib import response
 from django.shortcuts import render, get_object_or_404, HttpResponseRedirect, redirect
-from .models import Employee, payrollDetail, workOrder, workOrderDuplicate, Locations, item, itemPrice, payroll, internalPO, period, Daily, DailyEmployee, DailyItem
+from .models import Employee, payrollDetail, workOrder, workOrderDuplicate, Locations, item, itemPrice, payroll, internalPO, period, Daily, DailyEmployee, DailyItem, employeeRecap, woStatusLog
 from .resources import workOrderResource
 from django.contrib import messages
 from tablib import Dataset
-from django.http import HttpResponse, FileResponse
+from django.http import HttpResponse, FileResponse, HttpRequest
 from django.db import IntegrityError
-from .forms import EmployeesForm, InternalPOForm, ItemForm, ItemPriceForm, LocationsForm, workOrderForm, DailyEmpForm, DailyItemForm, dailydForm
+from .forms import EmployeesForm, InternalPOForm, ItemForm, ItemPriceForm, LocationsForm, workOrderForm, DailyEmpForm, DailyItemForm, dailydForm, dailySupForm
 from sequences import get_next_value, Sequence
 from datetime import date
 from django.utils.dateparse import parse_date
@@ -109,6 +113,16 @@ def simple_upload(request):
                         uploaded = True
                     )
                     value.save()
+
+                    log = woStatusLog( 
+                                        woID = value,
+                                        nextStatus = 1,
+                                        createdBy = request.user.username,
+                                        created_date = datetime.datetime.now()
+                                     )
+                    log.save()
+
+
                     countInserted = countInserted + 1
                 except Exception as e:
                     countRejected = countRejected + 1
@@ -434,18 +448,18 @@ def order_list_location(request, userID):
         return render(request,'order_list_location.html',
         {'orders': orders, 'emp': emp })
 
-def order_list_sup(request, userID):  
+def order_list_sup(request):  
     # emp = Employee.objects.filter(user__username__exact = userID).first()
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
 
     if emp:
         orders = workOrder.objects.filter(WCSup__employeeID__exact=emp.employeeID).exclude(linkedOrder__isnull = False, uploaded = False )
         return render(request,'order_list_sup.html',
-        {'orders': orders, 'emp': emp })
+        {'orders': orders, 'emp': emp, 'sup':'True'})
     else:
         orders = workOrder.objects.filter(WCSup__employeeID__exact=0, Location__isnull=False).exclude(linkedOrder__isnull = False, uploaded = False )
         return render(request,'order_list_sup.html',
-        {'orders': orders, 'emp': emp })
+        {'orders': orders, 'emp': emp, 'sup':'True' })
 
 def listOrdersFilter(request):
     orders = workOrder.objects.all()
@@ -479,13 +493,29 @@ def order(request, orderID):
  
     form = workOrderForm(request.POST or None, instance = obj)
 
-    if form.is_valid():
-        form.save()
+    if form.is_valid(): 
+        form.save()       
         return HttpResponseRedirect('/order_list/')
  
     context["form"] = form
     context["emp"] = emp
     return render(request, "order.html", context)
+
+
+def order_supervisor(request, orderID):
+    emp = Employee.objects.filter(user__username__exact = request.user.username).first()
+    context ={}
+    obj = get_object_or_404(workOrder, id = orderID)
+ 
+    form = workOrderForm(request.POST or None, instance = obj)
+
+    if form.is_valid(): 
+        form.save()       
+        return HttpResponseRedirect('/order_list_sup/')
+ 
+    context["form"] = form
+    context["emp"] = emp
+    return render(request, "order_supervisor.html", context)
 
 def updateDupOrder(request,pID, dupID):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
@@ -512,9 +542,19 @@ def updateDupOrder(request,pID, dupID):
                             CloseDate = dupOrder.CloseDate,
                             UploadDate = datetime.datetime.now(),
                             UserName = dupOrder.UserName,
-                            uploaded = True )
-        order.save()
+                            uploaded = True )        
+        order.save()        
         dupOrder.delete()
+
+
+        log = woStatusLog( 
+                            woID = order,
+                            nextStatus = 1,
+                            createdBy = request.user.username,
+                            created_date = datetime.datetime.now()
+                            )
+        log.save()
+
         return render(request,'landing.html',{'message':'Order Updated Successfully', 'alertType':'success', 'emp':emp})
     except Exception as e:
         return render(request,'landing.html',{'message':'Somenthing went Wrong!', 'alertType':'danger', 'emp':emp})
@@ -546,6 +586,15 @@ def insertDupOrder(request, dupID):
                             uploaded = True )
         order.save()
         dupOrder.delete()
+
+        log = woStatusLog( 
+                            woID = order,
+                            nextStatus = 1,
+                            createdBy = request.user.username,
+                            created_date = datetime.datetime.now()
+                            )
+        log.save()
+
         return render(request,'landing.html',{'message':'Order Inserted Successfully', 'alertType':'success','emp':emp})
     except Exception as e:
         print(e)
@@ -575,11 +624,21 @@ def create_order(request):
         form.instance.Status = '1'
         form.instance.UploadDate = datetime.datetime.now()
         form.save()
+
+
+        log = woStatusLog( 
+                            woID = form.instance,
+                            nextStatus = 1,
+                            createdBy = request.user.username,
+                            created_date = datetime.datetime.now()
+                            )
+        log.save()
+
         return HttpResponseRedirect('/order_list/')
          
     context['form']= form
     context['emp'] = emp
-    return render(request, "create_order.html", context)
+    return render(request, "order.html", context)
 
 def create_location(request):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
@@ -668,7 +727,7 @@ def update_employee(request, id):
 
     context["form"] = form
     context["emp"] = emp
-    return render(request, "update_employee.html", context)
+    return render(request, "create_employee.html", context)
 
 def linkOrderList(request, id):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
@@ -802,13 +861,20 @@ def update_po(request, id):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context ={}
 
+    context["po"] = internalPO.objects.filter(id = id).first()
+
     obj = get_object_or_404(internalPO, id = id )
  
     form = InternalPOForm(request.POST or None, instance = obj)
  
     if form.is_valid():
+        try:
+            newFile = request.FILES['myfile']
+            form.instance.receipt = newFile
+        except Exception as e:
+            None
         form.save()
-        return HttpResponseRedirect("/order_list/")
+        return HttpResponseRedirect("/po_list/" + str(obj.woID.id))
 
     context["form"] = form
     context["emp"] = emp
@@ -821,19 +887,21 @@ def create_po(request, id):
     form = InternalPOForm(request.POST or None, initial={'woID': wo})
     if form.is_valid():
         form.save()               
-        return HttpResponseRedirect("/order_list/")
+        return HttpResponseRedirect("/po_list/" + str(id))
          
     context['form']= form
     context["emp"] = emp
+    context["selectedWO"] = id
     return render(request, "create_po.html", context)
 
 def estimate(request, id):
     context = {}    
     wo = workOrder.objects.filter(id=id).first()
 
-    context["payroll"] = payroll.objects.filter(woId = wo, itemTotal__gte = 1 ).first()
+    daily = Daily.objects.filter(woID = wo).first()
+    context["payroll"] = daily
 
-    payItems = payrollDetail.objects.filter(prismID =wo.prismID , workOrderId = wo.workOrderId , PO = wo.PO)
+    payItems = DailyItem.objects.filter(DailyID__woID = wo)
     context["items"] = payItems
 
     context["estimate"] = True
@@ -845,22 +913,22 @@ def estimate(request, id):
         for data in payItems:
             linea = linea + 1
             amount = 0
-            itemO = item.objects.filter(itemID = data.item).first()
+            """itemO = item.objects.filter(itemID = data.item).first()
             loc = Locations.objects.filter(LocationID = data.location).first()
             if itemO:
                 priceO = itemPrice.objects.filter(item = itemO, location = loc).first()
 
-                if priceO:
-                    amount = Decimal(str(data.quantity)) * Decimal(str(priceO.price))
-                    total = total + amount
-                    itemHtml = itemHtml + " <tr>"
-                    itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="20%" align="center"> ' + itemO.itemID + '</td> '
-                    itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px; padding-left: 2px;" width="43%" align="left">    ' + itemO.name + '</td> '
-                    itemHtml = itemHtml +  ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center">' + data.quantity + '</td> '
-                    itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="13%" align="center">' + priceO.price + '</td> '
-                    itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center">' + str(amount) + '</td> '
-                    itemHtml = itemHtml + ' </tr> '
-                else:
+                if priceO:"""
+            amount = Decimal(str(data.quantity)) * Decimal(str(data.itemID.price))
+            total = total + amount
+            itemHtml = itemHtml + " <tr>"
+            itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="20%" align="center"> ' + data.itemID.item.itemID + '</td> '
+            itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px; padding-left: 2px;" width="43%" align="left">    ' + data.itemID.item.name  + '</td> '
+            itemHtml = itemHtml +  ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center">' + str(data.quantity) + '</td> '
+            itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="13%" align="center">' + str(data.itemID.price) + '</td> '
+            itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center">' + str(amount) + '</td> '
+            itemHtml = itemHtml + ' </tr> '
+            """    else:
                     itemHtml = itemHtml + ' <tr> '
                     itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="20%" align="center">' + data.item + '</td> '
                     itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="43%" align="left">' + data.item + '</td> '
@@ -876,7 +944,7 @@ def estimate(request, id):
                 itemHtml = itemHtml +  ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center">' + data.quantity + '</td> '
                 itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="13%" align="center">' + 0 + '</td> '
                 itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> 0 </td> '
-                itemHtml = itemHtml + ' </tr> '
+                itemHtml = itemHtml + ' </tr> ' """
     except Exception as e:
         print(e)
 
@@ -912,7 +980,17 @@ def estimate(request, id):
 
     template= get_template(template_path)
 
-    if (wo.pre_invoice != 0 and wo.pre_invoice != " " and wo.pre_invoice is None):         
+    if (wo.pre_invoice != 0 and wo.pre_invoice != " " and wo.pre_invoice is None):     
+
+        log = woStatusLog( 
+                            woID = wo,
+                            currentStatus = wo.Status,
+                            nextStatus = 4,
+                            createdBy = request.user.username,
+                            created_date = datetime.datetime.now()
+                            )
+        log.save()
+
         pre = Sequence("preinvoice")
         wo.pre_invoice = str(pre.get_next_value())
         wo.Status=4
@@ -943,11 +1021,10 @@ def invoice(request, id):
     context = {}    
     wo = workOrder.objects.filter(id=id).first()
 
-    context["payroll"] = payroll.objects.filter(woId = wo, itemTotal__gte = 1 ).first()
+    daily = Daily.objects.filter(woID = wo).first()
+    context["payroll"] = daily
 
-    context["items"] = payrollDetail.objects.filter(prismID =wo.prismID , workOrderId = wo.workOrderId , PO = wo.PO)
-
-    payItems = payrollDetail.objects.filter(prismID =wo.prismID , workOrderId = wo.workOrderId , PO = wo.PO)
+    payItems = DailyItem.objects.filter(DailyID__woID = wo)
     context["items"] = payItems
 
     context["estimate"] = False
@@ -959,22 +1036,22 @@ def invoice(request, id):
         for data in payItems:
             linea = linea + 1
             amount = 0
-            itemO = item.objects.filter(itemID = data.item).first()
+            """itemO = item.objects.filter(itemID = data.item).first()
             loc = Locations.objects.filter(LocationID = data.location).first()
             if itemO:
                 priceO = itemPrice.objects.filter(item = itemO, location = loc).first()
 
-                if priceO:
-                    amount = Decimal(str(data.quantity)) * Decimal(str(priceO.price))
-                    total = total + amount
-                    itemHtml = itemHtml + " <tr>"
-                    itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="20%" align="center"> ' + itemO.itemID + '</td> '
-                    itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px; padding-left: 2px;" width="43%" align="left">   ' + itemO.name + '</td> '
-                    itemHtml = itemHtml +  ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center">' + data.quantity + '</td> '
-                    itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="13%" align="center">' + priceO.price + '</td> '
-                    itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center">' + str(amount) + '</td> '
-                    itemHtml = itemHtml + ' </tr> '
-                else:
+                if priceO:"""
+            amount = Decimal(str(data.quantity)) * Decimal(str(data.itemID.price))
+            total = total + amount
+            itemHtml = itemHtml + " <tr>"
+            itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="20%" align="center"> ' + data.itemID.item.itemID + '</td> '
+            itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px; padding-left: 2px;" width="43%" align="left">   ' + data.itemID.item.name + '</td> '
+            itemHtml = itemHtml +  ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center">' + str(data.quantity) + '</td> '
+            itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="13%" align="center">' + str(data.itemID.price) + '</td> '
+            itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center">' + str(amount) + '</td> '
+            itemHtml = itemHtml + ' </tr> '
+            """    else:
                     itemHtml = itemHtml + ' <tr> '
                     itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="20%" align="center">' + data.item + '</td> '
                     itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="43%" align="left">' + data.item + '</td> '
@@ -990,7 +1067,7 @@ def invoice(request, id):
                 itemHtml = itemHtml +  ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center">' + data.quantity + '</td> '
                 itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="13%" align="center">' + 0 + '</td> '
                 itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> 0 </td> '
-                itemHtml = itemHtml + ' </tr> '
+                itemHtml = itemHtml + ' </tr> '"""
     except Exception as e:
         print(e)
 
@@ -1026,7 +1103,17 @@ def invoice(request, id):
 
     template= get_template(template_path)
 
-    if (wo.invoice != 0 and wo.invoice != " " and wo.invoice is None):         
+    if (wo.invoice != 0 and wo.invoice != " " and wo.invoice is None):  
+
+        log = woStatusLog( 
+                            woID = wo,
+                            currentStatus = wo.Status,
+                            nextStatus = 5,
+                            createdBy = request.user.username,
+                            created_date = datetime.datetime.now()
+                            )
+        log.save()
+
         pre = Sequence("invoice")
         wo.invoice = str(pre.get_next_value())
         wo.Status=5
@@ -1061,9 +1148,10 @@ def estimate_preview(request, id):
     context["order"] = wo
     context["emp"] = emp
 
-    context["payroll"] = payroll.objects.filter(woId = wo, itemTotal__gte = 1 ).first()
+    daily = Daily.objects.filter(woID = wo).first()
+    context["payroll"] = daily
 
-    payItems = payrollDetail.objects.filter(prismID =wo.prismID , workOrderId = wo.workOrderId , PO = wo.PO)
+    payItems = DailyItem.objects.filter(DailyID__woID = wo)
     context["items"] = payItems
 
     context["estimate"] = True
@@ -1075,22 +1163,22 @@ def estimate_preview(request, id):
         for data in payItems:
             linea = linea + 1
             amount = 0
-            itemO = item.objects.filter(itemID = data.item).first()
+            """itemO = item.objects.filter(itemID = data.itemID).first()
             loc = Locations.objects.filter(LocationID = data.location).first()
             if itemO:
                 priceO = itemPrice.objects.filter(item = itemO, location = loc).first()
 
-                if priceO:
-                    amount = Decimal(str(data.quantity)) * Decimal(str(priceO.price))
-                    total = total + amount
-                    itemHtml = itemHtml + ' <tr> '                  
-                    itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px;" width="20%" align="center">' + itemO.itemID + '</td> '
-                    itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px; padding-left: 2px;" width="43%" align="left">' + itemO.name + '</td> '
-                    itemHtml = itemHtml +  ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px;" width="12%" align="center">' + data.quantity + '</td> '
-                    itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px;" width="13%" align="center">' + priceO.price + '</td> '
-                    itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px;" width="12%" align="center">'  + str(amount) + '</td>'
-                    itemHtml = itemHtml + ' </tr> '
-                else:
+                if priceO:"""
+            amount = Decimal(str(data.quantity)) * Decimal(str(data.itemID.price))
+            total = total + amount
+            itemHtml = itemHtml + ' <tr> '                  
+            itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px;" width="20%" align="center">' + data.itemID.item.itemID + '</td> '
+            itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px; padding-left: 2px;" width="43%" align="left">' + data.itemID.item.name + '</td> '
+            itemHtml = itemHtml +  ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px;" width="12%" align="center">' + str(data.quantity) + '</td> '
+            itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px;" width="13%" align="center">' + str(data.itemID.price) + '</td> '
+            itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px;" width="12%" align="center">'  + str(amount) + '</td>'
+            itemHtml = itemHtml + ' </tr> '
+            """else:
                     itemHtml = itemHtml + ' <tr> '
                     itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9;; padding-top: 3px;" width="20%" align="center">'  + data.item + '</td> '
                     itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9;; padding-top: 3px; padding-left: 2px;" width="43%" align="left">' + data.item + '</td> '
@@ -1106,7 +1194,7 @@ def estimate_preview(request, id):
                 itemHtml = itemHtml +  ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px;" width="12%" align="center">' + data.quantity + '</td> '
                 itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px;" width="13%" align="center">' + 0 + '</td> '
                 itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px;" width="12%" align="center">'  + 0 + '</td>'
-                itemHtml = itemHtml + ' </tr> '
+                itemHtml = itemHtml + ' </tr> '"""
     except Exception as e:
         print(e)
 
@@ -1147,9 +1235,11 @@ def invoice_preview(request, id):
 
     context["order"] = wo
     context["emp"] = emp
-    context["payroll"] = payroll.objects.filter(woId = wo, itemTotal__gte = 1 ).first()
 
-    payItems = payrollDetail.objects.filter(prismID =wo.prismID , workOrderId = wo.workOrderId , PO = wo.PO)
+    daily = Daily.objects.filter(woID = wo).first()
+    context["payroll"] = daily
+
+    payItems = DailyItem.objects.filter(DailyID__woID = wo)
     context["items"] = payItems
 
     context["estimate"] = False
@@ -1162,22 +1252,22 @@ def invoice_preview(request, id):
         for data in payItems:
             linea = linea + 1
             amount = 0
-            itemO = item.objects.filter(itemID = data.item).first()
+            """itemO = item.objects.filter(itemID = data.item).first()
             loc = Locations.objects.filter(LocationID = data.location).first()
             if itemO:
                 priceO = itemPrice.objects.filter(item = itemO, location = loc).first()
 
-                if priceO:
-                    amount = Decimal(str(data.quantity)) * Decimal(str(priceO.price))
-                    total = total + amount
-                    itemHtml = itemHtml + ' <tr> '                  
-                    itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px;" width="20%" align="center">' + itemO.itemID + '</td> '
-                    itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px; padding-left: 2px;" width="43%" align="left">' + itemO.name + '</td> '
-                    itemHtml = itemHtml +  ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px;" width="12%" align="center">' + data.quantity + '</td> '
-                    itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px;" width="13%" align="center">' + priceO.price + '</td> '
-                    itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px;" width="12%" align="center">'  + str(amount) + '</td>'
-                    itemHtml = itemHtml + ' </tr> '
-                else:
+                if priceO:"""
+            amount = Decimal(str(data.quantity)) * Decimal(str(data.itemID.price))
+            total = total + amount
+            itemHtml = itemHtml + ' <tr> '                  
+            itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px;" width="20%" align="center">' + data.itemID.item.itemID + '</td> '
+            itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px; padding-left: 2px;" width="43%" align="left">' + data.itemID.item.name + '</td> '
+            itemHtml = itemHtml +  ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px;" width="12%" align="center">' + str(data.quantity) + '</td> '
+            itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px;" width="13%" align="center">' + str(data.itemID.price) + '</td> '
+            itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px;" width="12%" align="center">'  + str(amount) + '</td>'
+            itemHtml = itemHtml + ' </tr> '
+            """else:
                     itemHtml = itemHtml + ' <tr> '
                     itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9;; padding-top: 3px;" width="20%" align="center">'  + data.item + '</td> '
                     itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9;; padding-top: 3px; padding-left: 2px;" width="43%" align="left">' + data.item + '</td> '
@@ -1193,7 +1283,7 @@ def invoice_preview(request, id):
                 itemHtml = itemHtml +  ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px;" width="12%" align="center">' + data.quantity + '</td> '
                 itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px;" width="13%" align="center">' + 0 + '</td> '
                 itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px;" width="12%" align="center">'  + 0 + '</td>'
-                itemHtml = itemHtml + ' </tr> '
+                itemHtml = itemHtml + ' </tr> '"""
     except Exception as e:
         print(e)
 
@@ -1355,11 +1445,102 @@ def period_list(request):
 def location_period_list(request, id):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context = {}    
-    per = period.objects.filter(id = id).first
-    context["period"] = per
-    context["locations"] = Locations.objects.all()
+    per = period.objects.filter(id = id).first()
+
+
+    loca = Locations.objects.all().order_by("LocationID")
+    locationSummary = []
+
+    for locItem in loca:
+        daily = Daily.objects.filter(Location = locItem, Period = per)     
+        regular_time = 0
+        over_time = 0
+        double_time = 0
+        total_time = 0
+        rt = 0
+        ot = 0
+        dt = 0
+        bonus = 0
+        on_call = 0
+        prod = 0
+        gran_total = 0
+        payroll = 0
+        ownvehicle = 0
+        invoice = 0
+        payroll2= 0
+        perc = 0
+        for dailyItem in daily:            
+            production = DailyItem.objects.filter(DailyID=dailyItem).count()
+
+            dailyemp = DailyEmployee.objects.filter(DailyID=dailyItem)
+
+            for i in dailyemp:
+                if production <= 0:
+                    regular_time += i.regular_hours
+                    over_time += i.ot_hour
+                    double_time += i.double_time
+                    total_time += i.total_hours
+                    if i.EmployeeID.hourly_rate != None:
+                        rt += (i.regular_hours * float(i.EmployeeID.hourly_rate))
+                        ot += ((i.ot_hour * (float(i.EmployeeID.hourly_rate)*1.5)))
+                        dt += ((i.double_time * (float(i.EmployeeID.hourly_rate)*2)))
+
+                if i.bonus != None:
+                    bonus += i.bonus
+                    
+                if i.on_call != None:
+                    on_call += i.on_call
+
+                if i.payout != None:
+                    payroll += i.payout
+
+            
+            dailyprod =  DailyItem.objects.filter(DailyID=dailyItem)
+            total = 0
+            
+            ov = 0
+            for j in dailyprod:                
+                total += j.total
+                invoice += (j.quantity * float(j.itemID.price) )
+                payroll2 += (j.quantity * float(j.itemID.emp_payout) )
+
+            if dailyItem.own_vehicle != None:
+                ov = ((total * dailyItem.own_vehicle) / 100)
+                ownvehicle += ov
+            prod += (total)
+
+        if invoice > 0:                    
+            perc = (payroll * 100) / invoice
+
+        locationSummary.append({ 'LocationID': locItem.LocationID, 'name': locItem.name, 
+                                'regular_time':regular_time, 'over_time':over_time, 
+                                'double_time':double_time, 'total_time':total_time,
+                                'rt': rt, 'ot': ot, 'dt': dt, 'bonus':bonus, 'on_call': on_call,
+                                'production': prod, 'own_vehicle': ownvehicle, 'payroll': payroll, 'invoice':invoice, 'percentage': perc})
+
+
+    context["locationSummary"] = locationSummary
+
+    empList = Employee.objects.all()
+    empRecap = []
+    for item in empList:
+        dailyEmp = DailyEmployee.objects.filter(EmployeeID = item, DailyID__Period = id).count()
+
+        if dailyEmp > 0:
+            empR = employeeRecap.objects.filter(EmployeeID = item, Period = per).first()
+            if empR:
+                file = empR.recap
+            else:
+                file = None
+
+            empRecap.append({'employeeID': item.employeeID, 'name': item, 'file': file, 'mailingDate': empR.mailingDate })
+
+    context["period"] = per   
     context["emp"] = emp
+    context["empRecap"] = empRecap
     
+
+
     return render(request, "location_period_list.html", context)
 
 def create_period(request):
@@ -1404,7 +1585,7 @@ def create_period(request):
 
     return HttpResponseRedirect('/period_list/')
 
-def orders_payroll(request, dailyID):
+def orders_payroll(request, dailyID, LocID):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     daily = Daily.objects.filter(id = dailyID).first()    
     loca = list(Locations.objects.all().exclude(LocationID = daily.Location.LocationID))
@@ -1415,10 +1596,11 @@ def orders_payroll(request, dailyID):
     context["orders"] = wo
     context["emp"] = emp    
     context["daily"] = dailyID
+    context["selectedLocation"] = LocID
 
     return render(request, "orders_payroll.html", context)
 
-def update_order_daily(request, woID, dailyID):
+def update_order_daily(request, woID, dailyID, LocID):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
 
     context = {}    
@@ -1457,9 +1639,9 @@ def update_order_daily(request, woID, dailyID):
 
         per = crew.Period.id
 
-        return HttpResponseRedirect('/payroll/' + str(per) + '/' + crew.day.strftime("%d")  + '/'+ str(crew.crew) +'/0')
+        return HttpResponseRedirect('/payroll/' + str(per) + '/' + crew.day.strftime("%d")  + '/'+ str(crew.crew) +'/' + str(LocID))
     else:
-        return HttpResponseRedirect('/payroll/0/0/0/0')
+        return HttpResponseRedirect('/payroll/0/0/0/'+str(LocID))
 
 
 def create_daily(request, pID, dID, LocID):
@@ -1675,10 +1857,10 @@ def payroll(request, perID, dID, crewID, LocID):
 
     if crewID != "0":
         dailyID = Daily.objects.filter(Period = perID, day=selectedDate, crew = crewID, Location = loca ).first()
-        dailyEmp = DailyEmployee.objects.filter(DailyID = dailyID)
+        dailyEmp = DailyEmployee.objects.filter(DailyID = dailyID).order_by('created_date')
         context["dailyEmp"] = dailyEmp
 
-        dailyItem = DailyItem.objects.filter(DailyID = dailyID)
+        dailyItem = DailyItem.objects.filter(DailyID = dailyID).order_by('created_date')
         dailyTotal = 0
         ovT = 0
         for di in dailyItem:
@@ -1730,7 +1912,7 @@ def payroll(request, perID, dID, crewID, LocID):
                         wo.save()            
             
         
-        return HttpResponseRedirect('/payroll/' + str(crew.Period.id) + '/' + crew.day.strftime("%d") + '/' + str(crew.crew) +'/0')        
+        return HttpResponseRedirect('/payroll/' + str(crew.Period.id) + '/' + crew.day.strftime("%d") + '/' + str(crew.crew) +'/' + str(LocID))        
 
 
 
@@ -1794,7 +1976,7 @@ def calculate_hours(startTime, endTime, lunch_startTime, lunch_endTime):
     return total_hours, regular_hours, ot_hours, double_time
         
     
-def create_daily_emp(request, id):
+def create_daily_emp(request, id, LocID):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context ={}
     dailyID = Daily.objects.filter(id = id).first()
@@ -1816,11 +1998,11 @@ def create_daily_emp(request, id):
         lunch_endTime = form.instance.end_lunch_time
 
         form.instance.total_hours, form.instance.regular_hours,form.instance.ot_hour, form.instance.double_time = calculate_hours(startTime, endTime, lunch_startTime, lunch_endTime)
-
+        form.instance.created_date = datetime.datetime.now()
         form.save()  
 
         update_ptp_Emp(id, dailyID.split_paymet)             
-        return HttpResponseRedirect('/payroll/' + str(dailyID.Period.id) + '/' + dailyID.day.strftime("%d") + '/' + str(dailyID.crew) +'/0')        
+        return HttpResponseRedirect('/payroll/' + str(dailyID.Period.id) + '/' + dailyID.day.strftime("%d") + '/' + str(dailyID.crew) +'/' + str(LocID))        
          
     context['form']= form
     context["emp"] = emp
@@ -1828,7 +2010,7 @@ def create_daily_emp(request, id):
     return render(request, "create_daily_emp.html", context)
 
 
-def update_daily_emp(request, id):
+def update_daily_emp(request, id, LocID):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context ={}    
     obj = get_object_or_404(DailyEmployee, id = id)
@@ -1849,7 +2031,7 @@ def update_daily_emp(request, id):
         update_ptp_Emp(obj.DailyID.id, obj.DailyID.split_paymet) 
 
         context["emp"] = emp       
-        return HttpResponseRedirect('/payroll/' + str(obj.DailyID.Period.id) + '/' + obj.DailyID.day.strftime("%d") + '/' + str(obj.DailyID.crew) +'/0') 
+        return HttpResponseRedirect('/payroll/' + str(obj.DailyID.Period.id) + '/' + obj.DailyID.day.strftime("%d") + '/' + str(obj.DailyID.crew) + '/' + str(LocID)) 
 
     dailyID = Daily.objects.filter(id = obj.DailyID.id).first()
 
@@ -1858,7 +2040,7 @@ def update_daily_emp(request, id):
     context["daily"] = dailyID
     return render(request, "create_daily_emp.html", context)
 
-def delete_daily_emp(request, id):
+def delete_daily_emp(request, id, LocID):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context ={}
     obj = get_object_or_404(DailyEmployee, id = id)
@@ -1871,13 +2053,13 @@ def delete_daily_emp(request, id):
 
         update_ptp_Emp(obj.DailyID.id, obj.DailyID.split_paymet) 
 
-        return HttpResponseRedirect('/payroll/' + str(obj.DailyID.Period.id) + '/' + obj.DailyID.day.strftime("%d") + '/' + str(obj.DailyID.crew) +'/0') 
+        return HttpResponseRedirect('/payroll/' + str(obj.DailyID.Period.id) + '/' + obj.DailyID.day.strftime("%d") + '/' + str(obj.DailyID.crew) +'/' + str(LocID)) 
 
    
     return render(request, "delete_daily_emp.html", context)
 
 
-def create_daily_item(request, id):
+def create_daily_item(request, id, LocID):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context ={}
     dailyID = Daily.objects.filter(id = id).first()
@@ -1894,17 +2076,18 @@ def create_daily_item(request, id):
     if form.is_valid():    
         price = form.instance.itemID.emp_payout    
         form.instance.total = form.instance.quantity * float(price)
+        form.instance.created_date = datetime.datetime.now()
         form.save()      
 
         update_ptp_Emp(id, dailyID.split_paymet)
 
-        return HttpResponseRedirect('/payroll/' + str(dailyID.Period.id) + '/' + dailyID.day.strftime("%d") + '/' + str(dailyID.crew) +'/0')        
+        return HttpResponseRedirect('/payroll/' + str(dailyID.Period.id) + '/' + dailyID.day.strftime("%d") + '/' + str(dailyID.crew) +'/' + str(LocID))        
          
     context['form']= form
     context["emp"] = emp
     return render(request, "create_daily_item.html", context)
 
-def update_daily_item(request, id):
+def update_daily_item(request, id, LocID):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context ={}
     obj = get_object_or_404(DailyItem, id = id)
@@ -1922,13 +2105,13 @@ def update_daily_item(request, id):
 
         update_ptp_Emp(obj.DailyID.id, obj.DailyID.split_paymet) 
 
-        return HttpResponseRedirect('/payroll/' + str(obj.DailyID.Period.id) + '/' + obj.DailyID.day.strftime("%d") + '/' + str(obj.DailyID.crew) +'/0') 
+        return HttpResponseRedirect('/payroll/' + str(obj.DailyID.Period.id) + '/' + obj.DailyID.day.strftime("%d") + '/' + str(obj.DailyID.crew) +'/'+str(LocID)) 
 
     context["form"] = form
     context["emp"] = emp
     return render(request, "create_daily_item.html", context)
 
-def delete_daily_item(request, id):
+def delete_daily_item(request, id, LocID):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context ={}
     obj = get_object_or_404(DailyItem, id = id)
@@ -1941,12 +2124,12 @@ def delete_daily_item(request, id):
 
         update_ptp_Emp(obj.DailyID.id, obj.DailyID.split_paymet) 
 
-        return HttpResponseRedirect('/payroll/' + str(obj.DailyID.Period.id) + '/' + obj.DailyID.day.strftime("%d") + '/' + str(obj.DailyID.crew) +'/0') 
+        return HttpResponseRedirect('/payroll/' + str(obj.DailyID.Period.id) + '/' + obj.DailyID.day.strftime("%d") + '/' + str(obj.DailyID.crew) +'/' + str(LocID)) 
 
    
     return render(request, "delete_daily_item.html", context)
 
-def upload_daily(request, id):
+def upload_daily(request, id, LocID):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()    
     context ={}  
     context["emp"] = emp
@@ -1965,6 +2148,735 @@ def upload_daily(request, id):
         else:
             filename = "daily.pdf"
 
-        return HttpResponseRedirect('/payroll/' + str(d.Period.id) + '/' + d.day.strftime("%d") + '/' + str(d.crew) +'/0')   
+        return HttpResponseRedirect('/payroll/' + str(d.Period.id) + '/' + d.day.strftime("%d") + '/' + str(d.crew) +'/' + str(LocID))   
 
     return render(request, "upload_daily.html", context)
+
+def recap(request, perID):
+    
+    empList = Employee.objects.all()   
+    per = period.objects.filter(id = perID).first()
+
+    for item in empList:
+        dailyEmp = DailyEmployee.objects.filter(EmployeeID = item, DailyID__Period = perID).count()
+
+        if dailyEmp > 0:
+            file = generate_recap(item.employeeID,perID)
+
+            empRecap = employeeRecap.objects.filter(EmployeeID = item, Period = per).first()
+            
+            if empRecap:
+
+                empRecap.recap = file
+                empRecap.save()
+
+            else:
+
+                remplo = employeeRecap( Period = per,
+                                    EmployeeID = item,
+                                    recap = file )
+                remplo.save()
+    
+    return HttpResponseRedirect('/location_period_list/' + perID)     
+
+
+
+def generate_recap(empID, perID):
+    context= {}  
+
+    template_path = 'recap_template.html'
+
+    template= get_template(template_path)
+    
+    fileName = "recap-1.pdf"
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename=' + fileName
+    
+    lines = []
+    lines2 = []
+
+    per = period.objects.filter(id = perID).first()
+    context["period"] = per
+
+    emp = Employee.objects.filter(employeeID = empID).first()
+    context["emp"] = emp
+
+    dailyemp = DailyEmployee.objects.filter(EmployeeID = emp, DailyID__Period = per)
+
+    contador = 0
+    rtTotal = 0
+    otTotal = 0
+    dtTotal = 0
+    ocTotal = 0
+    bonTotal = 0
+    prodTotal = 0
+    ovTotal = 0
+    payTotal = 0
+    line2 = False 
+
+    for item in dailyemp:
+        contador += 1
+        rt = 0
+        ot = 0
+        dt = 0
+        on_call = 0
+        bonus = 0
+        
+
+        prod = DailyItem.objects.filter(DailyID = item.DailyID).count()
+
+        if prod <= 0:           
+            if item.EmployeeID.hourly_rate != None:
+                rt = (item.regular_hours * float(item.EmployeeID.hourly_rate))
+                ot = ((item.ot_hour * (float(item.EmployeeID.hourly_rate)*1.5)))
+                dt = ((item.double_time * (float(item.EmployeeID.hourly_rate)*2)))
+
+        payroll = item.payout
+        on_call = item.on_call
+        bonus = item.bonus
+
+        itemd = DailyItem.objects.filter(DailyID = item.DailyID)
+
+        total = 0
+        for i in itemd:
+            total += i.total
+
+        production = (total * item.per_to_pay) / 100
+        if item.DailyID.own_vehicle != None:
+            own_vehicle = (((total * item.DailyID.own_vehicle) / 100) * item.per_to_pay) / 100
+        else:
+            own_vehicle = 0
+
+        rtTotal += rt
+        otTotal += ot
+        dtTotal += dt
+        if on_call != None:
+            ocTotal += on_call
+
+        if bonus != None:
+            bonTotal += bonus
+
+        prodTotal += production
+        ovTotal += own_vehicle
+        payTotal += payroll
+
+        if contador <= 45:
+            lines.append({'line':contador, 'Location': item.DailyID.Location.name,
+                       'date': item.DailyID.day, 'address': item.DailyID.woID.JobAddress,
+                       'rt': rt, 'ot': ot, 'dt': dt, 'production': production , 'own_vehicle': own_vehicle, 'on_call': on_call, 'bonus': bonus, 'payroll': payroll })
+        else:
+            line2 = True
+            lines2.append({'line':contador, 'Location': item.DailyID.Location.name,
+                       'date': item.DailyID.day, 'address': item.DailyID.woID.JobAddress,
+                       'rt': rt, 'ot': ot, 'dt': dt, 'production': production , 'own_vehicle': own_vehicle, 'on_call': on_call, 'bonus': bonus, 'payroll': payroll })
+
+    if contador <= 45:
+        for x in range(0,45-contador):
+            lines.append({'line':x, 'Location': None, 'date': None, 'address': '',
+                       'rt': 0, 'ot': 0, 'dt': 0, 'production': 0, 'own_vehicle': 0 , 'on_call': None,  'bonus': None,'payroll': 0})
+    else:
+        for x in range(45,95-contador):
+            line2 = True
+            lines2.append({'line':x, 'Location': None, 'date': None, 'address': '',
+                        'rt': 0, 'ot': 0, 'dt': 0, 'production': 0, 'own_vehicle': 0 , 'on_call': None,  'bonus': None, 'payroll': 0})
+
+    context["lines"] = lines
+    context["lines2"] = lines2
+    context["line2"] = line2
+    context["rtTotal"] = rtTotal
+    context["otTotal"] = otTotal
+    context["dtTotal"] = dtTotal
+    context["ocTotal"] = ocTotal
+    context["bonTotal"] = bonTotal
+    context["prodTotal"] = prodTotal
+    context["ovTotal"] = ovTotal
+    context["payTotal"] = payTotal
+
+
+    
+    html = template.render(context)
+    pisa_status = pisa.CreatePDF(html, dest=response)
+
+
+    output = BytesIO()
+    pisa_status = pisa.CreatePDF(html, dest=output)
+    file_name = str(emp.employeeID) + " " + emp.last_name + " " + emp.first_name + " " + per.weekRange
+    myPdf = ContentFile(output.getvalue(),file_name + '.pdf')
+
+    return myPdf
+
+
+def send_recap(request, perID):
+    empSelected =request.POST.get('Employees')
+   
+    if empSelected != 0:
+        empList = empSelected.split(",")
+        per = period.objects.filter(id = perID).first()
+        if per:
+            empRecap = employeeRecap.objects.filter(Period = per, EmployeeID__employeeID__in = empList)
+
+            for item in empRecap:
+                subject = 'Recap Weeks ' + per.weekRange
+                message = 'Hello ' + item.EmployeeID.last_name + ' ' + item.EmployeeID.first_name + ','
+                message += '\n \n Attached you can find the recap of the weeks ' + per.weekRange
+                message += '\n please review it and let me know if you have any question or problem.'
+                message += '\n \n best regards,'
+                emailTo = item.EmployeeID.email
+                if emailTo != None:
+                    email =  EmailMessage(subject,message, 'paulo.ismalej@gmail.com' ,[emailTo])
+                    email.attach_file(item.recap.path)
+                    email.send()
+
+                    item.mailingDate = datetime.datetime.now()
+                    item.save()
+
+    return HttpResponseRedirect('/location_period_list/' + perID) 
+
+def send_recap_emp(request, perID, empID):
+
+    #send_mail('Recap','this is your recap to Period ','recaps@wiringconnection.com',['paulo.ismalej@gmail.com'])
+    per = period.objects.filter(id = perID).first()
+    emp = Employee.objects.filter(employeeID = empID).first()
+    if per and emp:
+        empRecap = employeeRecap.objects.filter(Period = per, EmployeeID = emp)
+
+        for item in empRecap:
+            subject = 'Recap Weeks ' + per.weekRange
+            message = 'Hello ' + item.EmployeeID.last_name + ' ' + item.EmployeeID.first_name + ','
+            message += '\n \n Attached you can find the recap of the weeks ' + per.weekRange
+            message += '\n please review it and let me know if you have any question or problem.'
+            message += '\n \n best regards,'
+
+            emailTo = item.EmployeeID.email
+            if emailTo != None:
+                email = EmailMessage(subject,message, 'paulo.ismalej@gmail.com' ,[emailTo])
+                email.attach_file(item.recap.path)
+                email.send()
+
+                item.mailingDate = datetime.datetime.now()
+                item.save()
+
+    return HttpResponseRedirect('/location_period_list/' + perID) 
+
+def get_summary(request, perID):
+    
+    
+
+    wb = xlwt.Workbook(encoding='utf-8')
+    ws = wb.add_sheet('Summary', cell_overwrite_ok = True) # this will make a sheet named Users Data
+
+    # Sheet header, first row
+    row_num = 7
+
+    font_style = xlwt.XFStyle()
+    font_style.font.bold = True
+    font_style = xlwt.easyxf('font: bold on, color black;\
+                     borders: top_color black, bottom_color black, right_color black, left_color black,\
+                              left thin, right thin, top thin, bottom thin;\
+                     pattern: pattern solid, fore_color light_blue;')
+
+
+    columns = ['Location', 'Date', 'Eid', 'Name', 'RT','OT','DT','TT','RT$','OT$','Bonus', 'Production','own vehicle', 'on call', 'payroll','Supervisor','PID','Address']
+
+    for col_num in range(len(columns)):
+        ws.write(row_num, col_num, columns[col_num], font_style) # at 0 row 0 column 
+
+
+    per = period.objects.filter(id = perID).first()
+    dailyList = Daily.objects.filter(Period = per).order_by('Location')
+
+    for item in dailyList:        
+    
+        demp = DailyEmployee.objects.filter(DailyID=item).order_by()    
+        empLines = 0    
+        
+
+        for i in demp:
+            itemProd = 0
+            rtPrice = 0
+            otPrice = 0
+            dtPrice = 0     
+            ttp = 0
+            ov = 0
+            bonus = 0
+            on_call = 0
+            
+
+
+            if i.payout > 0:                
+                row_num += 1
+                font_style = xlwt.XFStyle()
+
+                ws.write(row_num,0,item.Location.name, font_style)
+                ws.write(row_num,1,item.day.strftime("%m/%d/%Y"), font_style)
+                ws.write(row_num,2,i.EmployeeID.employeeID, font_style)
+                ws.write(row_num,3,i.EmployeeID.last_name + ' ' +i.EmployeeID.first_name, font_style)
+
+                itemProd = DailyItem.objects.filter(DailyID = i.DailyID).count()
+                
+                if itemProd <= 0:                    
+             
+                    ws.write(row_num,4,i.regular_hours, font_style)
+                    ws.write(row_num,5,i.ot_hour, font_style)
+                    ws.write(row_num,6,i.double_time, font_style)
+                    ws.write(row_num,7,i.total_hours, font_style)
+
+                    if i.EmployeeID.hourly_rate != None:
+                        rtPrice = (i.regular_hours * float(i.EmployeeID.hourly_rate))
+                        otPrice = ((i.ot_hour * (float(i.EmployeeID.hourly_rate)*1.5)))
+                        dtPrice = ((i.double_time * (float(i.EmployeeID.hourly_rate)*2)))
+
+                        ws.write(row_num,8,rtPrice, font_style)
+                        ws.write(row_num,9,otPrice + dtPrice, font_style)
+                    else:
+                        ws.write(row_num,8,0, font_style)
+                        ws.write(row_num,9,0 + dtPrice, font_style)
+                else:
+                    ws.write(row_num,4,0, font_style)
+                    ws.write(row_num,5,0, font_style)
+                    ws.write(row_num,6,0, font_style)
+                    ws.write(row_num,7,0, font_style)
+                    ws.write(row_num,8,0, font_style)
+                    ws.write(row_num,9,0, font_style)
+
+                ws.write(row_num,10,i.bonus, font_style)
+                if itemProd > 0:  
+                    di = DailyItem.objects.filter(DailyID = i.DailyID)          
+                    t = 0
+                    for j in di:
+                        t += j.total
+
+                    ov = (((t * item.own_vehicle) / 100) * i.per_to_pay) /100
+                    ttp = (t * i.per_to_pay) /100
+                    ws.write(row_num,round(11,2),ttp, font_style)
+                    ws.write(row_num,12,ov, font_style)
+                else:
+                    ws.write(row_num,11,0, font_style)
+                    ws.write(row_num,12,0, font_style)
+
+                if i.bonus != None:
+                    bonus = i.bonus
+                
+                if i.on_call != None:
+                    on_call = i.on_call
+
+
+                payTotal = rtPrice + otPrice + dtPrice + bonus + ttp + ov + on_call
+                ws.write(row_num,13,i.on_call, font_style)
+                ws.write(row_num,14,payTotal, font_style)
+                ws.write(row_num,15,item.woID.WCSup.last_name + ' ' + item.woID.WCSup.first_name, font_style)
+                ws.write(row_num,16,item.woID.prismID, font_style)
+                ws.write(row_num,17,item.woID.JobAddress, font_style)
+
+                empLines += 1
+                
+                # se agregan las columnas de items
+                if empLines == 1:
+                    items = DailyItem.objects.filter(DailyID = i.DailyID)
+                    col_item =  0
+                    itemNumber = 0
+
+                    for z in items:
+                        font_style = xlwt.easyxf('font: bold on, color black;\
+                                                borders: top_color black, bottom_color black, right_color black, left_color black,\
+                                                        left thin, right thin, top thin, bottom thin;\
+                                                pattern: pattern solid, fore_color light_blue;')
+
+                        col_item += 1
+                        itemNumber += 1
+                        try:
+                             ws.write(7,17 + col_item,'Item'+str(itemNumber), font_style)   
+                             ws.write(7,18 + col_item,'Qty'+str(itemNumber), font_style)                          
+                        except Exception as e:
+                            None
+                        
+                        font_style = xlwt.XFStyle()
+                        ws.write(row_num,17 + col_item,z.itemID.item.itemID, font_style)
+                       
+                        col_item += 1                                          
+                        
+                        ws.write(row_num,17 + col_item,z.quantity, font_style)
+                                    
+
+ 
+  
+    sumItem = 0
+    for x in dailyList:
+        items = DailyItem.objects.filter(DailyID = x)
+        
+        for y in items:
+            sumItem += 1
+        
+    font_style = xlwt.easyxf('font: bold on, color black;\
+                                            borders: top_color black, bottom_color black, right_color black, left_color black,\
+                                                    left thin, right thin, top thin, bottom thin;\
+                                            pattern: pattern solid, fore_color light_blue;')
+
+    ws.write(7,18 + sumItem*2,'Item Totals', font_style)   
+    ws.write(7,19 + sumItem*2,'Invoice', font_style)           
+    
+    font_style = xlwt.XFStyle()
+
+    row_num=7
+    for x in dailyList:
+        demp = DailyEmployee.objects.filter(DailyID=x).order_by()    
+        empLines = 0    
+
+        for y in demp:
+            empLines += 1
+        
+            if y.payout > 0:                
+                row_num += 1
+                if empLines == 1:
+                    items = DailyItem.objects.filter(DailyID = x)
+                    sumQty = 0
+                    sumInvoice = 0
+                    for z in items:
+                        lineInv = z.quantity * float(z.itemID.price)
+                        sumInvoice += lineInv
+                        sumQty += z.quantity
+
+                    if sumQty > 0:
+                        ws.write(row_num,18 + sumItem*2,sumQty, font_style)   
+                        ws.write(row_num,19 + sumItem*2,sumInvoice, font_style)     
+
+
+        ws.col(0).width = 3000
+        ws.col(2).width = 1500
+        ws.col(3).width = 5000
+        ws.col(4).width = 1000
+        ws.col(5).width = 1000
+        ws.col(6).width = 1000
+        ws.col(7).width = 1000
+        ws.col(8).width = 1000
+        ws.col(9).width = 1000
+        ws.col(10).width = 1700                                      
+        ws.col(11).width = 3500
+        ws.col(12).width = 3000
+        ws.col(13).width = 1700
+        ws.col(14).width = 2200
+        ws.col(15).width = 5000
+        ws.col(17).width = 11500
+
+
+    # WORKSHEET UPLOAD
+
+    ws2 = wb.add_sheet('UPLOAD', cell_overwrite_ok = True) 
+
+    # Sheet header, first row
+    row_num = 7
+
+    font_style = xlwt.XFStyle()
+    font_style.font.bold = True
+    font_style = xlwt.easyxf('font: bold on, color black;\
+                     borders: top_color black, bottom_color black, right_color black, left_color black,\
+                              left thin, right thin, top thin, bottom thin;\
+                     pattern: pattern solid, fore_color light_blue;')
+
+
+    columns = ['Loc Id', 'Assigned Department', 'Eid', 'Name', 'RT','OT','DT','TT','RT$','OT$','Bonus', 'Production','own vehicle', 'on call', 'payroll']
+
+    for col_num in range(len(columns)):
+        ws2.write(row_num, col_num, columns[col_num], font_style) # at 0 row 0 column 
+
+    font_style = xlwt.XFStyle()   
+
+    empList = Employee.objects.all()   
+    per = period.objects.filter(id = perID).first()
+    invoice = 0
+    payTotalTotal = 0
+    for item in empList:
+        dailyEmp = DailyEmployee.objects.filter(EmployeeID = item, DailyID__Period = perID).count()
+
+        if dailyEmp > 0:           
+            emp = Employee.objects.filter(employeeID = item.employeeID).first()            
+
+            dailyemp = DailyEmployee.objects.filter(EmployeeID = emp, DailyID__Period = per)
+
+            contador = 0
+            rtTotal = 0
+            otTotal = 0
+            dtTotal = 0
+            rt_Total = 0
+            ot_Total = 0
+            dt_Total = 0
+            tt_Total = 0
+            ocTotal = 0
+            bonTotal = 0
+            prodTotal = 0
+            ovTotal = 0
+            payTotal = 0
+            
+            line2 = False 
+
+            for itemEmp in dailyemp:                
+                contador += 1
+                rt = 0
+                ot = 0
+                dt = 0
+                on_call = 0
+                bonus = 0
+                
+
+                prod = DailyItem.objects.filter(DailyID = itemEmp.DailyID).count()
+
+                if prod <= 0:           
+                    if itemEmp.EmployeeID.hourly_rate != None:
+                        rt = (itemEmp.regular_hours * float(itemEmp.EmployeeID.hourly_rate))
+                        ot = ((itemEmp.ot_hour * (float(itemEmp.EmployeeID.hourly_rate)*1.5)))
+                        dt = ((itemEmp.double_time * (float(itemEmp.EmployeeID.hourly_rate)*2)))
+                    rt_Total += itemEmp.regular_hours
+                    ot_Total += itemEmp.ot_hour
+                    dt_Total += itemEmp.double_time
+                    tt_Total += itemEmp.total_hours
+
+                payroll = itemEmp.payout
+                on_call = itemEmp.on_call
+                bonus = itemEmp.bonus
+
+                itemd = DailyItem.objects.filter(DailyID = itemEmp.DailyID)
+
+                total = 0
+                for i in itemd:
+                    invoice += ((i.quantity * float(i.itemID.price)) * itemEmp.per_to_pay) / 100
+                    total += i.total
+
+                production = (total * itemEmp.per_to_pay) / 100
+                if itemEmp.DailyID.own_vehicle != None:
+                    own_vehicle = (((total * itemEmp.DailyID.own_vehicle) / 100) * itemEmp.per_to_pay) / 100
+                else:
+                    own_vehicle = 0
+
+                rtTotal += rt
+                otTotal += ot
+                dtTotal += dt               
+
+                if on_call != None:
+                    ocTotal += on_call
+
+                if bonus != None:
+                    bonTotal += bonus
+
+                prodTotal += production
+                ovTotal += own_vehicle
+                payTotal += payroll
+            
+            payTotalTotal += payTotal
+
+            row_num += 1
+            if emp.Location != None:
+                ws2.write(row_num, 0, emp.Location.LocationID, font_style)
+                ws2.write(row_num, 1, emp.Location.name, font_style)
+            
+            ws2.write(row_num, 2, emp.employeeID, font_style)
+            ws2.write(row_num, 3, emp.last_name + ' ' + emp.first_name, font_style)
+            ws2.write(row_num, 4, rt_Total, font_style)
+            ws2.write(row_num, 5, ot_Total, font_style)
+            ws2.write(row_num, 6, dt_Total, font_style)
+            ws2.write(row_num, 7, tt_Total, font_style)
+            ws2.write(row_num, 8, rtTotal, font_style)
+            ws2.write(row_num, 9, otTotal + dtTotal, font_style)
+            ws2.write(row_num, 10,bonTotal, font_style)
+            ws2.write(row_num, 11,prodTotal, font_style)
+            ws2.write(row_num, 12,ovTotal, font_style)
+            ws2.write(row_num, 13,ocTotal, font_style)
+            ws2.write(row_num, 14,payTotal, font_style)
+            ws2.write(2, 13,'Invoice', font_style)
+            ws2.write(2, 14,invoice, font_style)
+            ws2.write(3, 13,'% pay', font_style)          
+            ws2.write(3, 14,(payTotalTotal*100) / invoice, font_style)
+                
+                
+
+    # WORKSHEET BALANCE
+
+    ws3 = wb.add_sheet('Balance', cell_overwrite_ok = True) 
+
+    # Sheet header, first row
+    row_num = 12
+
+    font_style = xlwt.easyxf('font: bold on, color black;\
+                            align: horiz center')
+    
+    ws3.write_merge(3, 3, 0, 14, 'Payroll Production Balance', font_style)
+
+    font_style = xlwt.easyxf('font: bold on, color black;\
+                     borders: top_color black, bottom_color black, right_color black, left_color black,\
+                              left thin, right thin, top thin, bottom thin;\
+                     align: horiz left')
+
+    ws3.write_merge(5, 5, 3, 4, 'Invoice', font_style)
+    ws3.write_merge(6, 6, 3, 4, 'Payroll', font_style)
+    ws3.write_merge(7, 7, 3, 4, 'Balance', font_style)
+    ws3.write_merge(8, 8, 3, 4, '% Paid', font_style)
+
+    ws3.write_merge(5, 5, 8, 9, 'Weeks', font_style)
+    ws3.write_merge(6, 6, 8, 9, 'From', font_style)
+    ws3.write_merge(7, 7, 8, 9, 'To', font_style)
+    ws3.write_merge(8, 8, 8, 9, 'Pay date', font_style)
+
+
+    font_style = xlwt.easyxf('font: bold off, color black;\
+                     borders: top_color black, bottom_color black, right_color black, left_color black,\
+                              left thin, right thin, top thin, bottom thin;\
+                     align: horiz center')
+
+    ws3.write_merge(5, 5, 10, 11, per.weekRange, font_style)
+    ws3.write_merge(6, 6, 10, 11, per.fromDate.strftime("%m/%d/%Y"), font_style)
+    ws3.write_merge(7, 7, 10, 11, per.toDate.strftime("%m/%d/%Y"), font_style)
+    ws3.write_merge(8, 8, 10, 11, per.payDate.strftime("%m/%d/%Y"), font_style)   
+
+    font_style = xlwt.easyxf('font: bold off, color black;\
+                     borders: top_color black, bottom_color black, right_color black, left_color black,\
+                              left thin, right thin, top thin, bottom thin;\
+                     align: horiz right')
+    ws3.write_merge(5, 5, 5, 6, '$' + '{0:,.2f}'.format(invoice), font_style)
+    ws3.write_merge(6, 6, 5, 6, '$' + '{0:,.2f}'.format(payTotalTotal), font_style)
+    ws3.write_merge(7, 7, 5, 6, '$' + '{0:,.2f}'.format(invoice - payTotalTotal), font_style)
+    
+    font_style = xlwt.easyxf('font: bold off, color black;\
+                     borders: top_color black, bottom_color black, right_color black, left_color black,\
+                              left thin, right thin, top thin, bottom thin;\
+                     align: horiz center')
+    ws3.write_merge(8, 8, 5, 6, str(round((payTotalTotal*100) / invoice,2)) + '%', font_style)               
+
+    font_style = xlwt.easyxf('font: bold on, color black;\
+                     borders: top_color black, bottom_color black, right_color black, left_color black,\
+                              left thin, right thin, top thin, bottom thin;\
+                     pattern: pattern solid, fore_color light_blue;')
+
+    columns = ['Loc Id', 'Location', 'Regular Time','Over Time','Double Time','Total Time','RT$','OT$','Bonus', 'Production','own vehicle', 'on call', 'payroll', 'Invoice', '% Pay']
+
+    for col_num in range(len(columns)):
+        ws3.write(row_num, col_num, columns[col_num], font_style) # at 0 row 0 column        
+
+
+    loca = Locations.objects.all().order_by("LocationID")    
+
+    for locItem in loca:
+        row_num += 1
+        daily = Daily.objects.filter(Location = locItem, Period = per)     
+        regular_time = 0
+        over_time = 0
+        double_time = 0
+        total_time = 0
+        rt = 0
+        ot = 0
+        dt = 0
+        bonus = 0
+        on_call = 0
+        prod = 0
+        gran_total = 0
+        payroll = 0
+        ownvehicle = 0
+        invoice = 0
+        payroll2= 0
+        perc = 0
+        for dailyItem in daily:            
+            production = DailyItem.objects.filter(DailyID=dailyItem).count()
+
+            dailyemp = DailyEmployee.objects.filter(DailyID=dailyItem)
+
+            for i in dailyemp:
+                if production <= 0:
+                    regular_time += i.regular_hours
+                    over_time += i.ot_hour
+                    double_time += i.double_time
+                    total_time += i.total_hours
+                    if i.EmployeeID.hourly_rate != None:
+                        rt += (i.regular_hours * float(i.EmployeeID.hourly_rate))
+                        ot += ((i.ot_hour * (float(i.EmployeeID.hourly_rate)*1.5)))
+                        dt += ((i.double_time * (float(i.EmployeeID.hourly_rate)*2)))
+
+                if i.bonus != None:
+                    bonus += i.bonus
+                    
+                if i.on_call != None:
+                    on_call += i.on_call
+
+                if i.payout != None:
+                    payroll += i.payout
+
+            
+            dailyprod =  DailyItem.objects.filter(DailyID=dailyItem)
+            total = 0
+            
+            ov = 0
+            for j in dailyprod:                
+                total += j.total
+                invoice += (j.quantity * float(j.itemID.price) )
+                payroll2 += (j.quantity * float(j.itemID.emp_payout) )
+
+            if dailyItem.own_vehicle != None:
+                ov = ((total * dailyItem.own_vehicle) / 100)
+                ownvehicle += ov
+            prod += (total)
+
+        if invoice > 0:                    
+            perc = (payroll * 100) / invoice
+
+        font_style = xlwt.XFStyle()
+
+        ws3.write(row_num, 0, locItem.LocationID, font_style) 
+        ws3.write(row_num, 1, locItem.name, font_style) 
+        ws3.write(row_num, 2, regular_time, font_style)
+        ws3.write(row_num, 3, over_time, font_style)
+        ws3.write(row_num, 4, double_time, font_style)        
+        ws3.write(row_num, 5, total_time, font_style)
+        ws3.write(row_num, 6, rt, font_style)
+        ws3.write(row_num, 7, ot + dt, font_style)        
+        ws3.write(row_num, 8, bonus, font_style)
+        ws3.write(row_num, 9, prod, font_style)
+        ws3.write(row_num, 10, ownvehicle, font_style)
+        ws3.write(row_num, 11, on_call, font_style)
+        ws3.write(row_num, 12, payroll, font_style)
+        ws3.write(row_num, 13, invoice, font_style)
+        ws3.write(row_num, 14, perc, font_style) 
+        
+
+    
+    filename = 'Payroll Summary ' + str(per.weekRange) + '.xls'
+    response = HttpResponse(content_type='application/ms-excel')
+    response['Content-Disposition'] = 'attachment; filename=' + filename 
+
+    wb.save(response)
+
+    return response
+
+
+def update_sup_daily(request, id, woid):
+    emp = Employee.objects.filter(user__username__exact = request.user.username).first()
+    context ={}
+    dailyID = Daily.objects.filter(id = id).first()
+
+    order = workOrder.objects.filter(id = woid).first()
+
+    form = dailySupForm(request.POST or None, initial={'woID': order})
+    if form.is_valid():                
+        form.save()  
+        
+        return HttpResponseRedirect('/payroll/' + str(dailyID.Period.id) + '/' + dailyID.day.strftime("%d") + '/' + str(dailyID.crew) +'/0')        
+         
+    context['form']= form
+    context["emp"] = emp
+    context["order"] = order
+    context["daily"] = dailyID
+    return render(request, "update_sup_daily.html", context)
+
+
+def delete_daily(request, id, LocID):
+    emp = Employee.objects.filter(user__username__exact = request.user.username).first()
+    context ={}
+    obj = get_object_or_404(Daily, id = id)
+ 
+    context["form"] = obj
+    context["emp"] = emp
+ 
+    if request.method == 'POST':
+        obj.delete()
+        
+        return HttpResponseRedirect('/payroll/' + str(obj.Period.id) + '/' + obj.day.strftime("%d") + '/0/' + str(LocID)) 
+
+   
+    return render(request, "delete_daily.html", context)

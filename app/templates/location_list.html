@@ -7,21 +7,23 @@
 <div class="container">
     <form method='post' enctype="multipart/form-data">
         {% csrf_token %}
-
+        <div class="row">      
+            <div class="col-sm-9 my-3"></div>  
+            <div class="col-sm-3 my-3">
+                <a class="btn btn-success" href="/location/" role="button">Create Location</a>
+                <a href="/" type="button" class="btn btn-danger">Close</a> 
+            </div>
+               
+        </div>
         <div class="row">
             <div class="col-sm-12 my-3">
                 <div class="card">
                     <div class="card-header card-header-wc">
                         <div class="row">
                             <div class="col-sm-9">
-                                <h6 class="" >Orders List By Supervisor - {{emp}} </h6>
+                                <h6 class="" >Location List</h6>
                             </div>
-                            <div class="col-sm-2">
-                                <a class="btn btn-success" href="/location/" role="button">Create Location</a>
-                            </div>
-                            <div class="col-sm-1">
-                                <a href="/" type="button" class="btn btn-danger">Close</a> 
-                            </div>
+                           
                         </div>
                     </div>                 
                     <div class="card-body">

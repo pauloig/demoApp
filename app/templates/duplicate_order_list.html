@@ -6,45 +6,53 @@
 
 <div class="container">
     <form method='post' enctype="multipart/form-data">
-        {% csrf_token %}
-
         <div class="row">
-            <h3>DUPLICATE ORDER LIST</h3>
-            <a style="color: black;"><hr></a>
+            <div class="col-sm-11 my-3"></div>
+            <div class="col-sm-1 my-3"><a href="/" type="button" class="btn btn-danger">Close</a></div>
         </div>
-        
-        <br />
-    
-        <table id="orders" class="table table-bordered">
-            <thead class="table-dark">
-                <tr>
-                    <th scope="col">prism ID</th>
-                    <th scope="col">work Order Id</th>
-                    <th scope="col">PO</th>
-                    <th scope="col">PO Amount</th>    
-                    <th scope="col">Work Order Date</th>
-                    <th scope="col">Issue By</th>
-                    <th scope="col">Job Name</th>
-                    <th scope="col">Job Address</th>
-                    <th scope="col"></th>
-                </tr>              
-            </thead>
-            <tbody>                                       
-                {% for order in orders %}
-                    <tr>
-                        <td>{{order.prismID}}</td>
-                        <td>{{order.workOrderId}}</td>
-                        <td>{{order.PO}}</td>
-                        <td>{{order.POAmount}}</td>
-                        <td>{{order.WorkOrderDate}}</td>
-                        <td>{{order.IssuedBy}}</td>
-                        <td>{{order.JobName}}</td>
-                        <td>{{order.JobAddress}}</td>
-                        <td> <a href="/checkOrder/{{order.prismID}}"><i class="fa-solid fa-circle-arrow-right" style="color: green;"></i></a></td>
-                    </tr>                                             
-                {% endfor %}
-            </tbody>                              
-        </table>
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="card">
+                    <h6 class="card-header card-header-wc" >Duplicate Orders</h6>
+                    <div class="card-body">                        
+                        <div class="row">                   
+                            <div class="col-lg-12">     
+                                <table id="orders" class="table table-sm table-bordered table-striped">
+                                    <thead class="table-primary">
+                                        <tr>
+                                            <th scope="col" class="p-1">prism ID</th>
+                                            <th scope="col" class="p-1">work Order Id</th>
+                                            <th scope="col" class="p-1">PO</th>
+                                            <th scope="col" class="p-1">PO Amount</th>    
+                                            <th scope="col" class="p-1">Work Order Date</th>
+                                            <th scope="col" class="p-1">Issue By</th>
+                                            <th scope="col" class="p-1">Job Name</th>
+                                            <th scope="col" class="p-1">Job Address</th>
+                                            <th scope="col"></th>
+                                        </tr>              
+                                    </thead>
+                                    <tbody>                                       
+                                        {% for order in orders %}
+                                            <tr>
+                                                <td class="p-1">{{order.prismID}}</td>
+                                                <td class="p-1">{{order.workOrderId}}</td>
+                                                <td class="p-1">{{order.PO}}</td>
+                                                <td class="p-1">{{order.POAmount}}</td>
+                                                <td class="p-1">{{order.WorkOrderDate}}</td>
+                                                <td class="p-1">{{order.IssuedBy}}</td>
+                                                <td class="p-1">{{order.JobName}}</td>
+                                                <td class="p-1">{{order.JobAddress}}</td>
+                                                <td> <a href="/checkOrder/{{order.prismID}}"><i class="fa-solid fa-circle-arrow-right" style="color: green;"></i></a></td>
+                                            </tr>                                             
+                                        {% endfor %}
+                                    </tbody>                              
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </form>
 </div>
 {% endblock %}

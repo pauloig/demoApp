@@ -47,24 +47,24 @@ class EmployeesForm(forms.ModelForm):
         self.fields['employeeID'].disabled = True
 
 class workOrderForm(forms.ModelForm):
-    prismID = forms.CharField(label="Prism ID", max_length=10, widget=forms.TextInput(attrs={'class':'form-control'}))
-    workOrderId = forms.CharField(label="Work Order ID", max_length=10, widget=forms.TextInput(attrs={'class':'form-control'})) 
-    PO = forms.CharField(label="Purchase Order", max_length=10, widget=forms.TextInput(attrs={'class':'form-control'}))
-    POAmount= forms.CharField(label="Purchase Order Amount",max_length=10, widget=forms.TextInput(attrs={'class':'form-control'}))
-    ConstType= forms.CharField(max_length=30, widget=forms.TextInput(attrs={'class':'form-control'}))
-    ConstCoordinator= forms.CharField(max_length=30, widget=forms.TextInput(attrs={'class':'form-control', 'size':60}))
-    WorkOrderDate= forms.CharField(max_length=10, widget=forms.TextInput(attrs={'class':'form-control'}))
-    EstCompletion= forms.CharField(max_length=10, widget=forms.TextInput(attrs={'class':'form-control'}))
-    IssuedBy= forms.CharField(max_length=10, widget=forms.TextInput(attrs={'class':'form-control'}))
-    JobName= forms.CharField(max_length=10, widget=forms.TextInput(attrs={'class':'form-control'}))
-    JobAddress= forms.CharField(max_length=10, widget=forms.TextInput(attrs={'class':'form-control'}))
-    SiteContactName= forms.CharField(max_length=10, widget=forms.TextInput(attrs={'class':'form-control'}))
-    SitePhoneNumber= forms.CharField(max_length=10, widget=forms.TextInput(attrs={'class':'form-control'}))
-    Comments= forms.CharField(max_length=10, widget=forms.TextInput(attrs={'class':'form-control'}))
+    prismID = forms.CharField(label="Prism ID", max_length=200, widget=forms.TextInput(attrs={'class':'form-control'}))
+    workOrderId = forms.CharField(label="Work Order ID", max_length=200, widget=forms.TextInput(attrs={'class':'form-control'})) 
+    PO = forms.CharField(label="Purchase Order", max_length=200, widget=forms.TextInput(attrs={'class':'form-control'}))
+    POAmount= forms.CharField(label="Purchase Order Amount",max_length=200, widget=forms.TextInput(attrs={'class':'form-control'}), required=False)
+    ConstType= forms.CharField(max_length=200, widget=forms.TextInput(attrs={'class':'form-control'}), required=False)
+    ConstCoordinator= forms.CharField(max_length=200, widget=forms.TextInput(attrs={'class':'form-control', 'size':60}), required=False)
+    WorkOrderDate= forms.CharField(max_length=200, widget=forms.TextInput(attrs={'class':'form-control'}), required=False)
+    EstCompletion= forms.CharField(max_length=200, widget=forms.TextInput(attrs={'class':'form-control'}), required=False)
+    IssuedBy= forms.CharField(max_length=200, widget=forms.TextInput(attrs={'class':'form-control'}), required=False)
+    JobName= forms.CharField(max_length=200, widget=forms.TextInput(attrs={'class':'form-control'}), required=False)
+    JobAddress= forms.CharField(max_length=200, widget=forms.TextInput(attrs={'class':'form-control'}), required=False)
+    SiteContactName= forms.CharField(max_length=200, widget=forms.TextInput(attrs={'class':'form-control'}), required=False)
+    SitePhoneNumber= forms.CharField(max_length=200, widget=forms.TextInput(attrs={'class':'form-control'}), required=False)
+    Comments= forms.CharField(max_length=200, widget=forms.TextInput(attrs={'class':'form-control'}), required=False)
     #Status= forms.ChoiceField(widget=forms.Select(attrs={'class':'form-control'}))
-    CloseDate= forms.CharField(max_length=10, widget=forms.TextInput(attrs={'class':'form-control'}))
-    UploadDate= forms.CharField(max_length=10, widget=forms.TextInput(attrs={'class':'form-control'}))
-    UserName= forms.CharField(max_length=10, widget=forms.TextInput(attrs={'class':'form-control'}))
+    CloseDate= forms.CharField(max_length=200, widget=forms.TextInput(attrs={'class':'form-control'}), required=False)
+    UploadDate= forms.CharField(max_length=200, widget=forms.TextInput(attrs={'class':'form-control'}), required=False)
+    UserName= forms.CharField(max_length=200, widget=forms.TextInput(attrs={'class':'form-control'}), required=False)
 
     WCSup = forms.ModelChoiceField(label="Supervisor",queryset=Employee.objects.filter(is_supervisor=True, is_active=True, user__isnull=False), widget=forms.Select(attrs={'class': 'form-control'}), required=False)
 
@@ -142,7 +142,14 @@ class ItemPriceForm(forms.ModelForm):
         self.fields['item'].disabled = True
 
 class InternalPOForm(forms.ModelForm):
+    """woID = forms.CharField(label="Work Order ID", max_length=50, widget=forms.TextInput(attrs={'class':'form-control'}))"""
+    supervisor = forms.CharField(max_length=200, widget=forms.TextInput(attrs={'class':'form-control'}), required=False)
+    pickupEmployee = forms.CharField(label="Pickup Employee",max_length=200, widget=forms.TextInput(attrs={'class':'form-control'}), required=False)
+    product = forms.CharField(label="Product",max_length=200, widget=forms.TextInput(attrs={'class':'form-control'}), required=False)
+    quantity = forms.CharField(label="Quantity",max_length=200, widget=forms.TextInput(attrs={'class':'form-control'}), required=False)
+    total = forms.CharField(label="Total",max_length=200, widget=forms.TextInput(attrs={'class':'form-control'}), required=False)
     
+
     class Meta:
         model = internalPO
         fields = [
@@ -152,7 +159,7 @@ class InternalPOForm(forms.ModelForm):
             'product',
             'quantity',
             'total',
-            'subcontractor'
+            'subcontractor',            
         ]
 
 
@@ -190,6 +197,22 @@ class dailydForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['crew'].disabled = True
+
+class dailySupForm(forms.ModelForm):   
+
+    class Meta:
+        model = Daily
+        fields = [
+            'woID',
+            'supervisor',
+            'Location',
+            'day',
+            'pdfDaily'
+        ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['woID'].disabled = True        
 
 
 class DailyEmpForm(forms.ModelForm):

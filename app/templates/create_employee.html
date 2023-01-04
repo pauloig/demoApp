@@ -7,16 +7,12 @@
 <div class="container">
     <form method='post' enctype="multipart/form-data">
         {% csrf_token %}
-        <div class="row">
-            <h3>CREATE EMPLOYEE</h3>
-            <a style="color: black;"><hr></a>
-        </div>
 
 
-        <br />
         <div class="row">
-            <div class="col-lg-12">
-                <div class="card rounded">
+            <div class="col-lg-8">
+                <div class="card-rounded">
+                    <h6 class="card-header card-header-wc">Create Employee</h6>
                     <div class="card-body">                    
                             <div class="row">
                                   <!-- Using the formset -->

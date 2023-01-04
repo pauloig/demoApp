@@ -6,27 +6,40 @@
 
 <div class="container">
     <form method='post' enctype="multipart/form-data">
-        {% csrf_token %}
-        <div class="row">
-            <h3>UPDATE PO</h3>
-            <a style="color: black;"><hr></a>
-        </div>
+        {% csrf_token %}      
 
-
-        <br />
         <div class="row">
             <div class="col-lg-12">
                 <div class="card rounded">
+                    <h6 class="card-header card-header-wc" >Update PO</h6>
                     <div class="card-body">                    
                             <div class="row">
                                   <!-- Using the formset -->
                                 {{ form.as_p }}
                             </div>
                             <div class="row">
+                                <div class="col-lg-8">
+                                  <label class="form-label" for="file">Select Receipt</label>  
+                                                                    
+                                  <div class="input-group-btn">
+                                      <div class="input-group mb-3">
+                                        {% if po.receipt != '' and po.receipt != None %}   
+                                            <a class="mx-5" href="/static/media/{{po.receipt}}" target="_blank">View Actual File</a>  
+                                        {%endif%}
+                                          <input type="file" class="form-control" id="file" name="myfile" accept="image/png, image/jpeg">
+                                          <label class="input-group-text " for="file">Select File</label>
+                                      </div>
+                                  </div>                                
+                                </div>  
+                                <div class="col-lg-4">
+                                    
+                                </div>     
+                            <div class="row">
                                 <div class="col-lg-6">  
                                     <div class="form-outline" style="align-items: center;">                                       
                                         <!-- <input type="submit" value="Save"> -->
                                         <input class="btn btn-primary" type="submit" value="Update">
+                                        <a href="/po_list/{{po.woID.id}}" type="button" class="btn btn-danger">Close</a> 
                                     </div>
                                 </div>
                             </div>                                    

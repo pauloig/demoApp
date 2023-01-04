@@ -7,11 +7,6 @@
 <div class="container">
     <form method='post' enctype="multipart/form-data">
         {% csrf_token %}
-        <!--<div class="row">
-            <h3>LOCATIONS LIST</h3>
-            <a style="color: black;"><hr></a>
-        </div>
-    -->
         <div class="row">
             <div class="col-sm-4">
                 <div class="card">
@@ -43,9 +38,9 @@
                     <div class="card-body">
                         <div class="row">
                             <div class="col-sm-12">
-                                <a class="btn btn-success btn" href="/create_period/" ><i class="fa-solid fa-bars-staggered fa-2x m-2"></i></br>Summary</a>       
-                                <a class="btn btn-success btn" href="/create_period/" ><i class="fa-regular fa-folder-open fa-2x m-2"></i></br> Gen Recap</a>    
-                                <a class="btn btn-success btn" href="/create_period/" ><i class="fa-solid fa-envelopes-bulk fa-2x m-2"></i></br>Send Recap</a>                                                             
+                                <a class="btn btn-success btn" href="/get_summary/{{period.id}}" ><i class="fa-solid fa-bars-staggered fa-2x m-2"></i></br>Summary</a>       
+                                <a class="btn btn-success btn" href="/recap/{{period.id}}"><i class="fa-regular fa-folder-open fa-2x m-2"></i></br> Gen Recap</a>                                                               
+                                <a class="btn btn-success btn" data-bs-toggle="modal" data-bs-target="#staticBackdrop"><i class="fa-solid fa-envelopes-bulk fa-2x m-2"></i></br>Send Recap</a>                                                             
                             </div>
                         </div>
                                      
@@ -54,7 +49,7 @@
             </div>                          
         </div> 
         <div class="row">
-            <div class="col-sm-9">
+            <div class="col-sm-12">
                 <div class="card">
                     <h6 class="card-header card-header-wc" >Locations</h6>
                     <div class="card-body">
@@ -63,20 +58,44 @@
                                 <table class="table table-sm table-bordered table-striped">
                                     <thead>
                                         <tr class="table-primary">                                                  
-                                            <th scope="col" style="width: 10%">Id</th>
-                                            <th scope="col" style="width: 50%">Location</th>  
-                                            <th scope="col" style="width: 15%">Production</th>             
-                                            <th scope="col" style="width: 15%">$ Total</th> 
+                                            <th scope="col" class="p-1" style="width: 5%">Id</th>
+                                            <th scope="col" class="p-1" style="width: 20%">Location</th>  
+                                            <th scope="col" class="p-1" style="width: 8%">Regular Time</th>  
+                                            <th scope="col" class="p-1" style="width: 8%">Over Time</th>  
+                                            <th scope="col" class="p-1" style="width: 8%">Double Time</th>  
+                                            <th scope="col" class="p-1" style="width: 8%">Total Time</th>  
+                                            <th scope="col" class="p-1" style="width: 8%">RT$</th>  
+                                            <th scope="col" class="p-1" style="width: 8%">OT$</th> 
+                                            <th scope="col" class="p-1" style="width: 8%">DT$</th>
+                                            <th scope="col" class="p-1" style="width: 8%">Bonus</th>  
+                                            <th scope="col" class="p-1" style="width: 8%">Production</th>   
+                                            <th scope="col" class="p-1" style="width: 8%">own vehicle</th>  
+                                            <th scope="col" class="p-1" style="width: 8%">on call</th>    
+                                            <th scope="col" class="p-1" style="width: 8%">Payroll</th> 
+                                            <th scope="col" class="p-1" style="width: 8%">Invoice</th>    
+                                            <th scope="col" class="p-1" style="width: 8%">% Paid</th> 
                                             <th scope="col" style="width: 5%"></th>                                            
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {% for item in locations %}
+                                        {% for item in locationSummary %}
                                             <tr>
-                                                <td>{{item.LocationID}}</td>
-                                                <td>{{item.name}}</td>
-                                                <td>0</td>
-                                                <td>$0.00</td>
+                                                <td class="p-1">{{item.LocationID}}</td>
+                                                <td class="p-1">{{item.name}}</td>
+                                                <td class="p-1">{{item.regular_time}}</td>
+                                                <td class="p-1">{{item.over_time}}</td>
+                                                <td class="p-1">{{item.double_time}}</td>
+                                                <td class="p-1">{{item.total_time}}</td>
+                                                <td class="p-1">${{item.rt|floatformat:"2"}}</td>
+                                                <td class="p-1">${{item.ot|floatformat:"2"}}</td>
+                                                <td class="p-1">${{item.dt|floatformat:"2"}}</td>
+                                                <td class="p-1">${{item.bonus|floatformat:"2"}}</td>
+                                                <td class="p-1">${{item.production|floatformat:"2"}}</td>
+                                                <td class="p-1">${{item.own_vehicle|floatformat:"2"}}</td>
+                                                <td class="p-1">${{item.on_call|floatformat:"2"}}</td>
+                                                <td class="p-1">${{item.payroll|floatformat:"2"}}</td>
+                                                <td class="p-1">${{item.invoice|floatformat:"2"}}</td>
+                                                <td class="p-1">${{item.percentage|floatformat:"2"}}%</td>
                                                 <td> 
                                                     <a href="/payroll/{{period.id}}/0/0/{{item.LocationID}}">
                                                         <i class="fa-solid fa-circle-arrow-right" style="color: green;"></i>
@@ -91,29 +110,100 @@
                     </div>
                 </div> 
             </div>            
-            <div class="col-sm-3">
-                <div class="row">
-                    <div class="col-sm-12 m-2">
-                        <a class="btn btn-success" href="/create_period/" role="button">Super Admin Option 1</a>                    
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-sm-12 m-2">
-                        <a class="btn btn-success" href="/create_period/" role="button">Super Admin Option 1</a>                    
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-sm-12 m-2">
-                        <a class="btn btn-success" href="/create_period/" role="button">Super Admin Option 1</a>                    
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-sm-12 m-2">
-                        <a class="btn btn-success" href="/create_period/" role="button">Super Admin Option 1</a>                    
-                    </div>
-                </div>
-            </div> 
-        </div>               
     </form>
+             <!-- Modal -->
+             <div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                    <h5 class="modal-title" id="staticBackdropLabel">Employees</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form method='post'  action="/send_recap/{{period.id}}" enctype="multipart/form-data" id="recap" >
+                            {% csrf_token %}                                                                                                                                                                      
+                            <div class="row">
+                                <div class="col-sm-12">
+                                    
+                                    <table id="orders" class="table table-sm table-bordered table-striped">
+                                        <thead>
+                                            <tr class="table-primary">
+                                                <th scope="col" style="width: 5%"><input type="checkbox" id="SelectAll" name="SelectAll" onclick="return ValidateSelection();"></th>                                                                                                 
+                                                <th scope="col" style="width: 10%">ID</th>
+                                                <th scope="col" style="width: 50%">Name</th> 
+                                                <th scope="col" style="width: 20%">Mailing Date</th> 
+                                                <th scope="col" style="width: 10%"></th>    
+                                                <th scope="col" style="width: 10%"></th>                                                                        
+                                            </tr>
+                                        </thead>
+                                        <tbody>                        
+                                            <fieldset>
+                                                {% for item in empRecap %}
+                                                    <tr>            
+                                                        <td style="width: 5%"><input type="checkbox" name="empSelected" value="{{item.employeeID}}" onclick="return ValidateEmpSelection();"></td>                                         
+                                                        <td style="width: 10%">{{item.employeeID}}</td>                                                   
+                                                        <td style="width: 50%">{{item.name}}</td> 
+                                                        <td style="width: 200%">{{item.mailingDate}}</td> 
+                                                        <td> 
+                                                            {% if item.file %}
+                                                                <a href="/static/media/{{item.file}}" target="_blank"><i class="fa-solid fa-magnifying-glass"></i></a> 
+                                                            {%endif%}
+                                                        </td>
+                                                        <td> 
+                                                            {% if item.file %}
+                                                                <a href="/send_recap_emp/{{period.id}}/{{item.employeeID}}"><i class="fa-solid fa-envelopes-bulk"></i></a> 
+                                                            {%endif%}
+                                                        </td>
+                                                    </tr>                                             
+                                                {% endfor %}
+                                            </fieldset>               
+                                            
+                                        </tbody>                                      
+                                    </table>
+                                    <input type="hidden" name="Employees" id = "Employees">
+                                </div>
+                            </div>
+                                                                                 
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" form="recap" id="recap_btn" class="btn btn-primary" disabled>Send Recap</button>
+                        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>                    
+                    </div>
+                </div>
+                </div>
+            </div>
+
+
+            <!-- Modal 2-->
+            <div class="modal fade" id="LoadingBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="LoadingBackdropLabel" aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                    <h5 class="modal-title" id="LoadingBackdropLabel">Employees</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form method='post'  action="/send_recap/{{period.id}}" enctype="multipart/form-data" id="recap" >
+                            {% csrf_token %}                                                                                                                                                                      
+                            <div class="row">
+                                <div class="col-sm-12">
+                                    
+                                    <p>Loading...</p>
+                                   
+                                </div>
+                            </div>
+                                                                                 
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" form="recap" id="recap_btn" class="btn btn-primary" disabled>Send Recap</button>
+                        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>                    
+                    </div>
+                </div>
+                </div>
+            </div>
+        </div>               
+    
 </div>
 {% endblock %}

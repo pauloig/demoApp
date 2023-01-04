@@ -49,6 +49,11 @@
           background-color: var(--primary) !important;
         }
 
+        .bg-dark-wc{
+          background-color: #d0e0fc !important;
+          color: #0f1113 !important;
+        }
+
         .card-header-wc{
           background-color: var(--card-header) !important;
           color: white !important;
@@ -403,6 +408,77 @@
  <!-- Datatables Script -->
  <script>
   $("#orders").DataTable();  
+
+
+  (function(){
+    const modal = new bootstrap.Modal(document.getElementById('modal'))
+
+    htmx.on('htmx:afterSwap', (e) =>{
+      if (e.detail.target.id === "dialog")
+        modal.show()
+    })
+
+  })()
+
+  function ValidateSelection()  
+  {  
+      
+      var Selected = false;
+      
+      if (document.getElementById("SelectAll").checked)
+      {
+        Selected = true;
+      }       
+      else
+      {        
+        Selected = false;
+      }
+        
+     
+      
+      var checkboxes = document.getElementsByName("empSelected");
+      for(var i = 0; i < checkboxes.length; i++)  
+      { 
+        checkboxes[i].checked = Selected;
+      }  
+      
+      ValidateEmpSelection();  
+  }  
+
+  function ValidateEmpSelection()  
+  {  
+      var checkboxes = document.getElementsByName("empSelected");  
+      var emplist = document.getElementsByName("Employees"); 
+      var lista = "";
+      var numberOfCheckedItems = 0;  
+      for(var i = 0; i < checkboxes.length; i++)  
+      {  
+          if(checkboxes[i].checked)  
+           {
+              if (numberOfCheckedItems == 0)
+                lista =  checkboxes[i].value;
+              else
+                lista = lista + "," + checkboxes[i].value;
+
+              numberOfCheckedItems++;  
+           } 
+              
+      }  
+
+
+      if(numberOfCheckedItems > 0)  
+      {  
+        document.getElementById("Employees").value = lista;        
+        document.getElementById("recap_btn").disabled = false;
+      } 
+      else
+      {
+        document.getElementById("Employees").value = 0
+        document.getElementById("recap_btn").disabled = true;
+      }
+        
+
+  }  
 
   
 </script>

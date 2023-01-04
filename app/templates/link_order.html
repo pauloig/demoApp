@@ -6,116 +6,113 @@
 
 <div class="container">
     <form method='post' enctype="multipart/form-data">
-        {% csrf_token %}
-        <div class="row">
-            <h3> LINK ORDERS</h3>
-            <a style="color: black;"><hr></a>
-        </div>
+        {% csrf_token %}     
         
 
-        <br />
+      
         <div class="row">
             <div class="col-lg-12">
                 <div class="card rounded">
+                    <h6 class="card-header card-header-wc" >Link Orders</h6>
                     <div class="card-body">                    
                             <div class="row">
                                 <table class="table table-sm table-striped">  
                                     <thead class="thead-dark">
                                         <tr>
                                             <th scope="col"></th>
-                                            <th scope="col" class="bg-dark" style="color: white">ORDER</th>
-                                            <th scope="col" class="bg-dark" style="color: white">MANUAL ORDER</th>
+                                            <th scope="col" class="bg-dark-wc" style="color: white">ORDER</th>
+                                            <th scope="col" class="bg-dark-wc" style="color: white">MANUAL ORDER</th>
                                         </tr>
                                     </thead>    
                                     <tbody>                                                 
                                             <tr>
-                                                <th scope="row" class="bg-dark" style="color: white">prismID</th>     
+                                                <th scope="row" class="bg-dark-wc" style="color: white">prismID</th>     
                                                 <td>{{order.prismID}}</td>     
                                                 <td>{{manOrder.prismID}}</td>                   
                                             </tr>  
                                             <tr>
-                                                <th scope="row" class="bg-dark" style="color: white" >work Order</th>       
+                                                <th scope="row" class="bg-dark-wc" style="color: white" >work Order</th>       
                                                 <td>{{order.workOrderId}}</td>     
                                                 <td>{{manOrder.workOrderId}}</td>                   
                                             </tr>  
                                             <tr>
-                                                <th scope="row" class="bg-dark" style="color: white">PO</th>       
+                                                <th scope="row" class="bg-dark-wc" style="color: white">PO</th>       
                                                 <td>{{order.PO}}</td>     
                                                 <td>{{manOrder.PO}}</td>                   
                                             </tr>   
                                             <tr>
-                                                <th scope="row" class="bg-dark" style="color: white">PO Amount</th>       
+                                                <th scope="row" class="bg-dark-wc" style="color: white">PO Amount</th>       
                                                 <td>{{order.POAmount}}</td>     
                                                 <td>{{manOrder.POAmount}}</td>                   
                                             </tr>   
                                             <tr>
-                                                <th scope="row" class="bg-dark" style="color: white">Const Type</th>       
+                                                <th scope="row" class="bg-dark-wc" style="color: white">Const Type</th>       
                                                 <td>{{order.ConstType}}</td>     
                                                 <td>{{manOrder.ConstType}}</td>                   
                                             </tr>   
                                             <tr>
-                                                <th scope="row" class="bg-dark" style="color: white">Const Coordinator</th>       
+                                                <th scope="row" class="bg-dark-wc" style="color: white">Const Coordinator</th>       
                                                 <td>{{order.ConstCoordinator}}</td>     
                                                 <td>{{manOrder.ConstCoordinator}}</td>                   
                                             </tr>                                                    
                                             <tr>
-                                                <th scope="row" class="bg-dark" style="color: white">Work Order Date</th>      
+                                                <th scope="row" class="bg-dark-wc" style="color: white">Work Order Date</th>      
                                                 <td>{{order.WorkOrderDate}}</td>     
                                                 <td>{{manOrder.WorkOrderDate}}</td>                   
                                             </tr>   
                                             <tr>
-                                                <th scope="row" class="bg-dark" style="color: white">Est Completion</th>      
+                                                <th scope="row" class="bg-dark-wc" style="color: white">Est Completion</th>      
                                                 <td>{{order.EstCompletion}}</td>     
                                                 <td>{{manOrder.EstCompletion}}</td>                   
                                             </tr>   
                                             
                                             <tr>
-                                                <th scope="row" class="bg-dark" style="color: white">Issued By</th>       
+                                                <th scope="row" class="bg-dark-wc" style="color: white">Issued By</th>       
                                                 <td>{{order.IssuedBy}}</td>     
                                                 <td>{{manOrder.IssuedBy}}</td>                   
                                             </tr>   
                                             <tr>
-                                                <th scope="row" class="bg-dark" style="color: white">Job Name</th>     
+                                                <th scope="row" class="bg-dark-wc" style="color: white">Job Name</th>     
                                                 <td>{{order.JobName}}</td>     
                                                 <td>{{manOrder.JobName}}</td>                   
                                             </tr>  
                                             <tr>
-                                                <th scope="row" class="bg-dark" style="color: white">Job Address</th>    
+                                                <th scope="row" class="bg-dark-wc" style="color: white">Job Address</th>    
                                                 <td>{{ordermanOrder.JobAddress}}</td>     
                                                 <td>{{manOrder.JobAddress}}</td>                   
                                             </tr>   
                                             <tr>
-                                                <th scope="row" class="bg-dark" style="color: white">Site Contact Name</th>    
+                                                <th scope="row" class="bg-dark-wc" style="color: white">Site Contact Name</th>    
                                                 <td>{{order.SiteContactName}}</td>     
                                                 <td>{{manOrder.SiteContactName}}</td>                   
                                             </tr>   
                                             <tr>
-                                                <th scope="row" class="bg-dark" style="color: white">Site Phone Number</th>    
+                                                <th scope="row" class="bg-dark-wc" style="color: white">Site Phone Number</th>    
                                                 <td>{{order.SitePhoneNumber}}</td>     
                                                 <td>{{manOrder.SitePhoneNumber}}</td>                   
                                             </tr>   
                                             <tr>
-                                                <th scope="row" class="bg-dark" style="color: white">Comments</th>    
+                                                <th scope="row" class="bg-dark-wc" style="color: white">Comments</th>    
                                                 <td>{{order.Comments}}</td>     
                                                 <td>{{manOrder.Comments}}</td>                   
                                             </tr>   
                                             <tr>
-                                                <th scope="row" class="bg-dark" style="color: white">Status</th>    
+                                                <th scope="row" class="bg-dark-wc" style="color: white">Status</th>    
                                                 <td>{{order.Status}}</td>     
                                                 <td>{{manOrder.Status}}</td>                   
                                             </tr>   
                                             <tr>
-                                                <th scope="row" class="bg-dark" style="color: white">Close Date</th>    
+                                                <th scope="row" class="bg-dark-wc" style="color: white">Close Date</th>    
                                                 <td>{{order.CloseDate}}</td>     
                                                 <td>{{manOrder.CloseDate}}</td>                   
                                             </tr>   
                                             <tr>
-                                                <th scope="row" class="bg-dark" style="color: white">WC Sup</th>    
+                                                <th scope="row" class="bg-dark-wc" style="color: white">WC Sup</th>    
                                                 <td>{{order.WCSup}}</td>     
                                                 <td>{{manOrder.WCSup}}</td>                   
                                             </tr>   
                                             <tr>
-                                                <th scope="row" class="bg-dark" style="color: white">Upload Date</th>    
+                                                <th scope="row" class="bg-dark-wc" style="color: white">Upload Date</th>    
                                                 <td>{{order.UploadDate}}</td>     
                                                 <td>{{manOrder.UploadDate}}</td>                   
                                             </tr>                                                                                      
@@ -126,6 +123,7 @@
                                 <div class="col-lg-6">  
                                     <div class="form-outline" style="align-items: center;">
                                         <a class="btn btn-success" href="/updateLinkOrder/{{order.id}}/{{manOrder.id}}" role="button">Link Order</a>
+                                        <a class="btn btn-danger" href="/order_list/" role="button">Close</a>
                                     </div>
                                 </div>
                             </div>                                    

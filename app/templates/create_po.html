@@ -7,16 +7,13 @@
 <div class="container">
     <form method='post' enctype="multipart/form-data">
         {% csrf_token %}
-        <div class="row">
-            <h3>CREATE PO</h3>
-            <a style="color: black;"><hr></a>
-        </div>
 
 
         <br />
         <div class="row">
             <div class="col-lg-12">
                 <div class="card rounded">
+                    <h6 class="card-header card-header-wc" >Create PO</h6>
                     <div class="card-body">                    
                             <div class="row">
                                   <!-- Using the formset -->
@@ -27,6 +24,8 @@
                                     <div class="form-outline" style="align-items: center;">                                       
                                         <!-- <input type="submit" value="Save"> -->
                                         <input class="btn btn-primary" type="submit" value="Save">
+                                        <a href="/po_list/{{selectedWO}}" type="button" class="btn btn-danger">Close</a> 
+                                        
                                     </div>
                                 </div>
                             </div>                                    

@@ -34,6 +34,27 @@ ALLOWED_HOSTS.extend(
     )
 )
 
+
+#EMAIL_HOST = 'smtp.office365.com'
+#EMAIL_PORT = '587'
+#EMAIL_HOST_USER= 'recaps@wiringconnection.com'
+#SERVER_EMAIL = 'recaps@wiringconnection.com'
+#DEFAULT_FROM_EMAIL = 'recaps@wiringconnection.com'
+#EMAIL_HOST_PASSWORD = '1718W*con'
+#EMAIL_USE_TLS = True
+#EMAIL_TIMEOUT = 60
+
+
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = '587'
+EMAIL_HOST_USER= 'paulo.ismalej@gmail.com'
+SERVER_EMAIL = 'paulo.ismalej@gmail.com'
+DEFAULT_FROM_EMAIL = 'paulo.ismalej@gmail.com'
+EMAIL_HOST_PASSWORD = 'asizmcunojlvunjn'
+EMAIL_USE_TLS = True
+EMAIL_TIMEOUT = 60
+
+
 # Application definition
 
 INSTALLED_APPS = [

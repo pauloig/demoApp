@@ -194,6 +194,7 @@ class internalPO(models.Model):
     quantity = models.CharField(max_length=20, blank=True, null=True)
     total = models.CharField(max_length=20, blank=True, null=True)
     subcontractor = models.BooleanField(default=False) 
+    receipt = models.ImageField(null=True, upload_to="po")
 
     class Meta:
         unique_together = ('id', 'woID')
@@ -243,6 +244,7 @@ class DailyEmployee(models.Model):
     ot_hour = models.FloatField(null=True, blank=True)
     double_time = models.FloatField(null=True, blank=True)
     payout =  models.FloatField(null=True, blank=True)
+    created_date = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return str(self.DailyID) + " - " + str(self.EmployeeID)
@@ -255,10 +257,34 @@ class DailyItem(models.Model):
     itemID = models.ForeignKey(itemPrice, on_delete=models.CASCADE, db_column ='itemID', null=False, blank=False )
     quantity = models.IntegerField(null=False, blank=False)
     total = models.FloatField(null=True, blank=True)
+    created_date = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return str(self.DailyID) + " - " + str(self.itemID)
     
     class Meta:
         unique_together = ('DailyID','itemID')
+
+
+class employeeRecap(models.Model):
+    Period = models.ForeignKey(period, on_delete=models.CASCADE, db_column ='Period', null=False, blank=False)
+    EmployeeID = models.ForeignKey(Employee, on_delete=models.CASCADE, db_column ='EmployeeID', null=False, blank=False)
+    recap = models.FileField(null=True, upload_to="Recaps")  
+    mailingDate = models.DateTimeField(null=True, blank=True)    
+
+    def __str__(self):
+        return str(self.Period) + " - " + str(self.EmployeeID)
+    
+    class Meta:
+        unique_together = ('Period','EmployeeID')    
+
+class woStatusLog(models.Model):
+    woID = models.ForeignKey(workOrder, on_delete=models.CASCADE, db_column ='woID')
+    currentStatus = models.CharField(max_length=20, blank=True, null=True, choices = status_choice)
+    nextStatus = models.CharField(max_length=20, blank=True, null=True, choices = status_choice)
+    created_date = models.DateTimeField(blank=True, null=True)
+    createdBy = models.CharField(max_length=60, blank=True, null=True)
+
+    def __str__(self):
+        return str(self.woID) + " - " + str(self.currentStatus)
 

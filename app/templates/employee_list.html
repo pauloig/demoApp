@@ -8,52 +8,66 @@
     <form method='post' enctype="multipart/form-data">
         {% csrf_token %}
 
-        <div class="row">
-            <h3>EMPLOYEE MASTER</h3>
-            <a style="color: black;"><hr></a>
+        <div class="row">      
+            <div class="col-sm-9 my-3"></div>  
+            <div class="col-sm-3 my-3">
+                <a class="btn btn-success" href="/create_employee/" role="button">Create Employee</a>
+                <a href="/" type="button" class="btn btn-danger">Close</a> 
+            </div>
+               
         </div>
-        
-        <br />
         <div class="row">
-            <div class="col-lg-6">  
-                <div class="form-outline" style="align-items: center;">
-                    <a class="btn btn-success" href="/create_employee/" role="button">Create New Employee</a>
+            <div class="col-sm-12 my-3">
+                <div class="card">
+                    <div class="card-header card-header-wc">
+                        <div class="row">
+                            <div class="col-sm-9">
+                                <h6 class="" >Employee List </h6>
+                            </div>
+                           
+                        </div>
+                    </div>  
+                    <div class="card-body">
+                        <div class="row">                   
+                            <div class="col-lg-12">              
+                                <table id="orders" class="table table-sm table-bordered table-striped">
+                                        <thead class="table-primary">
+                                            <tr>
+                                                <th scope="col" style="width: 7%">EID</th>
+                                                <th scope="col" style="width: 20%">First Name</th>
+                                                <th scope="col" style="width: 20%">Last Name</th>
+                                                <th scope="col" style="width: 5%">Is Active</th>
+                                                <th scope="col" style="width: 10%">Location</th>
+                                                <th scope="col" style="width: 10%">User</th>
+                                                <th scope="col" style="width: 5%">Is Supervisor</th>
+                                                <th scope="col" style="width: 10%">Email</th>
+                                                <th scope="col" style="width: 10%">Supervisor Name</th>
+                                                <th scope="col" style="width: 3%"></th>
+                                            </tr>              
+                                        </thead>
+                                        <tbody>                                       
+                                            {% for data in dataset %}
+                                                <tr>
+                                                    <td>{{data.employeeID}}</td>
+                                                    <td>{{data.first_name}}</td>
+                                                    <td>{{data.last_name}}</td>
+                                                    <td>{{data.is_active}}</td>
+                                                    <td>{{data.Location}}</td>
+                                                    <td>{{data.user}}</td>
+                                                    <td>{{data.is_supervisor}}</td>
+                                                    <td>{{data.email}}</td>
+                                                    <td>{{data.supervisor_name}}</td>
+                                                    <td> <a href="/update_employee/{{data.employeeID}}"><i class="fa-solid fa-pen-to-square" style="color: green;"></i></a></td>
+                                                </tr>                                             
+                                            {% endfor %}
+                                        </tbody>                              
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>                
-        <br />
-        <table id="orders" class="table table-bordered">
-            <thead class="table-dark">
-                <tr>
-                    <th scope="col" style="width: 7%">EID</th>
-                    <th scope="col" style="width: 20%">First Name</th>
-                    <th scope="col" style="width: 20%">Last Name</th>
-                    <th scope="col" style="width: 5%">Is Active</th>
-                    <th scope="col" style="width: 10%">Location</th>
-                    <th scope="col" style="width: 10%">User</th>
-                    <th scope="col" style="width: 5%">Is Supervisor</th>
-                    <th scope="col" style="width: 10%">Email</th>
-                    <th scope="col" style="width: 10%">Supervisor Name</th>
-                    <th scope="col" style="width: 3%"></th>
-                </tr>              
-            </thead>
-            <tbody>                                       
-                {% for data in dataset %}
-                    <tr>
-                        <td>{{data.employeeID}}</td>
-                        <td>{{data.first_name}}</td>
-                        <td>{{data.last_name}}</td>
-                        <td>{{data.is_active}}</td>
-                        <td>{{data.Location}}</td>
-                        <td>{{data.user}}</td>
-                        <td>{{data.is_supervisor}}</td>
-                        <td>{{data.email}}</td>
-                        <td>{{data.supervisor_name}}</td>
-                        <td> <a href="/update_employee/{{data.employeeID}}"><i class="fa-solid fa-pen-to-square" style="color: green;"></i></a></td>
-                    </tr>                                             
-                {% endfor %}
-            </tbody>                              
-        </table>
     </form>
 </div>
 {% endblock %}

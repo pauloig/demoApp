@@ -13,8 +13,8 @@
         </div>              
        
         <div class="modal-body">
-            <table id="orders" class="table table-bordered">
-                <thead class="table-dark">
+            <table id="orders" class="table table-sm table-bordered table-striped">
+                <thead class="table-primary">
                     <tr>
                         <th scope="col">prism ID</th>
                         <th scope="col">work Order Id</th>
@@ -60,9 +60,12 @@
                                 <!-- <td>{{order.JobName}}</td> -->
                                 <!-- <td>{{order.JobAddress}}</td> -->
                                 <td>
-                                    <!-- {% if order.Status != "5" %} -->
+                                    <!-- {% if order.Status != "5" %}
                                         <a href="/update_order_daily/{{order.id}}/{{daily}}"><i class="fa-solid fa-circle-arrow-right" style="color: green;"></i></a>
-                                    <!-- {% endif %} -->
+                                        <a href="/update_sup_daily/{{daily}}/{{order.id}}"><i class="fa-solid fa-circle-arrow-right" style="color: green;"></i></a>
+                                        {% endif %} -->
+                                     <a href="/update_order_daily/{{order.id}}/{{daily}}/{{selectedLocation}}"><i class="fa-solid fa-circle-arrow-right" style="color: green;"></i></a>                                        
+                                     
                                 </td>
                                 
                                 

@@ -7,7 +7,13 @@
 <div class="container">
     <form method='post' enctype="multipart/form-data">
         {% csrf_token %}   
-
+        <div class="row">      
+            <div class="col-sm-11 my-3"></div>  
+            <div class="col-sm-1 my-3">                
+                <a href="/" type="button" class="btn btn-danger">Close</a> 
+            </div>
+               
+        </div>
         <div class="row">
             <div class="col-sm-12">
                 <div class="card">
@@ -19,23 +25,31 @@
                                     <thead>
                                         <tr class="table-primary">                                                  
                                             <th scope="col" style="width: 5%">Id</th>
+                                            <th scope="col" style="width: 10%">Period ID</th>
                                             <th scope="col" style="width: 10%">year</th>
                                             <th scope="col" style="width: 20%">from Date</th>
                                             <th scope="col" style="width: 20%">to Date</th>
                                             <th scope="col" style="width: 20%">pay Date</th>
                                             <th scope="col" style="width: 20%">week Range</th>
+                                            <th scope="col" style="width: 20%">Status</th>
                                             <th scope="col" style="width: 5%"></th>                                   
                                         </tr>
                                     </thead>
                                     <tbody>                                       
                                         {% for item in period %}
                                             <tr>
+                                                <td>{{item.id}}</td>
                                                 <td>{{item.periodID}}</td>
                                                 <td>{{item.periodYear}}</td>
                                                 <td>{{item.fromDate}}</td>
                                                 <td>{{item.toDate}}</td>
                                                 <td>{{item.payDate}}</td>
                                                 <td>{{item.weekRange}}</td>
+                                                {% if item.status == 1 %} 
+                                                    <td>Open</td>
+                                                {% elif item.status == 2 %}
+                                                    <td>Close</td>
+                                                {% endif %}
                                                  <td> 
                                                     <a href="/location_period_list/{{item.id}}">
                                                         <i class="fa-solid fa-circle-arrow-right" style="color: green;"></i>
