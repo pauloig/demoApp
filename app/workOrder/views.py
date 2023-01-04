@@ -1443,85 +1443,88 @@ def period_list(request):
     return render(request, "period_list.html", context)
 
 def location_period_list(request, id):
+    
+    emp = Employee.objects.filter(user__username__exact = request.user.username).first()
+    context = {}    
+    per = period.objects.filter(id = id).first()
+
+
+    loca = Locations.objects.all().order_by("LocationID")
+    locationSummary = []
+
+    for locItem in loca:
+        daily = Daily.objects.filter(Location = locItem, Period = per)     
+        regular_time = 0
+        over_time = 0
+        double_time = 0
+        total_time = 0
+        rt = 0
+        ot = 0
+        dt = 0
+        bonus = 0
+        on_call = 0
+        prod = 0
+        gran_total = 0
+        payroll = 0
+        ownvehicle = 0
+        invoice = 0
+        payroll2= 0
+        perc = 0
+        for dailyItem in daily:            
+            production = DailyItem.objects.filter(DailyID=dailyItem).count()
+
+            dailyemp = DailyEmployee.objects.filter(DailyID=dailyItem)
+
+            for i in dailyemp:
+                if production <= 0:
+                    regular_time += i.regular_hours
+                    over_time += i.ot_hour
+                    double_time += i.double_time
+                    total_time += i.total_hours
+                    if i.EmployeeID.hourly_rate != None:
+                        rt += (i.regular_hours * float(i.EmployeeID.hourly_rate))
+                        ot += ((i.ot_hour * (float(i.EmployeeID.hourly_rate)*1.5)))
+                        dt += ((i.double_time * (float(i.EmployeeID.hourly_rate)*2)))
+
+                if i.bonus != None:
+                    bonus += i.bonus
+                    
+                if i.on_call != None:
+                    on_call += i.on_call
+
+                if i.payout != None:
+                    payroll += i.payout
+
+            
+            dailyprod =  DailyItem.objects.filter(DailyID=dailyItem)
+            total = 0
+            
+            ov = 0
+            for j in dailyprod:                
+                total += j.total
+                invoice += (j.quantity * float(j.itemID.price) )
+                payroll2 += (j.quantity * float(j.itemID.emp_payout) )
+
+            if dailyItem.own_vehicle != None:
+                ov = ((total * dailyItem.own_vehicle) / 100)
+                ownvehicle += ov
+            prod += (total)
+
+        if invoice > 0:                    
+            perc = (payroll * 100) / invoice
+
+        locationSummary.append({ 'LocationID': locItem.LocationID, 'name': locItem.name, 
+                                'regular_time':regular_time, 'over_time':over_time, 
+                                'double_time':double_time, 'total_time':total_time,
+                                'rt': rt, 'ot': ot, 'dt': dt, 'bonus':bonus, 'on_call': on_call,
+                                'production': prod, 'own_vehicle': ownvehicle, 'payroll': payroll, 'invoice':invoice, 'percentage': perc})
+
+
+    context["locationSummary"] = locationSummary
+    context["period"] = per   
+    context["emp"] = emp
+
     try:
-        emp = Employee.objects.filter(user__username__exact = request.user.username).first()
-        context = {}    
-        per = period.objects.filter(id = id).first()
-
-
-        loca = Locations.objects.all().order_by("LocationID")
-        locationSummary = []
-
-        for locItem in loca:
-            daily = Daily.objects.filter(Location = locItem, Period = per)     
-            regular_time = 0
-            over_time = 0
-            double_time = 0
-            total_time = 0
-            rt = 0
-            ot = 0
-            dt = 0
-            bonus = 0
-            on_call = 0
-            prod = 0
-            gran_total = 0
-            payroll = 0
-            ownvehicle = 0
-            invoice = 0
-            payroll2= 0
-            perc = 0
-            for dailyItem in daily:            
-                production = DailyItem.objects.filter(DailyID=dailyItem).count()
-
-                dailyemp = DailyEmployee.objects.filter(DailyID=dailyItem)
-
-                for i in dailyemp:
-                    if production <= 0:
-                        regular_time += i.regular_hours
-                        over_time += i.ot_hour
-                        double_time += i.double_time
-                        total_time += i.total_hours
-                        if i.EmployeeID.hourly_rate != None:
-                            rt += (i.regular_hours * float(i.EmployeeID.hourly_rate))
-                            ot += ((i.ot_hour * (float(i.EmployeeID.hourly_rate)*1.5)))
-                            dt += ((i.double_time * (float(i.EmployeeID.hourly_rate)*2)))
-
-                    if i.bonus != None:
-                        bonus += i.bonus
-                        
-                    if i.on_call != None:
-                        on_call += i.on_call
-
-                    if i.payout != None:
-                        payroll += i.payout
-
-                
-                dailyprod =  DailyItem.objects.filter(DailyID=dailyItem)
-                total = 0
-                
-                ov = 0
-                for j in dailyprod:                
-                    total += j.total
-                    invoice += (j.quantity * float(j.itemID.price) )
-                    payroll2 += (j.quantity * float(j.itemID.emp_payout) )
-
-                if dailyItem.own_vehicle != None:
-                    ov = ((total * dailyItem.own_vehicle) / 100)
-                    ownvehicle += ov
-                prod += (total)
-
-            if invoice > 0:                    
-                perc = (payroll * 100) / invoice
-
-            locationSummary.append({ 'LocationID': locItem.LocationID, 'name': locItem.name, 
-                                    'regular_time':regular_time, 'over_time':over_time, 
-                                    'double_time':double_time, 'total_time':total_time,
-                                    'rt': rt, 'ot': ot, 'dt': dt, 'bonus':bonus, 'on_call': on_call,
-                                    'production': prod, 'own_vehicle': ownvehicle, 'payroll': payroll, 'invoice':invoice, 'percentage': perc})
-
-
-        context["locationSummary"] = locationSummary
-
         empList = Employee.objects.all()
         empRecap = []
         for item in empList:
@@ -1536,12 +1539,10 @@ def location_period_list(request, id):
 
                 empRecap.append({'employeeID': item.employeeID, 'name': item, 'file': file, 'mailingDate': empR.mailingDate })
 
-        context["period"] = per   
-        context["emp"] = emp
+        
+        
         context["empRecap"] = empRecap
         
-
-
         return render(request, "location_period_list.html", context)
     except Exception as e:
         None
