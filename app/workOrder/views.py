@@ -1502,8 +1502,15 @@ def location_period_list(request, id):
             ov = 0
             for j in dailyprod:                
                 total += j.total
-                invoice += (j.quantity * float(j.itemID.price) )
-                payroll2 += (j.quantity * float(j.itemID.emp_payout) )
+                if j.itemID.price != None:
+                    invoice += (j.quantity * float(j.itemID.price))
+                else:
+                    invoice += (j.quantity * 0)
+                
+                if j.itemID.emp_payout != None:
+                    payroll2 += (j.quantity * float(j.itemID.emp_payout))
+                else:
+                    payroll2 += (j.quantity * 0)
 
             if dailyItem.own_vehicle != None:
                 ov = ((total * dailyItem.own_vehicle) / 100)
@@ -2454,7 +2461,11 @@ def get_summary(request, perID):
                     for j in di:
                         t += j.total
 
-                    ov = (((t * item.own_vehicle) / 100) * i.per_to_pay) /100
+                    if item.own_vehicle != None:
+                        ov = (((t * item.own_vehicle) / 100) * i.per_to_pay) /100
+                    else:
+                        ov = 0
+
                     ttp = (t * i.per_to_pay) /100
                     ws.write(row_num,round(11,2),ttp, font_style)
                     ws.write(row_num,12,ov, font_style)
@@ -2540,7 +2551,10 @@ def get_summary(request, perID):
                     sumQty = 0
                     sumInvoice = 0
                     for z in items:
-                        lineInv = z.quantity * float(z.itemID.price)
+                        if z.itemID.price != None:
+                            lineInv = z.quantity * float(z.itemID.price)
+                        else:
+                            lineInv = 0
                         sumInvoice += lineInv
                         sumQty += z.quantity
 
@@ -2646,7 +2660,9 @@ def get_summary(request, perID):
 
                 total = 0
                 for i in itemd:
-                    invoice += ((i.quantity * float(i.itemID.price)) * itemEmp.per_to_pay) / 100
+                    if i.itemID.price != None:
+                        invoice += ((i.quantity * float(i.itemID.price)) * itemEmp.per_to_pay) / 100                    
+                        
                     total += i.total
 
                 production = (total * itemEmp.per_to_pay) / 100
@@ -2691,9 +2707,11 @@ def get_summary(request, perID):
             ws2.write(row_num, 14,payTotal, font_style)
             ws2.write(2, 13,'Invoice', font_style)
             ws2.write(2, 14,invoice, font_style)
-            ws2.write(3, 13,'% pay', font_style)          
-            ws2.write(3, 14,(payTotalTotal*100) / invoice, font_style)
-                
+            ws2.write(3, 13,'% pay', font_style)   
+            if payTotalTotal > 0 and invoice > 0:
+                ws2.write(3, 14,(payTotalTotal*100) / invoice, font_style)
+            else:
+                ws2.write(3, 14,0, font_style)
                 
 
     # WORKSHEET BALANCE
@@ -2746,7 +2764,10 @@ def get_summary(request, perID):
                      borders: top_color black, bottom_color black, right_color black, left_color black,\
                               left thin, right thin, top thin, bottom thin;\
                      align: horiz center')
-    ws3.write_merge(8, 8, 5, 6, str(round((payTotalTotal*100) / invoice,2)) + '%', font_style)               
+    if payTotalTotal > 0 and invoice > 0:
+        ws3.write_merge(8, 8, 5, 6, str(round((payTotalTotal*100) / invoice,2)) + '%', font_style)  
+    else:    
+         ws3.write_merge(8, 8, 5, 6, '0%', font_style)            
 
     font_style = xlwt.easyxf('font: bold on, color black;\
                      borders: top_color black, bottom_color black, right_color black, left_color black,\
@@ -2812,8 +2833,10 @@ def get_summary(request, perID):
             ov = 0
             for j in dailyprod:                
                 total += j.total
-                invoice += (j.quantity * float(j.itemID.price) )
-                payroll2 += (j.quantity * float(j.itemID.emp_payout) )
+                if j.itemID.price != None:
+                    invoice += (j.quantity * float(j.itemID.price) )
+                if j.itemID.emp_payout != None:    
+                    payroll2 += (j.quantity * float(j.itemID.emp_payout) )
 
             if dailyItem.own_vehicle != None:
                 ov = ((total * dailyItem.own_vehicle) / 100)
