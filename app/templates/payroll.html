@@ -89,7 +89,7 @@
             </div>            
         </div>         
         <div class="row py-2">
-            <div class="col-sm-11">   
+            <div class="col-sm-10">   
                 {%if selectedDay > 0 %}      
                     <a class="btn btn-success px-2" href="/create_daily/{{period.id}}/{{selectedDay}}/{{selectedLocation}}">
                         Add Crew
@@ -114,6 +114,9 @@
                         {%endif%}
                     {%endfor%}
                 {%endif%}
+            </div>
+            <div class="col-sm-1">                  
+                <a class="btn btn-danger " href="/home/">Close</a>         
             </div>
         </div>
         <div class="row">
@@ -270,7 +273,7 @@
                                     </div>
                                     <div class="col-sm-4 px-1">
                                         <div class="card">
-                                            <h6 class="card-header card-header-wc" >ITEM LIST  -     TOTAL: ${{TotalItem}} + ${{ovTotal}} = ${{GranTotalItem}} </h6>
+                                            <h6 class="card-header card-header-wc" >ITEM LIST  -     TOTAL: ${{TotalItem|floatformat:"2"}} + ${{ovTotal|floatformat:"2"}} = ${{GranTotalItem|floatformat:"2"}} </h6>
                                             
                                             <div class="card-body">
                                                 <div class="row">
@@ -295,7 +298,7 @@
                                                                         <td class="p-1">{{itemd.itemID.item.itemID}}</td>
                                                                         <td class="p-1">{{itemd.quantity}}</td>
                                                                         <td class="p-1">${{itemd.itemID.emp_payout}}</td>
-                                                                        <td class="p-1">${{itemd.total}}</td>   
+                                                                        <td class="p-1">${{itemd.total|floatformat:"2"}}</td>   
                                                                         <td class="p-1">
                                                                             <a hx-get="/update_daily_item/{{itemd.id}}/{{selectedLocation}}" hx-target="#dialog"><i class="fa-solid fa-pen-to-square" style="color: green;"></i></a>
                                                                             <a hx-get="/delete_daily_item/{{itemd.id}}/{{selectedLocation}}" hx-target="#dialog"><i class="fa-solid fa-circle-minus" style="color: red;"></i></a>

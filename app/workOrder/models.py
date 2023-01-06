@@ -188,8 +188,8 @@ class payrollDetail(models.Model):
 
 class internalPO(models.Model):
     woID = models.ForeignKey(workOrder, on_delete=models.CASCADE, db_column ='woID')
-    supervisor = models.CharField(max_length=200, blank=True, null=True)
-    pickupEmployee = models.CharField(max_length=200, blank=True, null=True)
+    supervisor = models.ForeignKey(Employee, on_delete=models.SET_NULL, null=True, blank=True, db_column='supervisor', related_name='supervisor')
+    pickupEmployee = models.ForeignKey(Employee, on_delete=models.SET_NULL, null=True, blank=True, db_column='pickupEmployee', related_name='pickupEmployee')
     product = models.CharField(max_length=600, blank=True, null=True)
     quantity = models.CharField(max_length=20, blank=True, null=True)
     total = models.CharField(max_length=20, blank=True, null=True)
@@ -222,6 +222,7 @@ class Daily(models.Model):
     total_pay = models.IntegerField(null=True, blank=True)
     split_paymet = models.BooleanField(default=False)
     pdfDaily = models.FileField(null=True, upload_to="dailys") 
+    created_date = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return str(self.Period) + " - " + str(self.day)

@@ -70,6 +70,7 @@ urlpatterns = [
     path('get_summary/<perID>',views.get_summary),
     path('update_sup_daily/<id>/<woid>',views.update_sup_daily),
     path('delete_daily/<id>/<LocID>',views.delete_daily),
+    path('status_log/<id>',views.status_log),
     path('logout/', LogoutView.as_view(next_page='/login/'), name='logout'),
     path('', include('authentication.urls')),
     path('home/', include('authentication.urls')),

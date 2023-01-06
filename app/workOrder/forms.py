@@ -141,10 +141,10 @@ class ItemPriceForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields['item'].disabled = True
 
-class InternalPOForm(forms.ModelForm):
-    """woID = forms.CharField(label="Work Order ID", max_length=50, widget=forms.TextInput(attrs={'class':'form-control'}))"""
-    supervisor = forms.CharField(max_length=200, widget=forms.TextInput(attrs={'class':'form-control'}), required=False)
-    pickupEmployee = forms.CharField(label="Pickup Employee",max_length=200, widget=forms.TextInput(attrs={'class':'form-control'}), required=False)
+class InternalPOForm(forms.ModelForm):    
+
+    supervisor = forms.ModelChoiceField(queryset=Employee.objects.filter(is_active=True, is_supervisor = True), widget=forms.Select(attrs={'class': 'form-control'}), required=False)
+    pickupEmployee = forms.ModelChoiceField(queryset=Employee.objects.filter(is_active=True), widget=forms.Select(attrs={'class': 'form-control'}), required=False)
     product = forms.CharField(label="Product",max_length=200, widget=forms.TextInput(attrs={'class':'form-control'}), required=False)
     quantity = forms.CharField(label="Quantity",max_length=200, widget=forms.TextInput(attrs={'class':'form-control'}), required=False)
     total = forms.CharField(label="Total",max_length=200, widget=forms.TextInput(attrs={'class':'form-control'}), required=False)
@@ -153,7 +153,7 @@ class InternalPOForm(forms.ModelForm):
     class Meta:
         model = internalPO
         fields = [
-           'woID',
+            'woID',
             'supervisor',
             'pickupEmployee',
             'product',

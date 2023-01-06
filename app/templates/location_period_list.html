@@ -81,21 +81,77 @@
                                         {% for item in locationSummary %}
                                             <tr>
                                                 <td class="p-1">{{item.LocationID}}</td>
-                                                <td class="p-1">{{item.name}}</td>
-                                                <td class="p-1">{{item.regular_time}}</td>
-                                                <td class="p-1">{{item.over_time}}</td>
-                                                <td class="p-1">{{item.double_time}}</td>
-                                                <td class="p-1">{{item.total_time}}</td>
-                                                <td class="p-1">${{item.rt|floatformat:"2"}}</td>
-                                                <td class="p-1">${{item.ot|floatformat:"2"}}</td>
-                                                <td class="p-1">${{item.dt|floatformat:"2"}}</td>
-                                                <td class="p-1">${{item.bonus|floatformat:"2"}}</td>
-                                                <td class="p-1">${{item.production|floatformat:"2"}}</td>
-                                                <td class="p-1">${{item.own_vehicle|floatformat:"2"}}</td>
-                                                <td class="p-1">${{item.on_call|floatformat:"2"}}</td>
-                                                <td class="p-1">${{item.payroll|floatformat:"2"}}</td>
-                                                <td class="p-1">${{item.invoice|floatformat:"2"}}</td>
-                                                <td class="p-1">${{item.percentage|floatformat:"2"}}%</td>
+                                                <td class="p-1">{{item.name}}</td>                                                
+                                                    <td class="p-1">
+                                                        {% if item.regular_time > 0%}
+                                                            {{item.regular_time}}
+                                                        {%endif%}
+                                                    </td>                                                
+                                                <td class="p-1">
+                                                    {% if item.over_time > 0%}
+                                                        {{item.over_time}}
+                                                    {%endif%}                                                    
+                                                </td>
+                                                <td class="p-1">
+                                                    {% if item.double_time > 0%}
+                                                        {{item.double_time}}
+                                                    {%endif%}                                                    
+                                                </td>
+                                                <td class="p-1">
+                                                    {% if item.total_time > 0%}
+                                                        {{item.total_time}}
+                                                    {%endif%}                                                      
+                                                </td>
+                                                <td class="p-1">
+                                                    {% if item.rt > 0%}
+                                                        ${{item.rt|floatformat:"2"}}
+                                                    {%endif%}                                                     
+                                                </td>
+                                                <td class="p-1">
+                                                    {% if item.ot > 0%}
+                                                        ${{item.ot|floatformat:"2"}}
+                                                    {%endif%}                                                     
+                                                </td>
+                                                <td class="p-1">
+                                                    {% if item.dt > 0%}
+                                                        ${{item.dt|floatformat:"2"}}
+                                                    {%endif%}                                                      
+                                                </td>
+                                                <td class="p-1">
+                                                    {% if item.bonus > 0%}
+                                                        ${{item.bonus|floatformat:"2"}}
+                                                    {%endif%}    
+                                                </td>
+                                                <td class="p-1">
+                                                    {% if item.production > 0%}
+                                                        ${{item.production|floatformat:"2"}}
+                                                    {%endif%}  
+                                                </td>
+                                                <td class="p-1">
+                                                    {% if item.own_vehicle > 0%}
+                                                        ${{item.own_vehicle|floatformat:"2"}}
+                                                    {%endif%}
+                                                </td>
+                                                <td class="p-1">
+                                                    {% if item.on_call > 0%}
+                                                        ${{item.on_call|floatformat:"2"}}
+                                                    {%endif%}  
+                                                </td>
+                                                <td class="p-1">
+                                                    {% if item.payroll > 0%}
+                                                        ${{item.payroll|floatformat:"2"}}
+                                                    {%endif%}
+                                                </td>
+                                                <td class="p-1">
+                                                    {% if item.invoice > 0%}
+                                                        ${{item.invoice|floatformat:"2"}}
+                                                    {%endif%}
+                                                </td>
+                                                <td class="p-1">
+                                                    {% if item.percentage > 0%}
+                                                        {{item.percentage|floatformat:"2"}}%
+                                                    {%endif%}
+                                                </td>
                                                 <td> 
                                                     <a href="/payroll/{{period.id}}/0/0/{{item.LocationID}}">
                                                         <i class="fa-solid fa-circle-arrow-right" style="color: green;"></i>

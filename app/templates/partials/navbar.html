@@ -5,7 +5,7 @@
   <!-- {{ menu | safe }}     -->
   {% if emp.is_admin  or user.is_staff %}
     <a aria-current="page" class="d-block text-light p-2" href="/upload/"><i class="icon ion-md-cloud"></i> upload Orders</a>
-    <a aria-current="page" class="d-block text-light p-2" href="/upload_payroll/"><i class="icon ion-md-cloud"></i> upload payroll</a>
+    <!--<a aria-current="page" class="d-block text-light p-2" href="/upload_payroll/"><i class="icon ion-md-cloud"></i> upload payroll</a>-->
     <a aria-current="page" class="d-block text-light p-2" href="/order_list/"><i class="icon ion-md-clipboard"></i> Orders</a>
     {% endif %}
   {% if emp.is_admin  or user.is_staff %}

@@ -222,8 +222,10 @@
                     <br>
                     {% if estimate %}
                         <a class="btn btn-success" href="/estimate/{{order.id}}" role="button">Download Estimate</a>
+                        <a class="btn btn-danger" href="/order_list/" role="button">Close</a>
                     {% else %}
                         <a class="btn btn-success" href="/invoice/{{order.id}}" role="button">Download Invoice</a>
+                        <a class="btn btn-danger" href="/order_list/" role="button">Close</a>
                     {% endif %}
                 </div>
             </div>

@@ -1,0 +1,114 @@
+{% extends 'index.html' %} 
+{%load static%}
+{% load humanize %}
+{% block title %} CREATE ITEMS {% endblock %} 
+
+{% block container %}
+
+<div class="container">
+    <form method='post' enctype="multipart/form-data">
+        {% csrf_token %}      
+
+    
+
+            <div class="row row-cols-1 row-cols-sm-4 g-4">
+              <div class="col">
+                <div class="card" style="border-radius: 1.3em;">                  
+                  <div class="card-body d-flex justify-content-start align-items-center">                    
+                      <i class="fa-sharp fa-solid fa-basket-shopping fa-2x mx-3" style=" width:60px; height: 60px; line-height: 60px; border-radius: 50%; text-align: center; color: #fff; background: #7c73ed; margin-right: 15px;"></i>
+                      <div>
+                        <h3 class="my-1" style="font-size: 22px; font-weight: 600; color: #2A2A2A;">{{totalOrders|intcomma}}</h3>
+                        <span style="font-size: 15px; color: #828997;">Total Orders</span>
+                      </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col">
+                <div class="card" style="border-radius: 1.3em;">                  
+                  <div class="card-body d-flex justify-content-start align-items-center">  
+                    
+                      <i class="fa-solid fa-money-check-dollar fa-2x mx-3" style=" width:60px; height: 60px; line-height: 60px; border-radius: 50%; text-align: center; color: #fff; background: #5c8bf3; margin-right: 15px;"></i>                                            
+                      <div>
+                        <h3 class="my-1" style="font-size: 22px; font-weight: 600;">{{payroll|intcomma}}</h3>
+                        <span style="font-size: 15px; color: #828997;">Payroll</span>
+                      </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col">
+                <div class="card" style="border-radius: 1.3em;">                  
+                  <div class="card-body d-flex justify-content-start align-items-center">                    
+                     
+                    <i class="fa-solid fa-file-invoice-dollar fa-2x mx-3" style=" width:60px; height: 60px; line-height: 60px; border-radius: 50%; text-align: center; color: #fff; background: #e15d9a; margin-right: 15px;"></i>
+                      <div>
+                        <h3 class="my-1" style="font-size: 22px; font-weight: 600;">{{invoice|intcomma}}</h3>
+                        <span style="font-size: 15px; color: #828997;">Invoice</span>
+                      </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col">
+                <div class="card" style="border-radius: 1.3em;">                  
+                  <div class="card-body d-flex justify-content-start align-items-center">                          
+                      <i class="fa-solid fa-money-bill fa-2x mx-3" style=" width:60px; height: 60px; line-height: 60px; border-radius: 50%; text-align: center; color: #fff; background: #85d5e7; margin-right: 15px;"></i>
+                      <div>
+                        <h3 class="my-1" style="font-size: 22px; font-weight: 600;">{{perToPay|floatformat:"2"}}%</h3>
+                        <span style="font-size: 15px; color: #828997;">% To Paid</span>
+                      </div>
+                  </div>
+                </div>
+              </div>      
+            </div>
+
+            <div class="row row-cols-1 row-cols-lg-1 g-4 my-3">
+              <div class="col">
+                <div class="card" style="border-radius: 1.3em; height: 32rem;">                  
+                  <div class="card-body d-flex justify-content-center align-items-center">                    
+                      <div>
+                        <canvas id="myChart" width="600" height="450">
+                          <p>Hello Fallback World</p>
+                       </canvas>
+                      </div>
+                  </div>
+                </div>
+              </div>              
+            </div>
+            <!-- chartJS -->
+            <script type="text/javascript" charset="utf8" src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.min.js"></script>
+            <script type="text/javascript" charset="utf8" src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.js"></script>                                                         
+            <script type="text/javascript">
+                var ctx = document.getElementById('myChart').getContext('2d');
+                var myChart = new Chart(ctx, {
+                  type: 'pie',
+                        data: {
+                          labels: [
+                            {%for status in OrderStatus%}
+                                '{{status}}',
+                            {%endfor%}
+                          ],
+                          datasets: [{
+                            label: "Population (millions)",
+                            backgroundColor: ["#3e95cd", "#8e5ea2","#3cba9f","#e8c3b9","#c45850"],
+                            data: [
+                              {%for value in OrderStatusValues%}
+                                  '{{value}}',
+                              {%endfor%}
+                            ]
+                          }]
+                        },
+                        options: {
+                          title: {
+                            display: true,
+                            text: 'Orders by Status'
+                          }
+                        }
+                                  });
+                
+            </script>
+              
+            
+    </form>
+</div>
+
+
+{% endblock %}
