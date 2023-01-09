@@ -2497,18 +2497,20 @@ def get_summary(request, perID):
     # Sheet header, first row
     row_num = 7
 
-    font_style = xlwt.XFStyle()
-    font_style.font.bold = True
-    font_style = xlwt.easyxf('font: bold on, color black;\
+    font_title = xlwt.XFStyle()
+    font_title.font.bold = True
+    font_title = xlwt.easyxf('font: bold on, color black;\
                      borders: top_color black, bottom_color black, right_color black, left_color black,\
                               left thin, right thin, top thin, bottom thin;\
                      pattern: pattern solid, fore_color light_blue;')
+
+    font_style =  xlwt.XFStyle()                    
 
 
     columns = ['Location', 'Date', 'Eid', 'Name', 'RT','OT','DT','TT','RT$','OT$','Bonus', 'Production','own vehicle', 'on call', 'payroll','Supervisor','PID','Address']
 
     for col_num in range(len(columns)):
-        ws.write(row_num, col_num, columns[col_num], font_style) # at 0 row 0 column 
+        ws.write(row_num, col_num, columns[col_num], font_title) # at 0 row 0 column 
 
     
     try:
@@ -2534,7 +2536,7 @@ def get_summary(request, perID):
             
                 if validate_decimals(i.payout) > 0:                
                     row_num += 1
-                    font_style = xlwt.XFStyle()
+                    
 
                     ws.write(row_num,0,item.Location.name, font_style)
                     ws.write(row_num,1,item.day.strftime("%m/%d/%Y"), font_style)
@@ -2610,20 +2612,19 @@ def get_summary(request, perID):
                         itemNumber = 0
 
                         for z in items:
-                            font_style = xlwt.easyxf('font: bold on, color black;\
+                            """font_style = xlwt.easyxf('font: bold on, color black;\
                                                     borders: top_color black, bottom_color black, right_color black, left_color black,\
                                                             left thin, right thin, top thin, bottom thin;\
-                                                    pattern: pattern solid, fore_color light_blue;')
+                                                    pattern: pattern solid, fore_color light_blue;')"""
 
                             col_item += 1
                             itemNumber += 1
                             try:
-                                ws.write(7,17 + col_item,'Item'+str(itemNumber), font_style)   
-                                ws.write(7,18 + col_item,'Qty'+str(itemNumber), font_style)                          
+                                ws.write(7,17 + col_item,'Item'+str(itemNumber), font_title)   
+                                ws.write(7,18 + col_item,'Qty'+str(itemNumber), font_title)                          
                             except Exception as e:
-                                None
+                                None                            
                             
-                            font_style = xlwt.XFStyle()
                             ws.write(row_num,17 + col_item,z.itemID.item.itemID, font_style)
                         
                             col_item += 1                                          
@@ -2640,15 +2641,14 @@ def get_summary(request, perID):
             if items > sumItem:
                 sumItem = items
             
-        font_style = xlwt.easyxf('font: bold on, color black;\
+        """font_style = xlwt.easyxf('font: bold on, color black;\
                                                 borders: top_color black, bottom_color black, right_color black, left_color black,\
                                                         left thin, right thin, top thin, bottom thin;\
-                                                pattern: pattern solid, fore_color light_blue;')
+                                                pattern: pattern solid, fore_color light_blue;')"""
 
-        ws.write(7,18 + sumItem*2,'Item Totals', font_style)   
-        ws.write(7,19 + sumItem*2,'Invoice', font_style)           
+        ws.write(7,18 + sumItem*2,'Item Totals', font_title)   
+        ws.write(7,19 + sumItem*2,'Invoice', font_title)                   
         
-        font_style = xlwt.XFStyle()
 
         row_num=7
         
@@ -2707,20 +2707,19 @@ def get_summary(request, perID):
         # Sheet header, first row
         row_num = 7
 
-        font_style = xlwt.XFStyle()
+        """font_style = xlwt.XFStyle()
         font_style.font.bold = True
         font_style = xlwt.easyxf('font: bold on, color black;\
                         borders: top_color black, bottom_color black, right_color black, left_color black,\
                                 left thin, right thin, top thin, bottom thin;\
-                        pattern: pattern solid, fore_color light_blue;')
+                        pattern: pattern solid, fore_color light_blue;')"""
 
 
         columns = ['Loc Id', 'Assigned Department', 'Eid', 'Name', 'RT','OT','DT','TT','RT$','OT$','Bonus', 'Production','own vehicle', 'on call', 'payroll']
 
         for col_num in range(len(columns)):
-            ws2.write(row_num, col_num, columns[col_num], font_style) # at 0 row 0 column 
-
-        font_style = xlwt.XFStyle()   
+            ws2.write(row_num, col_num, columns[col_num], font_title) # at 0 row 0 column 
+          
 
         empList = Employee.objects.all()   
         per = period.objects.filter(id = perID).first()
@@ -2843,63 +2842,63 @@ def get_summary(request, perID):
         # Sheet header, first row
         row_num = 12
 
-        font_style = xlwt.easyxf('font: bold on, color black;\
+        font_title2 = xlwt.easyxf('font: bold on, color black;\
                                 align: horiz center')
         
-        ws3.write_merge(3, 3, 0, 14, 'Payroll Production Balance', font_style)
+        ws3.write_merge(3, 3, 0, 14, 'Payroll Production Balance', font_title2)
 
-        font_style = xlwt.easyxf('font: bold on, color black;\
+        font_title3 = xlwt.easyxf('font: bold on, color black;\
                         borders: top_color black, bottom_color black, right_color black, left_color black,\
                                 left thin, right thin, top thin, bottom thin;\
                         align: horiz left')
 
-        ws3.write_merge(5, 5, 3, 4, 'Invoice', font_style)
-        ws3.write_merge(6, 6, 3, 4, 'Payroll', font_style)
-        ws3.write_merge(7, 7, 3, 4, 'Balance', font_style)
-        ws3.write_merge(8, 8, 3, 4, '% Paid', font_style)
+        ws3.write_merge(5, 5, 3, 4, 'Invoice', font_title3)
+        ws3.write_merge(6, 6, 3, 4, 'Payroll', font_title3)
+        ws3.write_merge(7, 7, 3, 4, 'Balance', font_title3)
+        ws3.write_merge(8, 8, 3, 4, '% Paid', font_title3)
 
-        ws3.write_merge(5, 5, 8, 9, 'Weeks', font_style)
-        ws3.write_merge(6, 6, 8, 9, 'From', font_style)
-        ws3.write_merge(7, 7, 8, 9, 'To', font_style)
-        ws3.write_merge(8, 8, 8, 9, 'Pay date', font_style)
+        ws3.write_merge(5, 5, 8, 9, 'Weeks', font_title3)
+        ws3.write_merge(6, 6, 8, 9, 'From', font_title3)
+        ws3.write_merge(7, 7, 8, 9, 'To', font_title3)
+        ws3.write_merge(8, 8, 8, 9, 'Pay date', font_title3)
 
 
-        font_style = xlwt.easyxf('font: bold off, color black;\
+        """font_style = xlwt.easyxf('font: bold off, color black;\
                         borders: top_color black, bottom_color black, right_color black, left_color black,\
                                 left thin, right thin, top thin, bottom thin;\
-                        align: horiz center')
+                        align: horiz center')"""
 
-        ws3.write_merge(5, 5, 10, 11, per.weekRange, font_style)
-        ws3.write_merge(6, 6, 10, 11, per.fromDate.strftime("%m/%d/%Y"), font_style)
-        ws3.write_merge(7, 7, 10, 11, per.toDate.strftime("%m/%d/%Y"), font_style)
-        ws3.write_merge(8, 8, 10, 11, per.payDate.strftime("%m/%d/%Y"), font_style)   
+        ws3.write_merge(5, 5, 10, 11, per.weekRange, font_title3)
+        ws3.write_merge(6, 6, 10, 11, per.fromDate.strftime("%m/%d/%Y"), font_title3)
+        ws3.write_merge(7, 7, 10, 11, per.toDate.strftime("%m/%d/%Y"), font_title3)
+        ws3.write_merge(8, 8, 10, 11, per.payDate.strftime("%m/%d/%Y"), font_title3)   
 
-        font_style = xlwt.easyxf('font: bold off, color black;\
+        """font_style = xlwt.easyxf('font: bold off, color black;\
                         borders: top_color black, bottom_color black, right_color black, left_color black,\
                                 left thin, right thin, top thin, bottom thin;\
-                        align: horiz right')
-        ws3.write_merge(5, 5, 5, 6, '$' + '{0:,.2f}'.format(validate_decimals(invoice)), font_style)
-        ws3.write_merge(6, 6, 5, 6, '$' + '{0:,.2f}'.format(validate_decimals(payTotalTotal)), font_style)
-        ws3.write_merge(7, 7, 5, 6, '$' + '{0:,.2f}'.format(validate_decimals(invoice) - validate_decimals(payTotalTotal)), font_style)
+                        align: horiz right')"""
+        ws3.write_merge(5, 5, 5, 6, '$' + '{0:,.2f}'.format(validate_decimals(invoice)), font_title3)
+        ws3.write_merge(6, 6, 5, 6, '$' + '{0:,.2f}'.format(validate_decimals(payTotalTotal)), font_title3)
+        ws3.write_merge(7, 7, 5, 6, '$' + '{0:,.2f}'.format(validate_decimals(invoice) - validate_decimals(payTotalTotal)), font_title3)
         
-        font_style = xlwt.easyxf('font: bold off, color black;\
+        """font_style = xlwt.easyxf('font: bold off, color black;\
                         borders: top_color black, bottom_color black, right_color black, left_color black,\
                                 left thin, right thin, top thin, bottom thin;\
-                        align: horiz center')
+                        align: horiz center')"""
         if validate_decimals(payTotalTotal) > 0 and validate_decimals(invoice) > 0:
-            ws3.write_merge(8, 8, 5, 6, str(round((validate_decimals(payTotalTotal)*100) / validate_decimals(invoice),2)) + '%', font_style)  
+            ws3.write_merge(8, 8, 5, 6, str(round((validate_decimals(payTotalTotal)*100) / validate_decimals(invoice),2)) + '%', font_title3)  
         else:    
-            ws3.write_merge(8, 8, 5, 6, '0%', font_style)            
+            ws3.write_merge(8, 8, 5, 6, '0%', font_title3)            
 
-        font_style = xlwt.easyxf('font: bold on, color black;\
+        """font_style = xlwt.easyxf('font: bold on, color black;\
                         borders: top_color black, bottom_color black, right_color black, left_color black,\
                                 left thin, right thin, top thin, bottom thin;\
-                        pattern: pattern solid, fore_color light_blue;')
+                        pattern: pattern solid, fore_color light_blue;')"""
 
         columns = ['Loc Id', 'Location', 'Regular Time','Over Time','Double Time','Total Time','RT$','OT$','Bonus', 'Production','own vehicle', 'on call', 'payroll', 'Invoice', '% Pay']
 
         for col_num in range(len(columns)):
-            ws3.write(row_num, col_num, columns[col_num], font_style) # at 0 row 0 column        
+            ws3.write(row_num, col_num, columns[col_num], font_title) # at 0 row 0 column        
 
 
         loca = Locations.objects.all().order_by("LocationID")    
@@ -2968,7 +2967,7 @@ def get_summary(request, perID):
             if validate_decimals(invoice) > 0:                    
                 perc = validate_decimals((validate_decimals(payroll) * 100) / validate_decimals(invoice))
 
-            font_style = xlwt.XFStyle()
+            
 
             ws3.write(row_num, 0, locItem.LocationID, font_style) 
             ws3.write(row_num, 1, locItem.name, font_style) 
