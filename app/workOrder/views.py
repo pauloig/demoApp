@@ -2698,7 +2698,7 @@ def get_summary(request, perID):
     except Exception as e:
        ws.write(0,0,e, font_style)    
 
-    
+    """
     try:
         # WORKSHEET UPLOAD
 
@@ -2988,7 +2988,7 @@ def get_summary(request, perID):
     except Exception as e:
        ws3.write(0,0,e, font_style)              
 
-    
+    """
        
 
     
