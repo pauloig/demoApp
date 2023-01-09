@@ -2513,471 +2513,482 @@ def get_summary(request, perID):
         ws.write(row_num, col_num, columns[col_num], font_style) # at 0 row 0 column 
 
 
-    per = period.objects.filter(id = perID).first()
-    dailyList = Daily.objects.filter(Period = per).order_by('Location')
+    try:
+        per = period.objects.filter(id = perID).first()
+        dailyList = Daily.objects.filter(Period = per).order_by('Location')
 
-    for item in dailyList:        
-    
-        demp = DailyEmployee.objects.filter(DailyID=item).order_by()    
-        empLines = 0    
+        for item in dailyList:        
         
-
-        for i in demp:
-            itemProd = 0
-            rtPrice = 0
-            otPrice = 0
-            dtPrice = 0     
-            ttp = 0
-            ov = 0
-            bonus = 0
-            on_call = 0
+            demp = DailyEmployee.objects.filter(DailyID=item).order_by()    
+            empLines = 0    
             
 
-            if validate_decimals(i.payout) > 0:                
-                row_num += 1
-                font_style = xlwt.XFStyle()
-
-                ws.write(row_num,0,item.Location.name, font_style)
-                ws.write(row_num,1,item.day.strftime("%m/%d/%Y"), font_style)
-                ws.write(row_num,2,i.EmployeeID.employeeID, font_style)
-                ws.write(row_num,3,i.EmployeeID.last_name + ' ' +i.EmployeeID.first_name, font_style)
-
-                itemProd = DailyItem.objects.filter(DailyID = i.DailyID).count()
+            for i in demp:
+                itemProd = 0
+                rtPrice = 0
+                otPrice = 0
+                dtPrice = 0     
+                ttp = 0
+                ov = 0
+                bonus = 0
+                on_call = 0
                 
-                if itemProd <= 0:                    
-             
-                    ws.write(row_num,4,validate_print_decimals(i.regular_hours), font_style)
-                    ws.write(row_num,5,validate_print_decimals(i.ot_hour), font_style)
-                    ws.write(row_num,6,validate_print_decimals(i.double_time), font_style)
-                    ws.write(row_num,7,validate_print_decimals(i.total_hours), font_style)
 
-                    if validate_decimals(i.EmployeeID.hourly_rate) != None:
-                        rtPrice = (validate_decimals(i.regular_hours) * float(validate_decimals(i.EmployeeID.hourly_rate)))
-                        otPrice = ((validate_decimals(i.ot_hour) * (float(validate_decimals(i.EmployeeID.hourly_rate))*1.5)))
-                        dtPrice = ((validate_decimals(i.double_time) * (float(validate_decimals(i.EmployeeID.hourly_rate))*2)))
+                if validate_decimals(i.payout) > 0:                
+                    row_num += 1
+                    font_style = xlwt.XFStyle()
 
-                        ws.write(row_num,8,validate_print_decimals(rtPrice), font_style)
-                        ws.write(row_num,9,validate_print_decimals(otPrice + dtPrice), font_style)
+                    ws.write(row_num,0,item.Location.name, font_style)
+                    ws.write(row_num,1,item.day.strftime("%m/%d/%Y"), font_style)
+                    ws.write(row_num,2,i.EmployeeID.employeeID, font_style)
+                    ws.write(row_num,3,i.EmployeeID.last_name + ' ' +i.EmployeeID.first_name, font_style)
+
+                    itemProd = DailyItem.objects.filter(DailyID = i.DailyID).count()
+                    
+                    if itemProd <= 0:                    
+                
+                        ws.write(row_num,4,validate_print_decimals(i.regular_hours), font_style)
+                        ws.write(row_num,5,validate_print_decimals(i.ot_hour), font_style)
+                        ws.write(row_num,6,validate_print_decimals(i.double_time), font_style)
+                        ws.write(row_num,7,validate_print_decimals(i.total_hours), font_style)
+
+                        if validate_decimals(i.EmployeeID.hourly_rate) != None:
+                            rtPrice = (validate_decimals(i.regular_hours) * float(validate_decimals(i.EmployeeID.hourly_rate)))
+                            otPrice = ((validate_decimals(i.ot_hour) * (float(validate_decimals(i.EmployeeID.hourly_rate))*1.5)))
+                            dtPrice = ((validate_decimals(i.double_time) * (float(validate_decimals(i.EmployeeID.hourly_rate))*2)))
+
+                            ws.write(row_num,8,validate_print_decimals(rtPrice), font_style)
+                            ws.write(row_num,9,validate_print_decimals(otPrice + dtPrice), font_style)
+                        else:
+                            ws.write(row_num,8,'', font_style)
+                            ws.write(row_num,9,'', font_style)
                     else:
+                        ws.write(row_num,4,'', font_style)
+                        ws.write(row_num,5,'', font_style)
+                        ws.write(row_num,6,'', font_style)
+                        ws.write(row_num,7,'', font_style)
                         ws.write(row_num,8,'', font_style)
                         ws.write(row_num,9,'', font_style)
-                else:
-                    ws.write(row_num,4,'', font_style)
-                    ws.write(row_num,5,'', font_style)
-                    ws.write(row_num,6,'', font_style)
-                    ws.write(row_num,7,'', font_style)
-                    ws.write(row_num,8,'', font_style)
-                    ws.write(row_num,9,'', font_style)
 
-                ws.write(row_num,10,validate_print_decimals(i.bonus), font_style)
-                if itemProd > 0:  
-                    di = DailyItem.objects.filter(DailyID = i.DailyID)          
-                    t = 0
-                    for j in di:
-                        t += validate_decimals(j.total)
+                    ws.write(row_num,10,validate_print_decimals(i.bonus), font_style)
+                    if itemProd > 0:  
+                        di = DailyItem.objects.filter(DailyID = i.DailyID)          
+                        t = 0
+                        for j in di:
+                            t += validate_decimals(j.total)
 
-                    if validate_decimals(item.own_vehicle) != None:
-                        ov = validate_decimals((((t * validate_decimals(item.own_vehicle)) / 100) * validate_decimals(i.per_to_pay)) /100)
+                        if validate_decimals(item.own_vehicle) != None:
+                            ov = validate_decimals((((t * validate_decimals(item.own_vehicle)) / 100) * validate_decimals(i.per_to_pay)) /100)
+                        else:
+                            ov = 0
+
+                        ttp = (t * validate_decimals(i.per_to_pay)) /100
+                        ws.write(row_num,round(11,2),validate_print_decimals(ttp), font_style)
+                        ws.write(row_num,12,validate_print_decimals(ov), font_style)
                     else:
-                        ov = 0
+                        ws.write(row_num,11,'', font_style)
+                        ws.write(row_num,12,'', font_style)
 
-                    ttp = (t * validate_decimals(i.per_to_pay)) /100
-                    ws.write(row_num,round(11,2),validate_print_decimals(ttp), font_style)
-                    ws.write(row_num,12,validate_print_decimals(ov), font_style)
-                else:
-                    ws.write(row_num,11,'', font_style)
-                    ws.write(row_num,12,'', font_style)
-
-                if validate_decimals(i.bonus) != None:
-                    bonus = validate_decimals(i.bonus)
-                
-                if validate_decimals(i.on_call) != None:
-                    on_call = validate_decimals(i.on_call)
+                    if validate_decimals(i.bonus) != None:
+                        bonus = validate_decimals(i.bonus)
+                    
+                    if validate_decimals(i.on_call) != None:
+                        on_call = validate_decimals(i.on_call)
 
 
-                payTotal = validate_decimals(rtPrice + otPrice + dtPrice + bonus + ttp + ov + on_call)
-                ws.write(row_num,13,validate_print_decimals(i.on_call), font_style)
-                ws.write(row_num,14,validate_print_decimals(payTotal), font_style)
-                ws.write(row_num,15,item.woID.WCSup.last_name + ' ' + item.woID.WCSup.first_name, font_style)
-                ws.write(row_num,16,item.woID.prismID, font_style)
-                ws.write(row_num,17,item.woID.JobAddress, font_style)
+                    payTotal = validate_decimals(rtPrice + otPrice + dtPrice + bonus + ttp + ov + on_call)
+                    ws.write(row_num,13,validate_print_decimals(i.on_call), font_style)
+                    ws.write(row_num,14,validate_print_decimals(payTotal), font_style)
+                    ws.write(row_num,15,item.woID.WCSup.last_name + ' ' + item.woID.WCSup.first_name, font_style)
+                    ws.write(row_num,16,item.woID.prismID, font_style)
+                    ws.write(row_num,17,item.woID.JobAddress, font_style)
 
-                empLines += 1
-                
-                # se agregan las columnas de items
-                if empLines == 1:
-                    items = DailyItem.objects.filter(DailyID = i.DailyID)
-                    col_item =  0
-                    itemNumber = 0
+                    empLines += 1
+                    
+                    # se agregan las columnas de items
+                    if empLines == 1:
+                        items = DailyItem.objects.filter(DailyID = i.DailyID)
+                        col_item =  0
+                        itemNumber = 0
 
-                    for z in items:
-                        font_style = xlwt.easyxf('font: bold on, color black;\
+                        for z in items:
+                            font_style = xlwt.easyxf('font: bold on, color black;\
+                                                    borders: top_color black, bottom_color black, right_color black, left_color black,\
+                                                            left thin, right thin, top thin, bottom thin;\
+                                                    pattern: pattern solid, fore_color light_blue;')
+
+                            col_item += 1
+                            itemNumber += 1
+                            try:
+                                ws.write(7,17 + col_item,'Item'+str(itemNumber), font_style)   
+                                ws.write(7,18 + col_item,'Qty'+str(itemNumber), font_style)                          
+                            except Exception as e:
+                                None
+                            
+                            font_style = xlwt.XFStyle()
+                            ws.write(row_num,17 + col_item,z.itemID.item.itemID, font_style)
+                        
+                            col_item += 1                                          
+                            
+                            ws.write(row_num,17 + col_item,z.quantity, font_style)
+                                        
+
+    
+    
+        sumItem = 0
+        for x in dailyList:
+            items = DailyItem.objects.filter(DailyID = x)
+            
+            for y in items:
+                sumItem += 1
+            
+        font_style = xlwt.easyxf('font: bold on, color black;\
                                                 borders: top_color black, bottom_color black, right_color black, left_color black,\
                                                         left thin, right thin, top thin, bottom thin;\
                                                 pattern: pattern solid, fore_color light_blue;')
 
-                        col_item += 1
-                        itemNumber += 1
-                        try:
-                             ws.write(7,17 + col_item,'Item'+str(itemNumber), font_style)   
-                             ws.write(7,18 + col_item,'Qty'+str(itemNumber), font_style)                          
-                        except Exception as e:
-                            None
-                        
-                        font_style = xlwt.XFStyle()
-                        ws.write(row_num,17 + col_item,z.itemID.item.itemID, font_style)
-                       
-                        col_item += 1                                          
-                        
-                        ws.write(row_num,17 + col_item,z.quantity, font_style)
-                                    
-
- 
-  
-    sumItem = 0
-    for x in dailyList:
-        items = DailyItem.objects.filter(DailyID = x)
+        ws.write(7,18 + sumItem*2,'Item Totals', font_style)   
+        ws.write(7,19 + sumItem*2,'Invoice', font_style)           
         
-        for y in items:
-            sumItem += 1
-        
-    font_style = xlwt.easyxf('font: bold on, color black;\
-                                            borders: top_color black, bottom_color black, right_color black, left_color black,\
-                                                    left thin, right thin, top thin, bottom thin;\
-                                            pattern: pattern solid, fore_color light_blue;')
-
-    ws.write(7,18 + sumItem*2,'Item Totals', font_style)   
-    ws.write(7,19 + sumItem*2,'Invoice', font_style)           
-    
-    font_style = xlwt.XFStyle()
-
-    row_num=7
-    for x in dailyList:
-        demp = DailyEmployee.objects.filter(DailyID=x).order_by()    
-        empLines = 0    
-
-        for y in demp:
-            empLines += 1
-        
-            if validate_decimals(y.payout) > 0:                
-                row_num += 1
-                if empLines == 1:
-                    items = DailyItem.objects.filter(DailyID = x)
-                    sumQty = 0
-                    sumInvoice = 0
-                    for z in items:
-                        if validate_decimals(z.itemID.price) != None:
-                            lineInv = validate_decimals(z.quantity) * validate_decimals(z.itemID.price)
-                        else:
-                            lineInv = 0
-                        sumInvoice += validate_decimals(lineInv)
-                        sumQty += validate_decimals(z.quantity)
-
-                    if sumQty > 0:
-                        ws.write(row_num,18 + sumItem*2,validate_decimals(sumQty), font_style)   
-                        ws.write(row_num,19 + sumItem*2,validate_decimals(sumInvoice), font_style)     
-
-
-        ws.col(0).width = 3000
-        ws.col(2).width = 1500
-        ws.col(3).width = 5000
-        ws.col(4).width = 1000
-        ws.col(5).width = 1000
-        ws.col(6).width = 1000
-        ws.col(7).width = 1000
-        ws.col(8).width = 1000
-        ws.col(9).width = 1000
-        ws.col(10).width = 1700                                      
-        ws.col(11).width = 3500
-        ws.col(12).width = 3000
-        ws.col(13).width = 1700
-        ws.col(14).width = 2200
-        ws.col(15).width = 5000
-        ws.col(17).width = 11500
-
-    
-    # WORKSHEET UPLOAD
-
-    ws2 = wb.add_sheet('UPLOAD', cell_overwrite_ok = True) 
-
-    # Sheet header, first row
-    row_num = 7
-
-    font_style = xlwt.XFStyle()
-    font_style.font.bold = True
-    font_style = xlwt.easyxf('font: bold on, color black;\
-                     borders: top_color black, bottom_color black, right_color black, left_color black,\
-                              left thin, right thin, top thin, bottom thin;\
-                     pattern: pattern solid, fore_color light_blue;')
-
-
-    columns = ['Loc Id', 'Assigned Department', 'Eid', 'Name', 'RT','OT','DT','TT','RT$','OT$','Bonus', 'Production','own vehicle', 'on call', 'payroll']
-
-    for col_num in range(len(columns)):
-        ws2.write(row_num, col_num, columns[col_num], font_style) # at 0 row 0 column 
-
-    font_style = xlwt.XFStyle()   
-
-    empList = Employee.objects.all()   
-    per = period.objects.filter(id = perID).first()
-    invoice = 0
-    payTotalTotal = 0
-    for item in empList:
-        dailyEmp = DailyEmployee.objects.filter(EmployeeID = item, DailyID__Period = perID).count()
-
-        if dailyEmp > 0:           
-            emp = Employee.objects.filter(employeeID = item.employeeID).first()            
-
-            dailyemp = DailyEmployee.objects.filter(EmployeeID = emp, DailyID__Period = per)
-
-            contador = 0
-            rtTotal = 0
-            otTotal = 0
-            dtTotal = 0
-            rt_Total = 0
-            ot_Total = 0
-            dt_Total = 0
-            tt_Total = 0
-            ocTotal = 0
-            bonTotal = 0
-            prodTotal = 0
-            ovTotal = 0
-            payTotal = 0
-            
-            line2 = False 
-
-            for itemEmp in dailyemp:                
-                contador += 1
-                rt = 0
-                ot = 0
-                dt = 0
-                on_call = 0
-                bonus = 0
-                
-
-                prod = DailyItem.objects.filter(DailyID = itemEmp.DailyID).count()
-
-                if prod <= 0:           
-                    if validate_decimals(itemEmp.EmployeeID.hourly_rate) != None:
-                        rt = (validate_decimals(itemEmp.regular_hours) * float(validate_decimals(itemEmp.EmployeeID.hourly_rate)))
-                        ot = ((validate_decimals(itemEmp.ot_hour) * (float(validate_decimals(itemEmp.EmployeeID.hourly_rate))*1.5)))
-                        dt = ((validate_decimals(itemEmp.double_time) * (float(validate_decimals(itemEmp.EmployeeID.hourly_rate))*2)))
-                    rt_Total += validate_decimals(itemEmp.regular_hours)
-                    ot_Total += validate_decimals(itemEmp.ot_hour)
-                    dt_Total += validate_decimals(itemEmp.double_time)
-                    tt_Total += validate_decimals(itemEmp.total_hours)
-
-                payroll = validate_decimals(itemEmp.payout)
-                on_call = validate_decimals(itemEmp.on_call)
-                bonus = validate_decimals(itemEmp.bonus)
-
-                itemd = DailyItem.objects.filter(DailyID = itemEmp.DailyID)
-
-                total = 0
-                for i in itemd:
-                    if validate_decimals(i.itemID.price) != None:
-                        invoice += validate_decimals(((validate_decimals(i.quantity) * float(validate_decimals(i.itemID.price))) * validate_decimals(itemEmp.per_to_pay)) / 100)                   
-                        
-                    total += validate_decimals(i.total)
-
-                production = validate_decimals((validate_decimals(total) * validate_decimals(itemEmp.per_to_pay)) / 100)
-                if validate_decimals(itemEmp.DailyID.own_vehicle) != None:
-                    own_vehicle = validate_decimals((((validate_decimals(total) * validate_decimals(itemEmp.DailyID.own_vehicle)) / 100) * validate_decimals(itemEmp.per_to_pay)) / 100)
-                else:
-                    own_vehicle = 0
-
-                rtTotal += rt
-                otTotal += ot
-                dtTotal += dt               
-
-                if validate_decimals(on_call) != None:
-                    ocTotal += validate_decimals(on_call)
-
-                if validate_decimals(bonus) != None:
-                    bonTotal += validate_decimals(bonus)
-
-                prodTotal += validate_decimals(production)
-                ovTotal += validate_decimals(own_vehicle)
-                payTotal += validate_decimals(payroll)
-            
-            payTotalTotal += validate_decimals(payTotal)
-
-            row_num += 1
-            if emp.Location != None:
-                ws2.write(row_num, 0, emp.Location.LocationID, font_style)
-                ws2.write(row_num, 1, emp.Location.name, font_style)
-            
-            ws2.write(row_num, 2, emp.employeeID, font_style)
-            ws2.write(row_num, 3, emp.last_name + ' ' + emp.first_name, font_style)
-            ws2.write(row_num, 4, validate_print_decimals(rt_Total), font_style)
-            ws2.write(row_num, 5, validate_print_decimals(ot_Total), font_style)
-            ws2.write(row_num, 6, validate_print_decimals(dt_Total), font_style)
-            ws2.write(row_num, 7, validate_print_decimals(tt_Total), font_style)
-            ws2.write(row_num, 8, validate_print_decimals(rtTotal), font_style)
-            ws2.write(row_num, 9, validate_print_decimals(otTotal + dtTotal), font_style)
-            ws2.write(row_num, 10,validate_print_decimals(bonTotal), font_style)
-            ws2.write(row_num, 11,validate_print_decimals(prodTotal), font_style)
-            ws2.write(row_num, 12,validate_print_decimals(ovTotal), font_style)
-            ws2.write(row_num, 13,validate_print_decimals(ocTotal), font_style)
-            ws2.write(row_num, 14,validate_print_decimals(payTotal), font_style)
-            ws2.write(2, 13,'Invoice', font_style)
-            ws2.write(2, 14,validate_decimals(invoice), font_style)
-            ws2.write(3, 13,'% pay', font_style)   
-            if validate_decimals(payTotalTotal) > 0 and validate_decimals(invoice) > 0:
-                ws2.write(3, 14,validate_decimals((validate_decimals(payTotalTotal)*100) / validate_decimals(invoice)), font_style)
-            else:
-                ws2.write(3, 14,0, font_style)
-                
-
-    # WORKSHEET BALANCE
-
-    ws3 = wb.add_sheet('Balance', cell_overwrite_ok = True) 
-
-    # Sheet header, first row
-    row_num = 12
-
-    font_style = xlwt.easyxf('font: bold on, color black;\
-                            align: horiz center')
-    
-    ws3.write_merge(3, 3, 0, 14, 'Payroll Production Balance', font_style)
-
-    font_style = xlwt.easyxf('font: bold on, color black;\
-                     borders: top_color black, bottom_color black, right_color black, left_color black,\
-                              left thin, right thin, top thin, bottom thin;\
-                     align: horiz left')
-
-    ws3.write_merge(5, 5, 3, 4, 'Invoice', font_style)
-    ws3.write_merge(6, 6, 3, 4, 'Payroll', font_style)
-    ws3.write_merge(7, 7, 3, 4, 'Balance', font_style)
-    ws3.write_merge(8, 8, 3, 4, '% Paid', font_style)
-
-    ws3.write_merge(5, 5, 8, 9, 'Weeks', font_style)
-    ws3.write_merge(6, 6, 8, 9, 'From', font_style)
-    ws3.write_merge(7, 7, 8, 9, 'To', font_style)
-    ws3.write_merge(8, 8, 8, 9, 'Pay date', font_style)
-
-
-    font_style = xlwt.easyxf('font: bold off, color black;\
-                     borders: top_color black, bottom_color black, right_color black, left_color black,\
-                              left thin, right thin, top thin, bottom thin;\
-                     align: horiz center')
-
-    ws3.write_merge(5, 5, 10, 11, per.weekRange, font_style)
-    ws3.write_merge(6, 6, 10, 11, per.fromDate.strftime("%m/%d/%Y"), font_style)
-    ws3.write_merge(7, 7, 10, 11, per.toDate.strftime("%m/%d/%Y"), font_style)
-    ws3.write_merge(8, 8, 10, 11, per.payDate.strftime("%m/%d/%Y"), font_style)   
-
-    font_style = xlwt.easyxf('font: bold off, color black;\
-                     borders: top_color black, bottom_color black, right_color black, left_color black,\
-                              left thin, right thin, top thin, bottom thin;\
-                     align: horiz right')
-    ws3.write_merge(5, 5, 5, 6, '$' + '{0:,.2f}'.format(validate_decimals(invoice)), font_style)
-    ws3.write_merge(6, 6, 5, 6, '$' + '{0:,.2f}'.format(validate_decimals(payTotalTotal)), font_style)
-    ws3.write_merge(7, 7, 5, 6, '$' + '{0:,.2f}'.format(validate_decimals(invoice) - validate_decimals(payTotalTotal)), font_style)
-    
-    font_style = xlwt.easyxf('font: bold off, color black;\
-                     borders: top_color black, bottom_color black, right_color black, left_color black,\
-                              left thin, right thin, top thin, bottom thin;\
-                     align: horiz center')
-    if validate_decimals(payTotalTotal) > 0 and validate_decimals(invoice) > 0:
-        ws3.write_merge(8, 8, 5, 6, str(round((validate_decimals(payTotalTotal)*100) / validate_decimals(invoice),2)) + '%', font_style)  
-    else:    
-         ws3.write_merge(8, 8, 5, 6, '0%', font_style)            
-
-    font_style = xlwt.easyxf('font: bold on, color black;\
-                     borders: top_color black, bottom_color black, right_color black, left_color black,\
-                              left thin, right thin, top thin, bottom thin;\
-                     pattern: pattern solid, fore_color light_blue;')
-
-    columns = ['Loc Id', 'Location', 'Regular Time','Over Time','Double Time','Total Time','RT$','OT$','Bonus', 'Production','own vehicle', 'on call', 'payroll', 'Invoice', '% Pay']
-
-    for col_num in range(len(columns)):
-        ws3.write(row_num, col_num, columns[col_num], font_style) # at 0 row 0 column        
-
-
-    loca = Locations.objects.all().order_by("LocationID")    
-
-    for locItem in loca:
-        row_num += 1
-        daily = Daily.objects.filter(Location = locItem, Period = per)     
-        regular_time = 0
-        over_time = 0
-        double_time = 0
-        total_time = 0
-        rt = 0
-        ot = 0
-        dt = 0
-        bonus = 0
-        on_call = 0
-        prod = 0
-        gran_total = 0
-        payroll = 0
-        ownvehicle = 0
-        invoice = 0
-        payroll2= 0
-        perc = 0
-        for dailyItem in daily:            
-            production = DailyItem.objects.filter(DailyID=dailyItem).count()
-
-            dailyemp = DailyEmployee.objects.filter(DailyID=dailyItem)
-
-            for i in dailyemp:
-                if production <= 0:
-                    regular_time += validate_decimals(i.regular_hours)
-                    over_time += validate_decimals(i.ot_hour)
-                    double_time += validate_decimals(i.double_time)
-                    total_time += validate_decimals(i.total_hours)
-                    if validate_decimals(i.EmployeeID.hourly_rate) != None:
-                        rt += (validate_decimals(i.regular_hours) * float(validate_decimals(i.EmployeeID.hourly_rate)))
-                        ot += ((validate_decimals(i.ot_hour) * (float(validate_decimals(i.EmployeeID.hourly_rate))*1.5)))
-                        dt += ((validate_decimals(i.double_time) * (float(validate_decimals(i.EmployeeID.hourly_rate))*2)))
-
-                if validate_decimals(i.bonus) != None:
-                    bonus += validate_decimals(i.bonus)
-                    
-                if validate_decimals(i.on_call) != None:
-                    on_call += validate_decimals(i.on_call)
-
-                if validate_decimals(i.payout) != None:
-                    payroll += validate_decimals(i.payout)
-
-            
-            dailyprod =  DailyItem.objects.filter(DailyID=dailyItem)
-            total = 0
-            
-            ov = 0
-            for j in dailyprod:                
-                total += validate_decimals(j.total)
-                if validate_decimals(j.itemID.price) != None:
-                    invoice += (validate_decimals(j.quantity) * float(validate_decimals(j.itemID.price)) )
-                if validate_decimals(j.itemID.emp_payout) != None:    
-                    payroll2 += (validate_decimals(j.quantity) * float(validate_decimals(j.itemID.emp_payout)) )
-
-            if validate_decimals(dailyItem.own_vehicle) != None:
-                ov = validate_decimals(((validate_decimals(total) * validate_decimals(dailyItem.own_vehicle)) / 100))
-                ownvehicle += validate_decimals(ov)
-            prod += validate_decimals(total)
-
-        if validate_decimals(invoice) > 0:                    
-            perc = validate_decimals((validate_decimals(payroll) * 100) / validate_decimals(invoice))
-
         font_style = xlwt.XFStyle()
 
-        ws3.write(row_num, 0, locItem.LocationID, font_style) 
-        ws3.write(row_num, 1, locItem.name, font_style) 
-        ws3.write(row_num, 2, validate_print_decimals(regular_time), font_style)
-        ws3.write(row_num, 3, validate_print_decimals(over_time), font_style)
-        ws3.write(row_num, 4, validate_print_decimals(double_time), font_style)        
-        ws3.write(row_num, 5, validate_print_decimals(total_time), font_style)
-        ws3.write(row_num, 6, validate_print_decimals(rt), font_style)
-        ws3.write(row_num, 7, validate_print_decimals(ot + dt), font_style)        
-        ws3.write(row_num, 8, validate_print_decimals(bonus), font_style)
-        ws3.write(row_num, 9, validate_print_decimals(prod), font_style)
-        ws3.write(row_num, 10, validate_print_decimals(ownvehicle), font_style)
-        ws3.write(row_num, 11, validate_print_decimals(on_call), font_style)
-        ws3.write(row_num, 12, validate_print_decimals(payroll), font_style)
-        ws3.write(row_num, 13, validate_print_decimals(invoice), font_style)
-        ws3.write(row_num, 14, validate_print_decimals(perc), font_style) 
+        row_num=7
+        for x in dailyList:
+            demp = DailyEmployee.objects.filter(DailyID=x).order_by()    
+            empLines = 0    
+
+            for y in demp:
+                empLines += 1
+            
+                if validate_decimals(y.payout) > 0:                
+                    row_num += 1
+                    if empLines == 1:
+                        items = DailyItem.objects.filter(DailyID = x)
+                        sumQty = 0
+                        sumInvoice = 0
+                        for z in items:
+                            if validate_decimals(z.itemID.price) != None:
+                                lineInv = validate_decimals(z.quantity) * validate_decimals(z.itemID.price)
+                            else:
+                                lineInv = 0
+                            sumInvoice += validate_decimals(lineInv)
+                            sumQty += validate_decimals(z.quantity)
+
+                        if sumQty > 0:
+                            ws.write(row_num,18 + sumItem*2,validate_decimals(sumQty), font_style)   
+                            ws.write(row_num,19 + sumItem*2,validate_decimals(sumInvoice), font_style)     
+
+
+            ws.col(0).width = 3000
+            ws.col(2).width = 1500
+            ws.col(3).width = 5000
+            ws.col(4).width = 1000
+            ws.col(5).width = 1000
+            ws.col(6).width = 1000
+            ws.col(7).width = 1000
+            ws.col(8).width = 1000
+            ws.col(9).width = 1000
+            ws.col(10).width = 1700                                      
+            ws.col(11).width = 3500
+            ws.col(12).width = 3000
+            ws.col(13).width = 1700
+            ws.col(14).width = 2200
+            ws.col(15).width = 5000
+            ws.col(17).width = 11500
+    except e as Exception:
+       ws.write(0,0,e, font_style)    
+
+    
+    try:
+        # WORKSHEET UPLOAD
+
+        ws2 = wb.add_sheet('UPLOAD', cell_overwrite_ok = True) 
+
+        # Sheet header, first row
+        row_num = 7
+
+        font_style = xlwt.XFStyle()
+        font_style.font.bold = True
+        font_style = xlwt.easyxf('font: bold on, color black;\
+                        borders: top_color black, bottom_color black, right_color black, left_color black,\
+                                left thin, right thin, top thin, bottom thin;\
+                        pattern: pattern solid, fore_color light_blue;')
+
+
+        columns = ['Loc Id', 'Assigned Department', 'Eid', 'Name', 'RT','OT','DT','TT','RT$','OT$','Bonus', 'Production','own vehicle', 'on call', 'payroll']
+
+        for col_num in range(len(columns)):
+            ws2.write(row_num, col_num, columns[col_num], font_style) # at 0 row 0 column 
+
+        font_style = xlwt.XFStyle()   
+
+        empList = Employee.objects.all()   
+        per = period.objects.filter(id = perID).first()
+        invoice = 0
+        payTotalTotal = 0
+        for item in empList:
+            dailyEmp = DailyEmployee.objects.filter(EmployeeID = item, DailyID__Period = perID).count()
+
+            if dailyEmp > 0:           
+                emp = Employee.objects.filter(employeeID = item.employeeID).first()            
+
+                dailyemp = DailyEmployee.objects.filter(EmployeeID = emp, DailyID__Period = per)
+
+                contador = 0
+                rtTotal = 0
+                otTotal = 0
+                dtTotal = 0
+                rt_Total = 0
+                ot_Total = 0
+                dt_Total = 0
+                tt_Total = 0
+                ocTotal = 0
+                bonTotal = 0
+                prodTotal = 0
+                ovTotal = 0
+                payTotal = 0
+                
+                line2 = False 
+
+                for itemEmp in dailyemp:                
+                    contador += 1
+                    rt = 0
+                    ot = 0
+                    dt = 0
+                    on_call = 0
+                    bonus = 0
+                    
+
+                    prod = DailyItem.objects.filter(DailyID = itemEmp.DailyID).count()
+
+                    if prod <= 0:           
+                        if validate_decimals(itemEmp.EmployeeID.hourly_rate) != None:
+                            rt = (validate_decimals(itemEmp.regular_hours) * float(validate_decimals(itemEmp.EmployeeID.hourly_rate)))
+                            ot = ((validate_decimals(itemEmp.ot_hour) * (float(validate_decimals(itemEmp.EmployeeID.hourly_rate))*1.5)))
+                            dt = ((validate_decimals(itemEmp.double_time) * (float(validate_decimals(itemEmp.EmployeeID.hourly_rate))*2)))
+                        rt_Total += validate_decimals(itemEmp.regular_hours)
+                        ot_Total += validate_decimals(itemEmp.ot_hour)
+                        dt_Total += validate_decimals(itemEmp.double_time)
+                        tt_Total += validate_decimals(itemEmp.total_hours)
+
+                    payroll = validate_decimals(itemEmp.payout)
+                    on_call = validate_decimals(itemEmp.on_call)
+                    bonus = validate_decimals(itemEmp.bonus)
+
+                    itemd = DailyItem.objects.filter(DailyID = itemEmp.DailyID)
+
+                    total = 0
+                    for i in itemd:
+                        if validate_decimals(i.itemID.price) != None:
+                            invoice += validate_decimals(((validate_decimals(i.quantity) * float(validate_decimals(i.itemID.price))) * validate_decimals(itemEmp.per_to_pay)) / 100)                   
+                            
+                        total += validate_decimals(i.total)
+
+                    production = validate_decimals((validate_decimals(total) * validate_decimals(itemEmp.per_to_pay)) / 100)
+                    if validate_decimals(itemEmp.DailyID.own_vehicle) != None:
+                        own_vehicle = validate_decimals((((validate_decimals(total) * validate_decimals(itemEmp.DailyID.own_vehicle)) / 100) * validate_decimals(itemEmp.per_to_pay)) / 100)
+                    else:
+                        own_vehicle = 0
+
+                    rtTotal += rt
+                    otTotal += ot
+                    dtTotal += dt               
+
+                    if validate_decimals(on_call) != None:
+                        ocTotal += validate_decimals(on_call)
+
+                    if validate_decimals(bonus) != None:
+                        bonTotal += validate_decimals(bonus)
+
+                    prodTotal += validate_decimals(production)
+                    ovTotal += validate_decimals(own_vehicle)
+                    payTotal += validate_decimals(payroll)
+                
+                payTotalTotal += validate_decimals(payTotal)
+
+                row_num += 1
+                if emp.Location != None:
+                    ws2.write(row_num, 0, emp.Location.LocationID, font_style)
+                    ws2.write(row_num, 1, emp.Location.name, font_style)
+                
+                ws2.write(row_num, 2, emp.employeeID, font_style)
+                ws2.write(row_num, 3, emp.last_name + ' ' + emp.first_name, font_style)
+                ws2.write(row_num, 4, validate_print_decimals(rt_Total), font_style)
+                ws2.write(row_num, 5, validate_print_decimals(ot_Total), font_style)
+                ws2.write(row_num, 6, validate_print_decimals(dt_Total), font_style)
+                ws2.write(row_num, 7, validate_print_decimals(tt_Total), font_style)
+                ws2.write(row_num, 8, validate_print_decimals(rtTotal), font_style)
+                ws2.write(row_num, 9, validate_print_decimals(otTotal + dtTotal), font_style)
+                ws2.write(row_num, 10,validate_print_decimals(bonTotal), font_style)
+                ws2.write(row_num, 11,validate_print_decimals(prodTotal), font_style)
+                ws2.write(row_num, 12,validate_print_decimals(ovTotal), font_style)
+                ws2.write(row_num, 13,validate_print_decimals(ocTotal), font_style)
+                ws2.write(row_num, 14,validate_print_decimals(payTotal), font_style)
+                ws2.write(2, 13,'Invoice', font_style)
+                ws2.write(2, 14,validate_decimals(invoice), font_style)
+                ws2.write(3, 13,'% pay', font_style)   
+                if validate_decimals(payTotalTotal) > 0 and validate_decimals(invoice) > 0:
+                    ws2.write(3, 14,validate_decimals((validate_decimals(payTotalTotal)*100) / validate_decimals(invoice)), font_style)
+                else:
+                    ws2.write(3, 14,0, font_style)
+    except e as Exception:
+       ws2.write(0,0,e, font_style) 
+    
+    
+    try:
+        # WORKSHEET BALANCE
+
+        ws3 = wb.add_sheet('Balance', cell_overwrite_ok = True) 
+
+        # Sheet header, first row
+        row_num = 12
+
+        font_style = xlwt.easyxf('font: bold on, color black;\
+                                align: horiz center')
+        
+        ws3.write_merge(3, 3, 0, 14, 'Payroll Production Balance', font_style)
+
+        font_style = xlwt.easyxf('font: bold on, color black;\
+                        borders: top_color black, bottom_color black, right_color black, left_color black,\
+                                left thin, right thin, top thin, bottom thin;\
+                        align: horiz left')
+
+        ws3.write_merge(5, 5, 3, 4, 'Invoice', font_style)
+        ws3.write_merge(6, 6, 3, 4, 'Payroll', font_style)
+        ws3.write_merge(7, 7, 3, 4, 'Balance', font_style)
+        ws3.write_merge(8, 8, 3, 4, '% Paid', font_style)
+
+        ws3.write_merge(5, 5, 8, 9, 'Weeks', font_style)
+        ws3.write_merge(6, 6, 8, 9, 'From', font_style)
+        ws3.write_merge(7, 7, 8, 9, 'To', font_style)
+        ws3.write_merge(8, 8, 8, 9, 'Pay date', font_style)
+
+
+        font_style = xlwt.easyxf('font: bold off, color black;\
+                        borders: top_color black, bottom_color black, right_color black, left_color black,\
+                                left thin, right thin, top thin, bottom thin;\
+                        align: horiz center')
+
+        ws3.write_merge(5, 5, 10, 11, per.weekRange, font_style)
+        ws3.write_merge(6, 6, 10, 11, per.fromDate.strftime("%m/%d/%Y"), font_style)
+        ws3.write_merge(7, 7, 10, 11, per.toDate.strftime("%m/%d/%Y"), font_style)
+        ws3.write_merge(8, 8, 10, 11, per.payDate.strftime("%m/%d/%Y"), font_style)   
+
+        font_style = xlwt.easyxf('font: bold off, color black;\
+                        borders: top_color black, bottom_color black, right_color black, left_color black,\
+                                left thin, right thin, top thin, bottom thin;\
+                        align: horiz right')
+        ws3.write_merge(5, 5, 5, 6, '$' + '{0:,.2f}'.format(validate_decimals(invoice)), font_style)
+        ws3.write_merge(6, 6, 5, 6, '$' + '{0:,.2f}'.format(validate_decimals(payTotalTotal)), font_style)
+        ws3.write_merge(7, 7, 5, 6, '$' + '{0:,.2f}'.format(validate_decimals(invoice) - validate_decimals(payTotalTotal)), font_style)
+        
+        font_style = xlwt.easyxf('font: bold off, color black;\
+                        borders: top_color black, bottom_color black, right_color black, left_color black,\
+                                left thin, right thin, top thin, bottom thin;\
+                        align: horiz center')
+        if validate_decimals(payTotalTotal) > 0 and validate_decimals(invoice) > 0:
+            ws3.write_merge(8, 8, 5, 6, str(round((validate_decimals(payTotalTotal)*100) / validate_decimals(invoice),2)) + '%', font_style)  
+        else:    
+            ws3.write_merge(8, 8, 5, 6, '0%', font_style)            
+
+        font_style = xlwt.easyxf('font: bold on, color black;\
+                        borders: top_color black, bottom_color black, right_color black, left_color black,\
+                                left thin, right thin, top thin, bottom thin;\
+                        pattern: pattern solid, fore_color light_blue;')
+
+        columns = ['Loc Id', 'Location', 'Regular Time','Over Time','Double Time','Total Time','RT$','OT$','Bonus', 'Production','own vehicle', 'on call', 'payroll', 'Invoice', '% Pay']
+
+        for col_num in range(len(columns)):
+            ws3.write(row_num, col_num, columns[col_num], font_style) # at 0 row 0 column        
+
+
+        loca = Locations.objects.all().order_by("LocationID")    
+
+        for locItem in loca:
+            row_num += 1
+            daily = Daily.objects.filter(Location = locItem, Period = per)     
+            regular_time = 0
+            over_time = 0
+            double_time = 0
+            total_time = 0
+            rt = 0
+            ot = 0
+            dt = 0
+            bonus = 0
+            on_call = 0
+            prod = 0
+            gran_total = 0
+            payroll = 0
+            ownvehicle = 0
+            invoice = 0
+            payroll2= 0
+            perc = 0
+            for dailyItem in daily:            
+                production = DailyItem.objects.filter(DailyID=dailyItem).count()
+
+                dailyemp = DailyEmployee.objects.filter(DailyID=dailyItem)
+
+                for i in dailyemp:
+                    if production <= 0:
+                        regular_time += validate_decimals(i.regular_hours)
+                        over_time += validate_decimals(i.ot_hour)
+                        double_time += validate_decimals(i.double_time)
+                        total_time += validate_decimals(i.total_hours)
+                        if validate_decimals(i.EmployeeID.hourly_rate) != None:
+                            rt += (validate_decimals(i.regular_hours) * float(validate_decimals(i.EmployeeID.hourly_rate)))
+                            ot += ((validate_decimals(i.ot_hour) * (float(validate_decimals(i.EmployeeID.hourly_rate))*1.5)))
+                            dt += ((validate_decimals(i.double_time) * (float(validate_decimals(i.EmployeeID.hourly_rate))*2)))
+
+                    if validate_decimals(i.bonus) != None:
+                        bonus += validate_decimals(i.bonus)
+                        
+                    if validate_decimals(i.on_call) != None:
+                        on_call += validate_decimals(i.on_call)
+
+                    if validate_decimals(i.payout) != None:
+                        payroll += validate_decimals(i.payout)
+
+                
+                dailyprod =  DailyItem.objects.filter(DailyID=dailyItem)
+                total = 0
+                
+                ov = 0
+                for j in dailyprod:                
+                    total += validate_decimals(j.total)
+                    if validate_decimals(j.itemID.price) != None:
+                        invoice += (validate_decimals(j.quantity) * float(validate_decimals(j.itemID.price)) )
+                    if validate_decimals(j.itemID.emp_payout) != None:    
+                        payroll2 += (validate_decimals(j.quantity) * float(validate_decimals(j.itemID.emp_payout)) )
+
+                if validate_decimals(dailyItem.own_vehicle) != None:
+                    ov = validate_decimals(((validate_decimals(total) * validate_decimals(dailyItem.own_vehicle)) / 100))
+                    ownvehicle += validate_decimals(ov)
+                prod += validate_decimals(total)
+
+            if validate_decimals(invoice) > 0:                    
+                perc = validate_decimals((validate_decimals(payroll) * 100) / validate_decimals(invoice))
+
+            font_style = xlwt.XFStyle()
+
+            ws3.write(row_num, 0, locItem.LocationID, font_style) 
+            ws3.write(row_num, 1, locItem.name, font_style) 
+            ws3.write(row_num, 2, validate_print_decimals(regular_time), font_style)
+            ws3.write(row_num, 3, validate_print_decimals(over_time), font_style)
+            ws3.write(row_num, 4, validate_print_decimals(double_time), font_style)        
+            ws3.write(row_num, 5, validate_print_decimals(total_time), font_style)
+            ws3.write(row_num, 6, validate_print_decimals(rt), font_style)
+            ws3.write(row_num, 7, validate_print_decimals(ot + dt), font_style)        
+            ws3.write(row_num, 8, validate_print_decimals(bonus), font_style)
+            ws3.write(row_num, 9, validate_print_decimals(prod), font_style)
+            ws3.write(row_num, 10, validate_print_decimals(ownvehicle), font_style)
+            ws3.write(row_num, 11, validate_print_decimals(on_call), font_style)
+            ws3.write(row_num, 12, validate_print_decimals(payroll), font_style)
+            ws3.write(row_num, 13, validate_print_decimals(invoice), font_style)
+            ws3.write(row_num, 14, validate_print_decimals(perc), font_style) 
+    except e as Exception:
+       ws3.write(0,0,e, font_style)              
+
+    
        
 
     
