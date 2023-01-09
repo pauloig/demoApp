@@ -1,5 +1,6 @@
 {% extends 'index.html' %} 
 {%load static%}
+{% load humanize %}
 {% block title %} Duplicate Order List {% endblock %} 
 
 {% block container %}
@@ -40,7 +41,9 @@
                             <div class="col-sm-12">
                                 <a class="btn btn-success btn" href="/get_summary/{{period.id}}" ><i class="fa-solid fa-bars-staggered fa-2x m-2"></i></br>Summary</a>       
                                 <a class="btn btn-success btn" href="/recap/{{period.id}}"><i class="fa-regular fa-folder-open fa-2x m-2"></i></br> Gen Recap</a>                                                               
-                                <a class="btn btn-success btn" data-bs-toggle="modal" data-bs-target="#staticBackdrop"><i class="fa-solid fa-envelopes-bulk fa-2x m-2"></i></br>Send Recap</a>                                                             
+                                <a class="btn btn-success btn" data-bs-toggle="modal" data-bs-target="#staticBackdrop"><i class="fa-solid fa-envelopes-bulk fa-2x m-2"></i></br>Send Recap</a>
+                                <a class="btn btn-info btn" data-bs-toggle="modal" data-bs-target="#staticBackdrop"><i class="fa-sharp fa-solid fa-circle-check fa-2x m-2"></i></br>approve sup.</a>
+                                <a class="btn btn-info btn" data-bs-toggle="modal" data-bs-target="#staticBackdrop"><i class="fa-solid fa-lock fa-2x m-2"></i></br>Close Payroll</a>
                             </div>
                         </div>
                                      
@@ -84,72 +87,72 @@
                                                 <td class="p-1">{{item.name}}</td>                                                
                                                     <td class="p-1">
                                                         {% if item.regular_time > 0%}
-                                                            {{item.regular_time}}
+                                                            {{item.regular_time|floatformat:"2"|intcomma}}
                                                         {%endif%}
                                                     </td>                                                
                                                 <td class="p-1">
                                                     {% if item.over_time > 0%}
-                                                        {{item.over_time}}
+                                                        {{item.over_time|floatformat:"2"|intcomma}}
                                                     {%endif%}                                                    
                                                 </td>
                                                 <td class="p-1">
                                                     {% if item.double_time > 0%}
-                                                        {{item.double_time}}
+                                                        {{item.double_time|floatformat:"2"|intcomma}}
                                                     {%endif%}                                                    
                                                 </td>
                                                 <td class="p-1">
                                                     {% if item.total_time > 0%}
-                                                        {{item.total_time}}
+                                                        {{item.total_time|floatformat:"2"|intcomma}}
                                                     {%endif%}                                                      
                                                 </td>
                                                 <td class="p-1">
                                                     {% if item.rt > 0%}
-                                                        ${{item.rt|floatformat:"2"}}
+                                                        ${{item.rt|floatformat:"2"|intcomma}}
                                                     {%endif%}                                                     
                                                 </td>
                                                 <td class="p-1">
                                                     {% if item.ot > 0%}
-                                                        ${{item.ot|floatformat:"2"}}
+                                                        ${{item.ot|floatformat:"2"|intcomma}}
                                                     {%endif%}                                                     
                                                 </td>
                                                 <td class="p-1">
                                                     {% if item.dt > 0%}
-                                                        ${{item.dt|floatformat:"2"}}
+                                                        ${{item.dt|floatformat:"2"|intcomma}}
                                                     {%endif%}                                                      
                                                 </td>
                                                 <td class="p-1">
                                                     {% if item.bonus > 0%}
-                                                        ${{item.bonus|floatformat:"2"}}
+                                                        ${{item.bonus|floatformat:"2"|intcomma}}
                                                     {%endif%}    
                                                 </td>
                                                 <td class="p-1">
                                                     {% if item.production > 0%}
-                                                        ${{item.production|floatformat:"2"}}
+                                                        ${{item.production|floatformat:"2"|intcomma}}
                                                     {%endif%}  
                                                 </td>
                                                 <td class="p-1">
                                                     {% if item.own_vehicle > 0%}
-                                                        ${{item.own_vehicle|floatformat:"2"}}
+                                                        ${{item.own_vehicle|floatformat:"2"|intcomma}}
                                                     {%endif%}
                                                 </td>
                                                 <td class="p-1">
                                                     {% if item.on_call > 0%}
-                                                        ${{item.on_call|floatformat:"2"}}
+                                                        ${{item.on_call|floatformat:"2"|intcomma}}
                                                     {%endif%}  
                                                 </td>
                                                 <td class="p-1">
                                                     {% if item.payroll > 0%}
-                                                        ${{item.payroll|floatformat:"2"}}
+                                                        ${{item.payroll|floatformat:"2"|intcomma}}
                                                     {%endif%}
                                                 </td>
                                                 <td class="p-1">
                                                     {% if item.invoice > 0%}
-                                                        ${{item.invoice|floatformat:"2"}}
+                                                        ${{item.invoice|floatformat:2|intcomma}}
                                                     {%endif%}
                                                 </td>
                                                 <td class="p-1">
                                                     {% if item.percentage > 0%}
-                                                        {{item.percentage|floatformat:"2"}}%
+                                                        {{item.percentage|floatformat:"2"|intcomma}}%
                                                     {%endif%}
                                                 </td>
                                                 <td> 

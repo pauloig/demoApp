@@ -999,8 +999,8 @@ def estimate(request, id):
             itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="20%" align="center"> ' + data.itemID.item.itemID + '</td> '
             itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px; padding-left: 2px;" width="43%" align="left">    ' + data.itemID.item.name  + '</td> '
             itemHtml = itemHtml +  ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center">' + str(data.quantity) + '</td> '
-            itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="13%" align="center">' + str(data.itemID.price) + '</td> '
-            itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center">' + str(amount) + '</td> '
+            itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="13%" align="center"> $' + '{0:,.2f}'.format(float(data.itemID.price)) + '</td> '
+            itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> $' + '{0:,.2f}'.format(amount) + '</td> '
             itemHtml = itemHtml + ' </tr> '            
     except Exception as e:
         print(e)
@@ -1019,7 +1019,7 @@ def estimate(request, id):
         itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px; padding-left: 2px;" width="43%" align="left">' + data.product + '</td> '
         itemHtml = itemHtml +  ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center">' + data.quantity + '</td> '
         itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="13%" align="center"> N/A </td> '
-        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center">'  + data.total + '</td>'
+        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> $'  + '{0:,.2f}'.format(float(data.total)) + '</td>'
         itemHtml = itemHtml + ' </tr> '
     
     if totaPO > 0:
@@ -1030,7 +1030,7 @@ def estimate(request, id):
         itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px; padding-left: 2px;" width="43%" align="left"> Markup </td> '
         itemHtml = itemHtml +  ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"></td> '
         itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="13%" align="center"> </td> '
-        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center">'  + str(totaPO) + '</td>'
+        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> $'  + '{0:,.2f}'.format(float(totaPO)) + '</td>'
         itemHtml = itemHtml + ' </tr> '
 
     for i in range(21-linea):
@@ -1116,8 +1116,8 @@ def invoice(request, id):
             itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="20%" align="center"> ' + data.itemID.item.itemID + '</td> '
             itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px; padding-left: 2px;" width="43%" align="left">   ' + data.itemID.item.name + '</td> '
             itemHtml = itemHtml +  ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center">' + str(data.quantity) + '</td> '
-            itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="13%" align="center">' + str(data.itemID.price) + '</td> '
-            itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center">' + str(amount) + '</td> '
+            itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="13%" align="center"> $' + '{0:,.2f}'.format(float(data.itemID.price)) + '</td> '
+            itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> $' + '{0:,.2f}'.format(amount) + '</td> '
             itemHtml = itemHtml + ' </tr> '            
     except Exception as e:
         print(e)
@@ -1135,7 +1135,7 @@ def invoice(request, id):
         itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px; padding-left: 2px;" width="43%" align="left">' + data.product + '</td> '
         itemHtml = itemHtml +  ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center">' + data.quantity + '</td> '
         itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="13%" align="center"> N/A </td> '
-        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center">'  + data.total + '</td>'
+        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> $'  + '{0:,.2f}'.format(float(data.total)) + '</td>'
         itemHtml = itemHtml + ' </tr> '
 
     if totaPO > 0:
@@ -1146,7 +1146,7 @@ def invoice(request, id):
         itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px; padding-left: 2px;" width="43%" align="left"> Markup </td> '
         itemHtml = itemHtml +  ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"></td> '
         itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="13%" align="center"> </td> '
-        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center">'  + str(totaPO) + '</td>'
+        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> $'  + '{0:,.2f}'.format(float(totaPO)) + '</td>'
         itemHtml = itemHtml + ' </tr> '
 
     for i in range(20-linea):
@@ -1235,8 +1235,8 @@ def estimate_preview(request, id):
             itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px;" width="20%" align="center">' + data.itemID.item.itemID + '</td> '
             itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px; padding-left: 2px;" width="43%" align="left">' + data.itemID.item.name + '</td> '
             itemHtml = itemHtml +  ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px;" width="12%" align="center">' + str(data.quantity) + '</td> '
-            itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px;" width="13%" align="center">' + str(data.itemID.price) + '</td> '
-            itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px;" width="12%" align="center">'  + str(amount) + '</td>'
+            itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px;" width="13%" align="center"> $' + '{0:,.2f}'.format(float(data.itemID.price)) + '</td> '
+            itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px;" width="12%" align="center"> $'  + '{0:,.2f}'.format(amount) + '</td>'
             itemHtml = itemHtml + ' </tr> '            
     except Exception as e:
         print(e)
@@ -1254,7 +1254,7 @@ def estimate_preview(request, id):
         itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px; padding-left: 2px;" width="43%" align="left">' + data.product + '</td> '
         itemHtml = itemHtml +  ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px;" width="12%" align="center">' + data.quantity + '</td> '
         itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px;" width="13%" align="center">' +'N/A' + '</td> '
-        itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px;" width="12%" align="center">'  + data.total + '</td>'
+        itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px;" width="12%" align="center"> $'  + '{0:,.2f}'.format(float(data.total)) + '</td>'
         itemHtml = itemHtml + ' </tr> '
 
     if totaPO > 0:
@@ -1265,7 +1265,7 @@ def estimate_preview(request, id):
         itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px; padding-left: 2px;" width="43%" align="left"> Markup</td> '
         itemHtml = itemHtml +  ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px;" width="12%" align="center"> </td> '
         itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px;" width="13%" align="center"></td> '
-        itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px;" width="12%" align="center">'  + str(totaPO) + '</td>'
+        itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px;" width="12%" align="center"> $'  + '{0:,.2f}'.format(float(totaPO)) + '</td>'
         itemHtml = itemHtml + ' </tr> '
    
     for i in range(21-linea):
@@ -1315,8 +1315,8 @@ def invoice_preview(request, id):
             itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px;" width="20%" align="center">' + data.itemID.item.itemID + '</td> '
             itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px; padding-left: 2px;" width="43%" align="left">' + data.itemID.item.name + '</td> '
             itemHtml = itemHtml +  ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px;" width="12%" align="center">' + str(data.quantity) + '</td> '
-            itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px;" width="13%" align="center">' + str(data.itemID.price) + '</td> '
-            itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px;" width="12%" align="center">'  + str(amount) + '</td>'
+            itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px;" width="13%" align="center"> $' + '{0:,.2f}'.format(float(data.itemID.price)) + '</td> '
+            itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px;" width="12%" align="center"> $'  + '{0:,.2f}'.format(float(amount)) + '</td>'
             itemHtml = itemHtml + ' </tr> '            
     except Exception as e:
         print(e)
@@ -1334,7 +1334,7 @@ def invoice_preview(request, id):
         itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px; padding-left: 2px;" width="43%" align="left">' + data.product + '</td> '
         itemHtml = itemHtml +  ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px;" width="12%" align="center">' + data.quantity + '</td> '
         itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px;" width="13%" align="center">' +'N/A' + '</td> '
-        itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px;" width="12%" align="center">'  + data.total + '</td>'
+        itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px;" width="12%" align="center"> $'  + '{0:,.2f}'.format(float(data.total)) + '</td>'
         itemHtml = itemHtml + ' </tr> '
 
     if totaPO > 0:
@@ -1345,7 +1345,7 @@ def invoice_preview(request, id):
         itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px; padding-left: 2px;" width="43%" align="left">Markup</td> '
         itemHtml = itemHtml +  ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px;" width="12%" align="center"></td> '
         itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px;" width="13%" align="center"></td> '
-        itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px;" width="12%" align="center">'  + str(totaPO) + '</td>'
+        itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px;" width="12%" align="center"> $'  + '{0:,.2f}'.format(float(totaPO)) + '</td>'
         itemHtml = itemHtml + ' </tr> '
 
     for i in range(21-linea):
@@ -2494,7 +2494,7 @@ def get_summary(request, perID):
     
 
     wb = xlwt.Workbook(encoding='utf-8')
-    ws = wb.add_sheet('Summary', cell_overwrite_ok = True) # this will make a sheet named Users Data
+    ws = wb.add_sheet('Summary', cell_overwrite_ok = True) 
 
     # Sheet header, first row
     row_num = 7
@@ -2533,8 +2533,7 @@ def get_summary(request, perID):
             on_call = 0
             
 
-
-            if i.payout > 0:                
+            if validate_decimals(i.payout) > 0:                
                 row_num += 1
                 font_style = xlwt.XFStyle()
 
@@ -2547,58 +2546,58 @@ def get_summary(request, perID):
                 
                 if itemProd <= 0:                    
              
-                    ws.write(row_num,4,i.regular_hours, font_style)
-                    ws.write(row_num,5,i.ot_hour, font_style)
-                    ws.write(row_num,6,i.double_time, font_style)
-                    ws.write(row_num,7,i.total_hours, font_style)
+                    ws.write(row_num,4,validate_print_decimals(i.regular_hours), font_style)
+                    ws.write(row_num,5,validate_print_decimals(i.ot_hour), font_style)
+                    ws.write(row_num,6,validate_print_decimals(i.double_time), font_style)
+                    ws.write(row_num,7,validate_print_decimals(i.total_hours), font_style)
 
-                    if i.EmployeeID.hourly_rate != None:
-                        rtPrice = (i.regular_hours * float(i.EmployeeID.hourly_rate))
-                        otPrice = ((i.ot_hour * (float(i.EmployeeID.hourly_rate)*1.5)))
-                        dtPrice = ((i.double_time * (float(i.EmployeeID.hourly_rate)*2)))
+                    if validate_decimals(i.EmployeeID.hourly_rate) != None:
+                        rtPrice = (validate_decimals(i.regular_hours) * float(validate_decimals(i.EmployeeID.hourly_rate)))
+                        otPrice = ((validate_decimals(i.ot_hour) * (float(validate_decimals(i.EmployeeID.hourly_rate))*1.5)))
+                        dtPrice = ((validate_decimals(i.double_time) * (float(validate_decimals(i.EmployeeID.hourly_rate))*2)))
 
-                        ws.write(row_num,8,rtPrice, font_style)
-                        ws.write(row_num,9,otPrice + dtPrice, font_style)
+                        ws.write(row_num,8,validate_print_decimals(rtPrice), font_style)
+                        ws.write(row_num,9,validate_print_decimals(otPrice + dtPrice), font_style)
                     else:
-                        ws.write(row_num,8,0, font_style)
-                        ws.write(row_num,9,0 + dtPrice, font_style)
+                        ws.write(row_num,8,'', font_style)
+                        ws.write(row_num,9,'', font_style)
                 else:
-                    ws.write(row_num,4,0, font_style)
-                    ws.write(row_num,5,0, font_style)
-                    ws.write(row_num,6,0, font_style)
-                    ws.write(row_num,7,0, font_style)
-                    ws.write(row_num,8,0, font_style)
-                    ws.write(row_num,9,0, font_style)
+                    ws.write(row_num,4,'', font_style)
+                    ws.write(row_num,5,'', font_style)
+                    ws.write(row_num,6,'', font_style)
+                    ws.write(row_num,7,'', font_style)
+                    ws.write(row_num,8,'', font_style)
+                    ws.write(row_num,9,'', font_style)
 
-                ws.write(row_num,10,i.bonus, font_style)
+                ws.write(row_num,10,validate_print_decimals(i.bonus), font_style)
                 if itemProd > 0:  
                     di = DailyItem.objects.filter(DailyID = i.DailyID)          
                     t = 0
                     for j in di:
-                        t += j.total
+                        t += validate_decimals(j.total)
 
-                    if item.own_vehicle != None:
-                        ov = (((t * item.own_vehicle) / 100) * i.per_to_pay) /100
+                    if validate_decimals(item.own_vehicle) != None:
+                        ov = validate_decimals((((t * validate_decimals(item.own_vehicle)) / 100) * validate_decimals(i.per_to_pay)) /100)
                     else:
                         ov = 0
 
-                    ttp = (t * i.per_to_pay) /100
-                    ws.write(row_num,round(11,2),ttp, font_style)
-                    ws.write(row_num,12,ov, font_style)
+                    ttp = (t * validate_decimals(i.per_to_pay)) /100
+                    ws.write(row_num,round(11,2),validate_print_decimals(ttp), font_style)
+                    ws.write(row_num,12,validate_print_decimals(ov), font_style)
                 else:
-                    ws.write(row_num,11,0, font_style)
-                    ws.write(row_num,12,0, font_style)
+                    ws.write(row_num,11,'', font_style)
+                    ws.write(row_num,12,'', font_style)
 
-                if i.bonus != None:
-                    bonus = i.bonus
+                if validate_decimals(i.bonus) != None:
+                    bonus = validate_decimals(i.bonus)
                 
-                if i.on_call != None:
-                    on_call = i.on_call
+                if validate_decimals(i.on_call) != None:
+                    on_call = validate_decimals(i.on_call)
 
 
-                payTotal = rtPrice + otPrice + dtPrice + bonus + ttp + ov + on_call
-                ws.write(row_num,13,i.on_call, font_style)
-                ws.write(row_num,14,payTotal, font_style)
+                payTotal = validate_decimals(rtPrice + otPrice + dtPrice + bonus + ttp + ov + on_call)
+                ws.write(row_num,13,validate_print_decimals(i.on_call), font_style)
+                ws.write(row_num,14,validate_print_decimals(payTotal), font_style)
                 ws.write(row_num,15,item.woID.WCSup.last_name + ' ' + item.woID.WCSup.first_name, font_style)
                 ws.write(row_num,16,item.woID.prismID, font_style)
                 ws.write(row_num,17,item.woID.JobAddress, font_style)
@@ -2660,23 +2659,23 @@ def get_summary(request, perID):
         for y in demp:
             empLines += 1
         
-            if y.payout > 0:                
+            if validate_decimals(y.payout) > 0:                
                 row_num += 1
                 if empLines == 1:
                     items = DailyItem.objects.filter(DailyID = x)
                     sumQty = 0
                     sumInvoice = 0
                     for z in items:
-                        if z.itemID.price != None:
-                            lineInv = z.quantity * float(z.itemID.price)
+                        if validate_decimals(z.itemID.price) != None:
+                            lineInv = validate_decimals(z.quantity) * validate_decimals(z.itemID.price)
                         else:
                             lineInv = 0
-                        sumInvoice += lineInv
-                        sumQty += z.quantity
+                        sumInvoice += validate_decimals(lineInv)
+                        sumQty += validate_decimals(z.quantity)
 
                     if sumQty > 0:
-                        ws.write(row_num,18 + sumItem*2,sumQty, font_style)   
-                        ws.write(row_num,19 + sumItem*2,sumInvoice, font_style)     
+                        ws.write(row_num,18 + sumItem*2,validate_decimals(sumQty), font_style)   
+                        ws.write(row_num,19 + sumItem*2,validate_decimals(sumInvoice), font_style)     
 
 
         ws.col(0).width = 3000
@@ -2696,7 +2695,7 @@ def get_summary(request, perID):
         ws.col(15).width = 5000
         ws.col(17).width = 11500
 
-
+    
     # WORKSHEET UPLOAD
 
     ws2 = wb.add_sheet('UPLOAD', cell_overwrite_ok = True) 
@@ -2759,31 +2758,31 @@ def get_summary(request, perID):
                 prod = DailyItem.objects.filter(DailyID = itemEmp.DailyID).count()
 
                 if prod <= 0:           
-                    if itemEmp.EmployeeID.hourly_rate != None:
-                        rt = (itemEmp.regular_hours * float(itemEmp.EmployeeID.hourly_rate))
-                        ot = ((itemEmp.ot_hour * (float(itemEmp.EmployeeID.hourly_rate)*1.5)))
-                        dt = ((itemEmp.double_time * (float(itemEmp.EmployeeID.hourly_rate)*2)))
-                    rt_Total += itemEmp.regular_hours
-                    ot_Total += itemEmp.ot_hour
-                    dt_Total += itemEmp.double_time
-                    tt_Total += itemEmp.total_hours
+                    if validate_decimals(itemEmp.EmployeeID.hourly_rate) != None:
+                        rt = (validate_decimals(itemEmp.regular_hours) * float(validate_decimals(itemEmp.EmployeeID.hourly_rate)))
+                        ot = ((validate_decimals(itemEmp.ot_hour) * (float(validate_decimals(itemEmp.EmployeeID.hourly_rate))*1.5)))
+                        dt = ((validate_decimals(itemEmp.double_time) * (float(validate_decimals(itemEmp.EmployeeID.hourly_rate))*2)))
+                    rt_Total += validate_decimals(itemEmp.regular_hours)
+                    ot_Total += validate_decimals(itemEmp.ot_hour)
+                    dt_Total += validate_decimals(itemEmp.double_time)
+                    tt_Total += validate_decimals(itemEmp.total_hours)
 
-                payroll = itemEmp.payout
-                on_call = itemEmp.on_call
-                bonus = itemEmp.bonus
+                payroll = validate_decimals(itemEmp.payout)
+                on_call = validate_decimals(itemEmp.on_call)
+                bonus = validate_decimals(itemEmp.bonus)
 
                 itemd = DailyItem.objects.filter(DailyID = itemEmp.DailyID)
 
                 total = 0
                 for i in itemd:
-                    if i.itemID.price != None:
-                        invoice += ((i.quantity * float(i.itemID.price)) * itemEmp.per_to_pay) / 100                    
+                    if validate_decimals(i.itemID.price) != None:
+                        invoice += validate_decimals(((validate_decimals(i.quantity) * float(validate_decimals(i.itemID.price))) * validate_decimals(itemEmp.per_to_pay)) / 100)                   
                         
-                    total += i.total
+                    total += validate_decimals(i.total)
 
-                production = (total * itemEmp.per_to_pay) / 100
-                if itemEmp.DailyID.own_vehicle != None:
-                    own_vehicle = (((total * itemEmp.DailyID.own_vehicle) / 100) * itemEmp.per_to_pay) / 100
+                production = validate_decimals((validate_decimals(total) * validate_decimals(itemEmp.per_to_pay)) / 100)
+                if validate_decimals(itemEmp.DailyID.own_vehicle) != None:
+                    own_vehicle = validate_decimals((((validate_decimals(total) * validate_decimals(itemEmp.DailyID.own_vehicle)) / 100) * validate_decimals(itemEmp.per_to_pay)) / 100)
                 else:
                     own_vehicle = 0
 
@@ -2791,17 +2790,17 @@ def get_summary(request, perID):
                 otTotal += ot
                 dtTotal += dt               
 
-                if on_call != None:
-                    ocTotal += on_call
+                if validate_decimals(on_call) != None:
+                    ocTotal += validate_decimals(on_call)
 
-                if bonus != None:
-                    bonTotal += bonus
+                if validate_decimals(bonus) != None:
+                    bonTotal += validate_decimals(bonus)
 
-                prodTotal += production
-                ovTotal += own_vehicle
-                payTotal += payroll
+                prodTotal += validate_decimals(production)
+                ovTotal += validate_decimals(own_vehicle)
+                payTotal += validate_decimals(payroll)
             
-            payTotalTotal += payTotal
+            payTotalTotal += validate_decimals(payTotal)
 
             row_num += 1
             if emp.Location != None:
@@ -2810,22 +2809,22 @@ def get_summary(request, perID):
             
             ws2.write(row_num, 2, emp.employeeID, font_style)
             ws2.write(row_num, 3, emp.last_name + ' ' + emp.first_name, font_style)
-            ws2.write(row_num, 4, rt_Total, font_style)
-            ws2.write(row_num, 5, ot_Total, font_style)
-            ws2.write(row_num, 6, dt_Total, font_style)
-            ws2.write(row_num, 7, tt_Total, font_style)
-            ws2.write(row_num, 8, rtTotal, font_style)
-            ws2.write(row_num, 9, otTotal + dtTotal, font_style)
-            ws2.write(row_num, 10,bonTotal, font_style)
-            ws2.write(row_num, 11,prodTotal, font_style)
-            ws2.write(row_num, 12,ovTotal, font_style)
-            ws2.write(row_num, 13,ocTotal, font_style)
-            ws2.write(row_num, 14,payTotal, font_style)
+            ws2.write(row_num, 4, validate_print_decimals(rt_Total), font_style)
+            ws2.write(row_num, 5, validate_print_decimals(ot_Total), font_style)
+            ws2.write(row_num, 6, validate_print_decimals(dt_Total), font_style)
+            ws2.write(row_num, 7, validate_print_decimals(tt_Total), font_style)
+            ws2.write(row_num, 8, validate_print_decimals(rtTotal), font_style)
+            ws2.write(row_num, 9, validate_print_decimals(otTotal + dtTotal), font_style)
+            ws2.write(row_num, 10,validate_print_decimals(bonTotal), font_style)
+            ws2.write(row_num, 11,validate_print_decimals(prodTotal), font_style)
+            ws2.write(row_num, 12,validate_print_decimals(ovTotal), font_style)
+            ws2.write(row_num, 13,validate_print_decimals(ocTotal), font_style)
+            ws2.write(row_num, 14,validate_print_decimals(payTotal), font_style)
             ws2.write(2, 13,'Invoice', font_style)
-            ws2.write(2, 14,invoice, font_style)
+            ws2.write(2, 14,validate_decimals(invoice), font_style)
             ws2.write(3, 13,'% pay', font_style)   
-            if payTotalTotal > 0 and invoice > 0:
-                ws2.write(3, 14,(payTotalTotal*100) / invoice, font_style)
+            if validate_decimals(payTotalTotal) > 0 and validate_decimals(invoice) > 0:
+                ws2.write(3, 14,validate_decimals((validate_decimals(payTotalTotal)*100) / validate_decimals(invoice)), font_style)
             else:
                 ws2.write(3, 14,0, font_style)
                 
@@ -2872,16 +2871,16 @@ def get_summary(request, perID):
                      borders: top_color black, bottom_color black, right_color black, left_color black,\
                               left thin, right thin, top thin, bottom thin;\
                      align: horiz right')
-    ws3.write_merge(5, 5, 5, 6, '$' + '{0:,.2f}'.format(invoice), font_style)
-    ws3.write_merge(6, 6, 5, 6, '$' + '{0:,.2f}'.format(payTotalTotal), font_style)
-    ws3.write_merge(7, 7, 5, 6, '$' + '{0:,.2f}'.format(invoice - payTotalTotal), font_style)
+    ws3.write_merge(5, 5, 5, 6, '$' + '{0:,.2f}'.format(validate_decimals(invoice)), font_style)
+    ws3.write_merge(6, 6, 5, 6, '$' + '{0:,.2f}'.format(validate_decimals(payTotalTotal)), font_style)
+    ws3.write_merge(7, 7, 5, 6, '$' + '{0:,.2f}'.format(validate_decimals(invoice) - validate_decimals(payTotalTotal)), font_style)
     
     font_style = xlwt.easyxf('font: bold off, color black;\
                      borders: top_color black, bottom_color black, right_color black, left_color black,\
                               left thin, right thin, top thin, bottom thin;\
                      align: horiz center')
-    if payTotalTotal > 0 and invoice > 0:
-        ws3.write_merge(8, 8, 5, 6, str(round((payTotalTotal*100) / invoice,2)) + '%', font_style)  
+    if validate_decimals(payTotalTotal) > 0 and validate_decimals(invoice) > 0:
+        ws3.write_merge(8, 8, 5, 6, str(round((validate_decimals(payTotalTotal)*100) / validate_decimals(invoice),2)) + '%', font_style)  
     else:    
          ws3.write_merge(8, 8, 5, 6, '0%', font_style)            
 
@@ -2924,23 +2923,23 @@ def get_summary(request, perID):
 
             for i in dailyemp:
                 if production <= 0:
-                    regular_time += i.regular_hours
-                    over_time += i.ot_hour
-                    double_time += i.double_time
-                    total_time += i.total_hours
-                    if i.EmployeeID.hourly_rate != None:
-                        rt += (i.regular_hours * float(i.EmployeeID.hourly_rate))
-                        ot += ((i.ot_hour * (float(i.EmployeeID.hourly_rate)*1.5)))
-                        dt += ((i.double_time * (float(i.EmployeeID.hourly_rate)*2)))
+                    regular_time += validate_decimals(i.regular_hours)
+                    over_time += validate_decimals(i.ot_hour)
+                    double_time += validate_decimals(i.double_time)
+                    total_time += validate_decimals(i.total_hours)
+                    if validate_decimals(i.EmployeeID.hourly_rate) != None:
+                        rt += (validate_decimals(i.regular_hours) * float(validate_decimals(i.EmployeeID.hourly_rate)))
+                        ot += ((validate_decimals(i.ot_hour) * (float(validate_decimals(i.EmployeeID.hourly_rate))*1.5)))
+                        dt += ((validate_decimals(i.double_time) * (float(validate_decimals(i.EmployeeID.hourly_rate))*2)))
 
-                if i.bonus != None:
-                    bonus += i.bonus
+                if validate_decimals(i.bonus) != None:
+                    bonus += validate_decimals(i.bonus)
                     
-                if i.on_call != None:
-                    on_call += i.on_call
+                if validate_decimals(i.on_call) != None:
+                    on_call += validate_decimals(i.on_call)
 
-                if i.payout != None:
-                    payroll += i.payout
+                if validate_decimals(i.payout) != None:
+                    payroll += validate_decimals(i.payout)
 
             
             dailyprod =  DailyItem.objects.filter(DailyID=dailyItem)
@@ -2948,38 +2947,38 @@ def get_summary(request, perID):
             
             ov = 0
             for j in dailyprod:                
-                total += j.total
-                if j.itemID.price != None:
-                    invoice += (j.quantity * float(j.itemID.price) )
-                if j.itemID.emp_payout != None:    
-                    payroll2 += (j.quantity * float(j.itemID.emp_payout) )
+                total += validate_decimals(j.total)
+                if validate_decimals(j.itemID.price) != None:
+                    invoice += (validate_decimals(j.quantity) * float(validate_decimals(j.itemID.price)) )
+                if validate_decimals(j.itemID.emp_payout) != None:    
+                    payroll2 += (validate_decimals(j.quantity) * float(validate_decimals(j.itemID.emp_payout)) )
 
-            if dailyItem.own_vehicle != None:
-                ov = ((total * dailyItem.own_vehicle) / 100)
-                ownvehicle += ov
-            prod += (total)
+            if validate_decimals(dailyItem.own_vehicle) != None:
+                ov = validate_decimals(((validate_decimals(total) * validate_decimals(dailyItem.own_vehicle)) / 100))
+                ownvehicle += validate_decimals(ov)
+            prod += validate_decimals(total)
 
-        if invoice > 0:                    
-            perc = (payroll * 100) / invoice
+        if validate_decimals(invoice) > 0:                    
+            perc = validate_decimals((validate_decimals(payroll) * 100) / validate_decimals(invoice))
 
         font_style = xlwt.XFStyle()
 
         ws3.write(row_num, 0, locItem.LocationID, font_style) 
         ws3.write(row_num, 1, locItem.name, font_style) 
-        ws3.write(row_num, 2, regular_time, font_style)
-        ws3.write(row_num, 3, over_time, font_style)
-        ws3.write(row_num, 4, double_time, font_style)        
-        ws3.write(row_num, 5, total_time, font_style)
-        ws3.write(row_num, 6, rt, font_style)
-        ws3.write(row_num, 7, ot + dt, font_style)        
-        ws3.write(row_num, 8, bonus, font_style)
-        ws3.write(row_num, 9, prod, font_style)
-        ws3.write(row_num, 10, ownvehicle, font_style)
-        ws3.write(row_num, 11, on_call, font_style)
-        ws3.write(row_num, 12, payroll, font_style)
-        ws3.write(row_num, 13, invoice, font_style)
-        ws3.write(row_num, 14, perc, font_style) 
-        
+        ws3.write(row_num, 2, validate_print_decimals(regular_time), font_style)
+        ws3.write(row_num, 3, validate_print_decimals(over_time), font_style)
+        ws3.write(row_num, 4, validate_print_decimals(double_time), font_style)        
+        ws3.write(row_num, 5, validate_print_decimals(total_time), font_style)
+        ws3.write(row_num, 6, validate_print_decimals(rt), font_style)
+        ws3.write(row_num, 7, validate_print_decimals(ot + dt), font_style)        
+        ws3.write(row_num, 8, validate_print_decimals(bonus), font_style)
+        ws3.write(row_num, 9, validate_print_decimals(prod), font_style)
+        ws3.write(row_num, 10, validate_print_decimals(ownvehicle), font_style)
+        ws3.write(row_num, 11, validate_print_decimals(on_call), font_style)
+        ws3.write(row_num, 12, validate_print_decimals(payroll), font_style)
+        ws3.write(row_num, 13, validate_print_decimals(invoice), font_style)
+        ws3.write(row_num, 14, validate_print_decimals(perc), font_style) 
+       
 
     
     filename = 'Payroll Summary ' + str(per.weekRange) + '.xls'
@@ -3084,3 +3083,20 @@ def status_log(request, id):
     context["log"] = wo_log
 
     return render(request, "order_status_log.html", context)
+
+
+
+def validate_decimals(value):
+    try:
+        return round(float(value), 2)
+    except:
+       return 0
+
+def validate_print_decimals(value): 
+    try:
+        if round(float(value), 2) > 0:                
+            return round(float(value), 2)
+        else:
+            return ''
+    except:
+       return ''      

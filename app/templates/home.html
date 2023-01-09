@@ -17,7 +17,7 @@
                   <div class="card-body d-flex justify-content-start align-items-center">                    
                       <i class="fa-sharp fa-solid fa-basket-shopping fa-2x mx-3" style=" width:60px; height: 60px; line-height: 60px; border-radius: 50%; text-align: center; color: #fff; background: #7c73ed; margin-right: 15px;"></i>
                       <div>
-                        <h3 class="my-1" style="font-size: 22px; font-weight: 600; color: #2A2A2A;">{{totalOrders|intcomma}}</h3>
+                        <h3 class="my-1" style="font-size: 22px; font-weight: 600; color: #154a86;">{{totalOrders|intcomma}}</h3>
                         <span style="font-size: 15px; color: #828997;">Total Orders</span>
                       </div>
                   </div>
@@ -29,7 +29,7 @@
                     
                       <i class="fa-solid fa-money-check-dollar fa-2x mx-3" style=" width:60px; height: 60px; line-height: 60px; border-radius: 50%; text-align: center; color: #fff; background: #5c8bf3; margin-right: 15px;"></i>                                            
                       <div>
-                        <h3 class="my-1" style="font-size: 22px; font-weight: 600;">{{payroll|intcomma}}</h3>
+                        <h3 class="my-1" style="font-size: 22px; font-weight: 600; color: #154a86;">{{payroll|floatformat:2|intcomma}}</h3>
                         <span style="font-size: 15px; color: #828997;">Payroll</span>
                       </div>
                   </div>
@@ -41,7 +41,7 @@
                      
                     <i class="fa-solid fa-file-invoice-dollar fa-2x mx-3" style=" width:60px; height: 60px; line-height: 60px; border-radius: 50%; text-align: center; color: #fff; background: #e15d9a; margin-right: 15px;"></i>
                       <div>
-                        <h3 class="my-1" style="font-size: 22px; font-weight: 600;">{{invoice|intcomma}}</h3>
+                        <h3 class="my-1" style="font-size: 22px; font-weight: 600; color: #154a86;">{{invoice|floatformat:2|intcomma}}</h3>
                         <span style="font-size: 15px; color: #828997;">Invoice</span>
                       </div>
                   </div>
@@ -52,7 +52,7 @@
                   <div class="card-body d-flex justify-content-start align-items-center">                          
                       <i class="fa-solid fa-money-bill fa-2x mx-3" style=" width:60px; height: 60px; line-height: 60px; border-radius: 50%; text-align: center; color: #fff; background: #85d5e7; margin-right: 15px;"></i>
                       <div>
-                        <h3 class="my-1" style="font-size: 22px; font-weight: 600;">{{perToPay|floatformat:"2"}}%</h3>
+                        <h3 class="my-1" style="font-size: 22px; font-weight: 600; color: #154a86;">{{perToPay|floatformat:2|intcomma}}%</h3>
                         <span style="font-size: 15px; color: #828997;">% To Paid</span>
                       </div>
                   </div>
@@ -63,7 +63,14 @@
             <div class="row row-cols-1 row-cols-lg-1 g-4 my-3">
               <div class="col">
                 <div class="card" style="border-radius: 1.3em; height: 32rem;">                  
-                  <div class="card-body d-flex justify-content-center align-items-center">                    
+                  <div class="card-body d-flex justify-content-evenly align-items-center">      
+                      <div>
+                          <ul>
+                            {%for item in status%}  
+                              <li class="my-2" style="font-size: 16px; font-weight: 600; color: #154a86;"> {{item.status}} : {{item.total}}</li>
+                            {%endfor%}
+                          </ul>
+                      </div>              
                       <div>
                         <canvas id="myChart" width="600" height="450">
                           <p>Hello Fallback World</p>

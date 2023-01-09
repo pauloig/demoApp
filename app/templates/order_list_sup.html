@@ -46,7 +46,7 @@
                                                     <td>{{order.prismID}}</td>
                                                     <td>{{order.workOrderId}}</td>
                                                     <td>{{order.PO}}</td>
-                                                    <td>${{order.POAmount|intcomma}}</td>
+                                                    <td>${{order.POAmount|floatformat:2|intcomma}}</td>
                                                     <!-- <td>{{order.Status}}</td> -->
                                                     {% if order.Status == "1" %}
                                                         <td>Not Started</td>
