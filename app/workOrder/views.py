@@ -2490,9 +2490,7 @@ def send_recap_emp(request, perID, empID):
     return HttpResponseRedirect('/location_period_list/' + perID) 
 
 def get_summary(request, perID):
-    
-    
-
+   
     wb = xlwt.Workbook(encoding='utf-8')
     ws = wb.add_sheet('Summary', cell_overwrite_ok = True) 
 
@@ -2512,7 +2510,7 @@ def get_summary(request, perID):
     for col_num in range(len(columns)):
         ws.write(row_num, col_num, columns[col_num], font_style) # at 0 row 0 column 
 
-
+    """
     try:
         per = period.objects.filter(id = perID).first()
         dailyList = Daily.objects.filter(Period = per).order_by('Location')
@@ -2533,7 +2531,7 @@ def get_summary(request, perID):
                 bonus = 0
                 on_call = 0
                 
-                """
+               
                 if validate_decimals(i.payout) > 0:                
                     row_num += 1
                     font_style = xlwt.XFStyle()
@@ -2631,7 +2629,7 @@ def get_summary(request, perID):
                             col_item += 1                                          
                             
                             ws.write(row_num,17 + col_item,z.quantity, font_style)
-                """                        
+                                        
 
     
     
@@ -2653,7 +2651,7 @@ def get_summary(request, perID):
         font_style = xlwt.XFStyle()
 
         row_num=7
-        """
+        
         for x in dailyList:
             demp = DailyEmployee.objects.filter(DailyID=x).order_by()    
             empLines = 0    
@@ -2696,11 +2694,11 @@ def get_summary(request, perID):
             ws.col(14).width = 2200
             ws.col(15).width = 5000
             ws.col(17).width = 11500
-        """
+        
     except Exception as e:
        ws.write(0,0,e, font_style)    
 
-    """
+    
     try:
         # WORKSHEET UPLOAD
 
@@ -2994,7 +2992,8 @@ def get_summary(request, perID):
        
 
     
-    filename = 'Payroll Summary ' + str(per.weekRange) + '.xls'
+    #filename = 'Payroll Summary ' + str(per.weekRange) + '.xls'
+    filename = 'Payroll Summary.xls'
     response = HttpResponse(content_type='application/ms-excel')
     response['Content-Disposition'] = 'attachment; filename=' + filename 
 
