@@ -207,6 +207,10 @@ class period(models.Model):
     payDate = models.DateField()
     weekRange = models.CharField(max_length=100, blank=True, null=True)
     status = models.IntegerField()
+    approved_date = models.DateTimeField(null=True, blank=True)
+    approvedBy = models.CharField(max_length=60, blank=True, null=True)
+    closed_date = models.DateTimeField(null=True, blank=True)
+    closedBy = models.CharField(max_length=60, blank=True, null=True)
 
     def __str__(self):
         return str(self.periodID) + " - " + str(self.periodYear)

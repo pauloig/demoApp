@@ -8,8 +8,8 @@ from . import views
 
 
 def calculate_payroll(locID):
-    per = woModels.period.objects.filter(status=1).first()    
-
+    per = woModels.period.objects.filter(status__in=(1,2)).first()   
+    
     if locID > 0:
         loca = woModels.Locations.objects.filter(LocationID = locID)
     else:
@@ -105,7 +105,7 @@ def validate_decimals(value):
 def home(request):
     context = {}    
     emp = woModels.Employee.objects.filter(user__username__exact = request.user.username).first()
-    per = woModels.period.objects.filter(status=1).first()
+    per = woModels.period.objects.filter(status__in=(1,2)).first()
     totPayroll=0 
     totInvoice=0 
     totPerc= 0

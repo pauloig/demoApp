@@ -43,7 +43,7 @@ from django.db.models import Sum
 def simple_upload(request):
 
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
-    per = period.objects.filter(status=1).first()
+    per = period.objects.filter(status__in=(1,2)).first()
     
 
     countInserted = 0
@@ -156,7 +156,7 @@ def simple_upload(request):
 
 def upload_payroll(request):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
-    per = period.objects.filter(status=1).first()
+    per = period.objects.filter(status__in=(1,2)).first()
     
     countInserted = 0
     countRejected = 0
@@ -386,7 +386,7 @@ def upload_payroll(request):
 def listOrders(request):
     locationList = Locations.objects.all()
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
-    per = period.objects.filter(status=1).first()
+    per = period.objects.filter(status__in=(1,2)).first()
     estatus = "0"
     loc = "0"
     
@@ -408,7 +408,7 @@ def listOrders(request):
                         orders = workOrder.objects.filter(Status = estatus).exclude(linkedOrder__isnull = False, uploaded = False ) 
                     else:
                         orders = workOrder.objects.filter(Location = locationObject).exclude(linkedOrder__isnull = False, uploaded = False ) 
-            return render(request,'order_list.html',{'orders': orders, 'emp':emp, 'location': locationList})
+            return render(request,'order_list.html',{'orders': orders, 'emp':emp, 'location': locationList, 'per': per})
 
     if request.user.is_staff:
         if estatus == "0" and loc == "0":    
@@ -422,7 +422,7 @@ def listOrders(request):
                 else:
                     orders = workOrder.objects.filter(Location = locationObject).exclude(linkedOrder__isnull = False, uploaded = False )  
 
-        return render(request,'order_list.html',{'orders': orders, 'emp':emp, 'location': locationList})
+        return render(request,'order_list.html',{'orders': orders, 'emp':emp, 'location': locationList, 'per': per})
 
 
     # orders = workOrder.objects.filter(Location__isnull=True, WCSup__isnull=True)
@@ -443,7 +443,7 @@ def listOrders(request):
 
 def order_list_location(request, userID):
     emp = Employee.objects.filter(user__username__exact = userID).first()
-    per = period.objects.filter(status=1).first()
+    per = period.objects.filter(status__in=(1,2)).first()
     if emp:
         orders = workOrder.objects.filter(Location__LocationID__exact=emp.Location.LocationID, WCSup__isnull=True)
         return render(request,'order_list_location.html',
@@ -456,7 +456,7 @@ def order_list_location(request, userID):
 def order_list_sup(request):  
     # emp = Employee.objects.filter(user__username__exact = userID).first()
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
-    per = period.objects.filter(status=1).first()
+    per = period.objects.filter(status__in=(1,2)).first()
 
     if emp:
         orders = workOrder.objects.filter(WCSup__employeeID__exact=emp.employeeID).exclude(linkedOrder__isnull = False, uploaded = False )
@@ -484,20 +484,20 @@ def truncateData(request):
 def duplicatelistOrders(request):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     orders = workOrderDuplicate.objects.all()
-    per = period.objects.filter(status=1).first()
+    per = period.objects.filter(status__in=(1,2)).first()
     return render(request,'duplicate_order_list.html',{'orders': orders, 'emp':emp, 'per':per})
 
 def checkOrder(request, pID):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     orders = workOrder.objects.filter(prismID=pID).first()
     duplicateOrder = workOrderDuplicate.objects.filter(prismID=pID).first()
-    per = period.objects.filter(status=1).first()
+    per = period.objects.filter(status__in=(1,2)).first()
     return render(request,'checkOrder.html',{'order': orders, 'dupOrder': duplicateOrder, 'emp':emp, 'per':per})
 
 def order(request, orderID):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context ={}
-    per = period.objects.filter(status=1).first()
+    per = period.objects.filter(status__in=(1,2)).first()
     context["per"] = per
     obj = get_object_or_404(workOrder, id = orderID)
  
@@ -525,7 +525,7 @@ def order(request, orderID):
 def order_supervisor(request, orderID):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context ={}
-    per = period.objects.filter(status=1).first()
+    per = period.objects.filter(status__in=(1,2)).first()
     context["per"] = per
 
     obj = get_object_or_404(workOrder, id = orderID)
@@ -542,7 +542,7 @@ def order_supervisor(request, orderID):
 
 def updateDupOrder(request,pID, dupID):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
-    per = period.objects.filter(status=1).first()
+    per = period.objects.filter(status__in=(1,2)).first()
    
 
     try:
@@ -586,7 +586,7 @@ def updateDupOrder(request,pID, dupID):
 
 def insertDupOrder(request, dupID):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
-    per = period.objects.filter(status=1).first()
+    per = period.objects.filter(status__in=(1,2)).first()
     
     try:
         dupOrder = workOrderDuplicate.objects.filter(id=dupID).first()
@@ -628,7 +628,7 @@ def insertDupOrder(request, dupID):
 
 def deleteDupOrder(request,pID):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
-    per = period.objects.filter(status=1).first()
+    per = period.objects.filter(status__in=(1,2)).first()
     
 
     try:
@@ -641,7 +641,7 @@ def deleteDupOrder(request,pID):
 def create_order(request):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context ={}
-    per = period.objects.filter(status=1).first()
+    per = period.objects.filter(status__in=(1,2)).first()
     context["per"] = per
 
     woID = 'E-'
@@ -675,7 +675,7 @@ def create_order(request):
 def create_location(request):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context ={}
-    per = period.objects.filter(status=1).first()
+    per = period.objects.filter(status__in=(1,2)).first()
     context["per"] = per
 
     form = LocationsForm(request.POST or None)
@@ -694,7 +694,7 @@ def location_list(request):
     context ={}
     context["dataset"] = Locations.objects.all()
     context["emp"] = emp
-    per = period.objects.filter(status=1).first()
+    per = period.objects.filter(status__in=(1,2)).first()
     context["per"] = per
          
     return render(request, "location_list.html", context)
@@ -703,7 +703,7 @@ def update_location(request, id):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context ={}
     obj = get_object_or_404(Locations, LocationID = id)
-    per = period.objects.filter(status=1).first()
+    per = period.objects.filter(status__in=(1,2)).first()
     context["per"] = per
  
     form = LocationsForm(request.POST or None, instance = obj)
@@ -722,7 +722,7 @@ def update_location(request, id):
 def employee_list(request):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context ={}
-    per = period.objects.filter(status=1).first()
+    per = period.objects.filter(status__in=(1,2)).first()
     context["per"] = per
  
     context["dataset"] = Employee.objects.all()
@@ -733,7 +733,7 @@ def create_employee(request):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
 
     context ={}
-    per = period.objects.filter(status=1).first()
+    per = period.objects.filter(status__in=(1,2)).first()
     context["per"] = per
 
     form = EmployeesForm(request.POST or None)
@@ -756,7 +756,7 @@ def create_employee(request):
 def update_employee(request, id):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context ={}
-    per = period.objects.filter(status=1).first()
+    per = period.objects.filter(status__in=(1,2)).first()
     context["per"] = per
 
     obj = get_object_or_404(Employee, employeeID = id)
@@ -776,7 +776,7 @@ def update_employee(request, id):
 def linkOrderList(request, id):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context = {}    
-    per = period.objects.filter(status=1).first()
+    per = period.objects.filter(status__in=(1,2)).first()
     context["per"] = per
 
     context["order"] = workOrder.objects.filter(id=id).first()
@@ -788,7 +788,7 @@ def linkOrderList(request, id):
 def linkOrder(request, id, manualid):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context = {}    
-    per = period.objects.filter(status=1).first()
+    per = period.objects.filter(status__in=(1,2)).first()
     context["per"] = per
     context["order"] = workOrder.objects.filter(id=id).first()
     context["manOrder"] = workOrder.objects.filter(id=manualid).first()
@@ -798,7 +798,7 @@ def linkOrder(request, id, manualid):
 
 def updateLinkOrder(request, id, manualid):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
-    per = period.objects.filter(status=1).first()
+    per = period.objects.filter(status__in=(1,2)).first()
     
 
     try:
@@ -820,7 +820,7 @@ def item_list(request):
     context = {}    
     context["items"] = item.objects.all()
     context["emp"] = emp
-    per = period.objects.filter(status=1).first()
+    per = period.objects.filter(status__in=(1,2)).first()
     context["per"] = per
     
     return render(request, "item_list.html", context)
@@ -829,7 +829,7 @@ def item_list(request):
 def create_item(request):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context ={}
-    per = period.objects.filter(status=1).first()
+    per = period.objects.filter(status__in=(1,2)).first()
     context["per"] = per
  
     form = ItemForm(request.POST or None)
@@ -846,7 +846,7 @@ def create_item(request):
 def update_item(request, id):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context ={}
-    per = period.objects.filter(status=1).first()
+    per = period.objects.filter(status__in=(1,2)).first()
     context["per"] = per
 
     obj = get_object_or_404(item, itemID = id)
@@ -866,7 +866,7 @@ def item_price(request, id):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context = {}    
     context["item"] = item.objects.filter(itemID = id).first()
-    per = period.objects.filter(status=1).first()
+    per = period.objects.filter(status__in=(1,2)).first()
     context["per"] = per
 
 
@@ -878,7 +878,7 @@ def item_price(request, id):
 def create_item_price(request, id):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context ={}
-    per = period.objects.filter(status=1).first()
+    per = period.objects.filter(status__in=(1,2)).first()
     context["per"] = per
 
     it = item.objects.filter(itemID=id).first()
@@ -897,7 +897,7 @@ def create_item_price(request, id):
 def update_item_price(request, id):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context ={}
-    per = period.objects.filter(status=1).first()
+    per = period.objects.filter(status__in=(1,2)).first()
     context["per"] = per
 
     obj = get_object_or_404(itemPrice, id = id )
@@ -917,7 +917,7 @@ def update_item_price(request, id):
 def po_list(request, id):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context = {}    
-    per = period.objects.filter(status=1).first()
+    per = period.objects.filter(status__in=(1,2)).first()
     context["per"] = per
 
     wo = workOrder.objects.filter(id=id).first()
@@ -930,7 +930,7 @@ def po_list(request, id):
 def update_po(request, id):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context ={}
-    per = period.objects.filter(status=1).first()
+    per = period.objects.filter(status__in=(1,2)).first()
     context["per"] = per
 
     context["po"] = internalPO.objects.filter(id = id).first()
@@ -955,7 +955,7 @@ def update_po(request, id):
 def create_po(request, id):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context ={}
-    per = period.objects.filter(status=1).first()
+    per = period.objects.filter(status__in=(1,2)).first()
     context["per"] = per
 
     wo = workOrder.objects.filter(id=id).first()
@@ -971,7 +971,7 @@ def create_po(request, id):
 
 def estimate(request, id):
     context = {}    
-    per = period.objects.filter(status=1).first()
+    per = period.objects.filter(status__in=(1,2)).first()
     context["per"] = per
 
     wo = workOrder.objects.filter(id=id).first()
@@ -1089,7 +1089,7 @@ def estimate(request, id):
 
 def invoice(request, id):
     context = {}    
-    per = period.objects.filter(status=1).first()
+    per = period.objects.filter(status__in=(1,2)).first()
     context["per"] = per
 
     wo = workOrder.objects.filter(id=id).first()
@@ -1205,7 +1205,7 @@ def invoice(request, id):
 def estimate_preview(request, id):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context = {}    
-    per = period.objects.filter(status=1).first()
+    per = period.objects.filter(status__in=(1,2)).first()
     context["per"] = per
 
     wo = workOrder.objects.filter(id=id).first()
@@ -1285,7 +1285,7 @@ def estimate_preview(request, id):
 def invoice_preview(request, id):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context = {}    
-    per = period.objects.filter(status=1).first()
+    per = period.objects.filter(status__in=(1,2)).first()
     context["per"] = per
 
     wo = workOrder.objects.filter(id=id).first()
@@ -1368,7 +1368,7 @@ def pre_invoice2(request, id):
     context = {}    
     wo = workOrder.objects.filter(id=id).first()
     context["order"] = wo
-    per = period.objects.filter(status=1).first()
+    per = period.objects.filter(status__in=(1,2)).first()
     context["per"] = per
 
     return render(request, "pre_invoice2.html", context)
@@ -1487,7 +1487,7 @@ def period_list(request):
     context["period"] = period.objects.all().order_by('-id')
     context["emp"] = emp
 
-    per = period.objects.filter(status=1).first()
+    per = period.objects.filter(status__in=(1,2)).first()
     context["per"] = per
     
     return render(request, "period_list.html", context)
@@ -1498,8 +1498,8 @@ def location_period_list(request, id):
     context = {}    
     per = period.objects.filter(id = id).first()
 
-    per = period.objects.filter(status=1).first()
-    context["per"] = per
+    perActive = period.objects.filter(status__in=(1,2)).first()
+    context["per"] = perActive
 
     loca = Locations.objects.all().order_by("LocationID")
     locationSummary = []
@@ -1609,7 +1609,7 @@ def location_period_list(request, id):
     return render(request, "location_period_list.html", context)
     
 
-def create_period(request):
+def create_period(request, perID):
     periodRange = 13 #Period Rage 14 days
     payRange = 7 #Pay Range, number of days to pay  
 
@@ -1618,7 +1618,7 @@ def create_period(request):
     context["emp"] = emp
 
     #get the last period created
-    lastPeriod = period.objects.all().order_by('id').last()
+    lastPeriod = period.objects.filter(id=perID).first()
 
     if lastPeriod:
         try:
@@ -1649,7 +1649,7 @@ def create_period(request):
         except Exception as e:
             print('********** Error: ', e, '**********')
 
-    return HttpResponseRedirect('/period_list/')
+    return True
 
 def orders_payroll(request, dailyID, LocID):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
@@ -1664,7 +1664,7 @@ def orders_payroll(request, dailyID, LocID):
     context["daily"] = dailyID
     context["selectedLocation"] = LocID
 
-    per = period.objects.filter(status=1).first()
+    per = period.objects.filter(status__in=(1,2)).first()
     context["per"] = per
 
     return render(request, "orders_payroll.html", context)
@@ -1675,7 +1675,7 @@ def update_order_daily(request, woID, dailyID, LocID):
     context = {}    
     context["emp"] = emp    
 
-    per = period.objects.filter(status=1).first()
+    per = period.objects.filter(status__in=(1,2)).first()
     context["per"] = per
 
     crew = Daily.objects.filter(id = dailyID).first()
@@ -1743,8 +1743,8 @@ def create_daily(request, pID, dID, LocID):
     context["emp"] = emp    
     per = period.objects.filter(id = pID).first()
 
-    per = period.objects.filter(status=1).first()
-    context["per"] = per
+    perActual = period.objects.filter(status__in=(1,2)).first()
+    context["per"] = perActual
 
     if int(LocID) > 0:
         loc = Locations.objects.filter(LocationID = LocID).first()
@@ -1785,7 +1785,7 @@ def update_daily(request, daily):
     context = {}    
     context["emp"] = emp    
 
-    per = period.objects.filter(status=1).first()
+    per = period.objects.filter(status__in=(1,2)).first()
     context["per"] = per
 
     crew = Daily.objects.filter(id = daily).first()
@@ -1874,12 +1874,16 @@ def payroll(request, perID, dID, crewID, LocID):
     per = period.objects.filter(status=1).first()
    
     context = {}    
-    per = period.objects.filter(status=1).first()
+    if int(perID) > 0:
+        per = period.objects.filter(id = perID).first()
+    else:
+        per = period.objects.filter(status = 1).first()
+
     context["period"] = per
     context["emp"] = emp
 
-    per = period.objects.filter(status=1).first()
-    context["per"] = per
+    perActual = period.objects.filter(status__in = (1,2)).first()
+    context["per"] = perActual
 
 
     if int(LocID) > 0:
@@ -2007,7 +2011,7 @@ def payroll(request, perID, dID, crewID, LocID):
 
             emp_ptp = update_ptp_Emp(dailyID, bool(split))       
             
-            if int(sup)>0 and crew.woID != None:
+            if int(str(sup))>0 and crew.woID != None:
                 super = Employee.objects.filter(employeeID = sup ).first()
                 if super:   
                     wo = workOrder.objects.filter( id = crew.woID.id).first()
@@ -2088,7 +2092,7 @@ def create_daily_emp(request, id, LocID):
     dailyE = DailyEmployee.objects.filter(DailyID = dailyID)
     empList = []
 
-    per = period.objects.filter(status=1).first()
+    per = period.objects.filter(status__in=(1,2)).first()
     context["per"] = per
 
     for i in dailyE:
@@ -2122,7 +2126,7 @@ def update_daily_emp(request, id, LocID):
     context ={}    
     obj = get_object_or_404(DailyEmployee, id = id)
 
-    per = period.objects.filter(status=1).first()
+    per = period.objects.filter(status__in=(1,2)).first()
     context["per"] = per
 
     EmpLocation = Employee.objects.all()
@@ -2158,7 +2162,7 @@ def delete_daily_emp(request, id, LocID):
     context["form"] = obj
     context["emp"] = emp
 
-    per = period.objects.filter(status=1).first()
+    per = period.objects.filter(status__in=(1,2)).first()
     context["per"] = per
  
     if request.method == 'POST':
@@ -2176,7 +2180,7 @@ def create_daily_item(request, id, LocID):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context ={}
 
-    per = period.objects.filter(status=1).first()
+    per = period.objects.filter(status__in=(1,2)).first()
     context["per"] = per
 
     dailyID = Daily.objects.filter(id = id).first()
@@ -2208,7 +2212,7 @@ def update_daily_item(request, id, LocID):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context ={}
 
-    per = period.objects.filter(status=1).first()
+    per = period.objects.filter(status__in=(1,2)).first()
     context["per"] = per
 
     obj = get_object_or_404(DailyItem, id = id)
@@ -2236,7 +2240,7 @@ def delete_daily_item(request, id, LocID):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context ={}
 
-    per = period.objects.filter(status=1).first()
+    per = period.objects.filter(status__in=(1,2)).first()
     context["per"] = per
 
     obj = get_object_or_404(DailyItem, id = id)
@@ -2258,7 +2262,7 @@ def upload_daily(request, id, LocID):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()    
     context ={}  
     context["emp"] = emp
-    per = period.objects.filter(status=1).first()
+    per = period.objects.filter(status__in=(1,2)).first()
     context["per"] = per
 
 
@@ -2282,7 +2286,7 @@ def upload_daily(request, id, LocID):
 def recap(request, perID):
     
     empList = Employee.objects.all()   
-    per = period.objects.filter(id = perID).first()
+    per = period.objects.filter(status__in=(1,2)).first()
 
     for item in empList:
         dailyEmp = DailyEmployee.objects.filter(EmployeeID = item, DailyID__Period = perID).count()
@@ -2311,7 +2315,7 @@ def recap(request, perID):
 def generate_recap(empID, perID):
     context= {}  
 
-    per = period.objects.filter(status=1).first()
+    per = period.objects.filter(status__in=(1,2)).first()
     context["per"] = per
 
     template_path = 'recap_template.html'
@@ -3001,7 +3005,7 @@ def update_sup_daily(request, id, woid):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context ={}
 
-    per = period.objects.filter(status=1).first()
+    per = period.objects.filter(status__in=(1,2)).first()
     context["per"] = per
 
     dailyID = Daily.objects.filter(id = id).first()
@@ -3024,7 +3028,7 @@ def update_sup_daily(request, id, woid):
 def delete_daily(request, id, LocID):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context ={}
-    per = period.objects.filter(status=1).first()
+    per = period.objects.filter(status__in=(1,2)).first()
     context["per"] = per
 
 
@@ -3081,7 +3085,7 @@ def status_log(request, id):
     context ={}
     context["emp"] = emp
 
-    per = period.objects.filter(status=1).first()
+    per = period.objects.filter(status__in=(1,2)).first()
     context["per"] = per
 
     wo = workOrder.objects.filter(id = id).first()
@@ -3091,6 +3095,78 @@ def status_log(request, id):
 
     return render(request, "order_status_log.html", context)
 
+def supervisor_appoval(request, id):
+    emp = Employee.objects.filter(user__username__exact = request.user.username).first()
+    context ={}
+
+    per = period.objects.filter(status__in=(1,2)).first()
+    context["per"] = per
+
+    obj = get_object_or_404(period, id = id)
+ 
+    context["form"] = obj
+    context["emp"] = emp
+ 
+    if request.method == 'POST':
+        obj.status = 2
+        obj.approvedBy = request.user.username
+        obj.approved_date = datetime.datetime.now()
+        obj.save()        
+
+        return HttpResponseRedirect('/location_period_list/' + str(id)) 
+
+   
+    return render(request, "sup_approval.html", context)
+
+def close_payroll(request, id):
+    emp = Employee.objects.filter(user__username__exact = request.user.username).first()
+    context ={}
+
+    per = period.objects.filter(status=2).first()
+    context["per"] = per
+
+    obj = get_object_or_404(period, id = id)
+ 
+    context["form"] = obj
+    context["emp"] = emp
+ 
+    if request.method == 'POST':
+        obj.status = 3
+        obj.closedBy = request.user.username
+        obj.closed_date = datetime.datetime.now()
+        obj.save()        
+        create_period(request, id)
+        return HttpResponseRedirect('/period_list/') 
+
+   
+    return render(request, "close_payroll.html", context)
+
+def payroll_detail(request, id):
+    emp = Employee.objects.filter(user__username__exact = request.user.username).first()
+    context ={}
+
+    per = period.objects.filter(status__in = (1,2)).first()
+    context["per"] = per
+
+    obj = get_object_or_404(workOrder, id = id)
+
+    dailys = Daily.objects.filter(woID = obj)
+    dailyDetail = []
+
+    empTotal = 0
+    for item in dailys:
+        dailyEmp = DailyEmployee.objects.filter(DailyID = item)
+
+        for empI in dailyEmp:
+            empTotal += validate_decimals(empI.payout)
+            dailyDetail.append({'empID': empI.EmployeeID.employeeID, 'empName':empI.EmployeeID, 'payout': empI.payout} )
+
+    context["payroll"] = dailyDetail
+    context["payrollTotal"] = empTotal
+    context["form"] = obj
+    context["emp"] = emp
+ 
+    return render(request, "payroll_detail.html", context)
 
 
 def validate_decimals(value):
@@ -3107,3 +3183,4 @@ def validate_print_decimals(value):
             return ''
     except:
        return ''      
+

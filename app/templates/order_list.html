@@ -124,16 +124,20 @@
                                                 {% endif %}    
                                                 <td class="p-1">
                                                     {% if order.Status != "5" %}                                                     
-                                                        <a href="/order/{{order.id}}"><i class="fa-solid fa-circle-arrow-right" style="color: green;"></i></a>
+                                                        <a data-bs-toggle="tooltip" data-bs-placement="top" title="Edit Order" href="/order/{{order.id}}"><i class="fa-solid fa-circle-arrow-right" style="color: green;"></i></a>
                                                     
                                                         {% if order.uploaded and order.linkedOrder is null %}
                                                         
-                                                            <a href="/link_order_list/{{order.id}}"><i class="fa-solid fa-link" style="color: green;"></i></a> 
+                                                            <a data-bs-toggle="tooltip" data-bs-placement="top" title="Link Order" href="/link_order_list/{{order.id}}"><i class="fa-solid fa-link" style="color: green;"></i></a> 
                                                     
                                                         {% endif %}
-                                                        <a href="/po_list/{{order.id}}"><i class="fa-solid fa-cart-shopping" style="color: green;"></i></a> 
+                                                        <a data-bs-toggle="tooltip" data-bs-placement="top" title="Internal PO" href="/po_list/{{order.id}}"><i class="fa-solid fa-cart-shopping" style="color: green;"></i></a> 
                                                     {% endif %}                                                    
-                                                    <a href="/status_log/{{order.id}}"><i class="fa-solid fa-clock-rotate-left" style="color: green;"></i></a> 
+                                                    <a data-bs-toggle="tooltip" data-bs-placement="top" title="Status Log" href="/status_log/{{order.id}}"><i class="fa-solid fa-clock-rotate-left" style="color: green;"></i></a> 
+                                                    
+                                                    {%if order.Status >= "2" %}                                                    
+                                                        <a data-bs-toggle="tooltip" data-bs-placement="top" title="Payroll Detail" href="/payroll_detail/{{order.id}}"><i class="fa-solid fa-file" style="color: green;"></i></a>                                                                                                                 
+                                                    {%endif%}
                                                 </td>
                                             </tr>                                             
                                         {% endfor %}

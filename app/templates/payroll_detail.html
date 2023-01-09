@@ -1,0 +1,67 @@
+{% extends 'index.html' %} 
+{%load static%}
+{%load humanize%}
+{% block title %} Duplicate Order List {% endblock %} 
+
+{% block container %}
+
+<div class="container">
+    <form method='post' enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="row">      
+            <div class="col-sm-10 my-3"></div>  
+            <div class="col-sm-2 my-3">                
+                <a href="/order_list/" type="button" class="btn btn-danger">Close</a> 
+            </div>
+               
+        </div>
+        <div class="row">
+            <div class="col-sm-12 my-3">
+                <div class="card">
+                    <div class="card-header card-header-wc">
+                        <div class="row">
+                            <div class="col-sm-9">
+                                <h6 class="" >Payroll Detail</h6>
+                            </div>
+                           
+                        </div>
+                    </div>                 
+                    <div class="card-body">
+                        <div class="row">                   
+                            <div class="col-lg-12"> 
+                                <table id="orders" class="table table-sm table-bordered table-striped">
+                                    <thead>
+                                        <tr class="table-primary">                                                  
+                                            <td class="p-1">empID</td>
+                                            <td class="p-1">Name</td>
+                                            <td class="p-1">Payout</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {%for item in payroll%}
+                                        <tr>
+                                            <td>{{item.empID}}</td>
+                                            <td>{{item.empName}}</td>
+                                            <td>${{item.payout|floatformat:2|intcomma}}</td>
+                                        </tr>
+                                        {%endfor%}
+                                        {% if payrollTotal > 0%}
+                                            <tr>
+                                                <td colspan="2"> Total</td>
+                                                
+                                                <td><strong>${{payrollTotal|floatformat:2|intcomma}}</strong></td>
+                                            </tr>
+                                        {%endif%}
+                                    </tbody>
+                                </table>                    
+                                
+                            </div>
+                        </div>
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -48,7 +48,9 @@
                                                 {% if item.status == 1 %} 
                                                     <td>Open</td>
                                                 {% elif item.status == 2 %}
-                                                    <td>Close</td>
+                                                    <td>supervisor approved</td>
+                                                {% elif item.status == 3 %}
+                                                    <td>Closed</td>
                                                 {% endif %}
                                                  <td> 
                                                     <a href="/location_period_list/{{item.id}}">
