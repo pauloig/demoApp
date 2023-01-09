@@ -2695,7 +2695,7 @@ def get_summary(request, perID):
             ws.col(14).width = 2200
             ws.col(15).width = 5000
             ws.col(17).width = 11500
-    except e as Exception:
+    except Exception as e:
        ws.write(0,0,e, font_style)    
 
     
@@ -2756,7 +2756,7 @@ def get_summary(request, perID):
                     ot = 0
                     dt = 0
                     on_call = 0
-                    bonus = 0
+                    bonus = 0                    
                     
 
                     prod = DailyItem.objects.filter(DailyID = itemEmp.DailyID).count()
@@ -2831,7 +2831,7 @@ def get_summary(request, perID):
                     ws2.write(3, 14,validate_decimals((validate_decimals(payTotalTotal)*100) / validate_decimals(invoice)), font_style)
                 else:
                     ws2.write(3, 14,0, font_style)
-    except e as Exception:
+    except Exception as e:       
        ws2.write(0,0,e, font_style) 
     
     
@@ -2985,7 +2985,7 @@ def get_summary(request, perID):
             ws3.write(row_num, 12, validate_print_decimals(payroll), font_style)
             ws3.write(row_num, 13, validate_print_decimals(invoice), font_style)
             ws3.write(row_num, 14, validate_print_decimals(perc), font_style) 
-    except e as Exception:
+    except Exception as e:
        ws3.write(0,0,e, font_style)              
 
     
