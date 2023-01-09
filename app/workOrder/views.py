@@ -2632,13 +2632,13 @@ def get_summary(request, perID):
                                             
 
         
-        
-            sumItem = 0
+            
+            sumItem = 0            
             for x in dailyList:
-                items = DailyItem.objects.filter(DailyID = x)
-                
-                for y in items:
-                    sumItem += 1
+                items = DailyItem.objects.filter(DailyID = x).count()                           
+
+                if items > sumItem:
+                    sumItem = items
                 
             font_style = xlwt.easyxf('font: bold on, color black;\
                                                     borders: top_color black, bottom_color black, right_color black, left_color black,\
@@ -2676,24 +2676,24 @@ def get_summary(request, perID):
                             if sumQty > 0:
                                 ws.write(row_num,18 + sumItem*2,validate_decimals(sumQty), font_style)   
                                 ws.write(row_num,19 + sumItem*2,validate_decimals(sumInvoice), font_style)     
+            
 
-
-                ws.col(0).width = 3000
-                ws.col(2).width = 1500
-                ws.col(3).width = 5000
-                ws.col(4).width = 1000
-                ws.col(5).width = 1000
-                ws.col(6).width = 1000
-                ws.col(7).width = 1000
-                ws.col(8).width = 1000
-                ws.col(9).width = 1000
-                ws.col(10).width = 1700                                      
-                ws.col(11).width = 3500
-                ws.col(12).width = 3000
-                ws.col(13).width = 1700
-                ws.col(14).width = 2200
-                ws.col(15).width = 5000
-                ws.col(17).width = 11500
+            ws.col(0).width = 3000
+            ws.col(2).width = 1500
+            ws.col(3).width = 5000
+            ws.col(4).width = 1000
+            ws.col(5).width = 1000
+            ws.col(6).width = 1000
+            ws.col(7).width = 1000
+            ws.col(8).width = 1000
+            ws.col(9).width = 1000
+            ws.col(10).width = 1700                                      
+            ws.col(11).width = 3500
+            ws.col(12).width = 3000
+            ws.col(13).width = 1700
+            ws.col(14).width = 2200
+            ws.col(15).width = 5000
+            ws.col(17).width = 11500
             
         except Exception as e:
             ws.write(0,0,str(e), font_style)    
