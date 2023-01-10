@@ -2794,10 +2794,8 @@ def get_summary(request, perID):
                         
                             col_item += 1                                          
                             
-                            ws.write(row_num,17 + col_item,z.quantity, font_style)
-                            
-                            col_item += 1 
-                            ws.write(row_num,17 + col_item,z.itemID.price, font_style)
+                            ws.write(row_num,17 + col_item,z.quantity, font_style)                            
+                           
                                         
 
     
@@ -2809,8 +2807,8 @@ def get_summary(request, perID):
             if items > sumItem:
                 sumItem = items            
        
-        ws.write(7,18 + sumItem*3,'Item Totals', font_title)   
-        ws.write(7,19 + sumItem*3,'Invoice', font_title)                   
+        ws.write(7,18 + sumItem*2,'Item Totals', font_title)   
+        ws.write(7,19 + sumItem*2,'Invoice', font_title)                   
         
 
         row_num=7
@@ -2837,8 +2835,8 @@ def get_summary(request, perID):
                             sumQty += validate_decimals(z.quantity)
 
                         if sumQty > 0:
-                            ws.write(row_num,18 + sumItem*3,validate_decimals(sumQty), font_style)   
-                            ws.write(row_num,19 + sumItem*3,validate_decimals(sumInvoice), font_style)     
+                            ws.write(row_num,18 + sumItem*2,validate_decimals(sumQty), font_style)   
+                            ws.write(row_num,19 + sumItem*2,validate_decimals(sumInvoice), font_style)     
         
 
         ws.col(0).width = 3000
@@ -2868,15 +2866,7 @@ def get_summary(request, perID):
         ws2 = wb.add_sheet('UPLOAD', cell_overwrite_ok = True) 
 
         # Sheet header, first row
-        row_num = 7
-
-        """font_style = xlwt.XFStyle()
-        font_style.font.bold = True
-        font_style = xlwt.easyxf('font: bold on, color black;\
-                        borders: top_color black, bottom_color black, right_color black, left_color black,\
-                                left thin, right thin, top thin, bottom thin;\
-                        pattern: pattern solid, fore_color light_blue;')"""
-
+        row_num = 7       
 
         columns = ['Loc Id', 'Assigned Department', 'Eid', 'Name', 'RT','OT','DT','TT','RT$','OT$','Bonus', 'Production','own vehicle', 'on call', 'payroll']
 
@@ -2942,7 +2932,7 @@ def get_summary(request, perID):
                     total = 0
                     for i in itemd:
                         if validate_decimals(i.itemID.price) != None:
-                            invoice += validate_decimals(((validate_decimals(i.quantity) * float(validate_decimals(i.itemID.price))) * validate_decimals(itemEmp.per_to_pay)) / 100)                   
+                            invoice += validate_decimals(i.quantity) * validate_decimals(i.itemID.price)
                             
                         total += validate_decimals(i.total)
 
@@ -3024,39 +3014,24 @@ def get_summary(request, perID):
         ws3.write_merge(6, 6, 8, 9, 'From', font_title3)
         ws3.write_merge(7, 7, 8, 9, 'To', font_title3)
         ws3.write_merge(8, 8, 8, 9, 'Pay date', font_title3)
-
-
-        """font_style = xlwt.easyxf('font: bold off, color black;\
-                        borders: top_color black, bottom_color black, right_color black, left_color black,\
-                                left thin, right thin, top thin, bottom thin;\
-                        align: horiz center')"""
+       
 
         ws3.write_merge(5, 5, 10, 11, per.weekRange, font_title3)
         ws3.write_merge(6, 6, 10, 11, per.fromDate.strftime("%m/%d/%Y"), font_title3)
         ws3.write_merge(7, 7, 10, 11, per.toDate.strftime("%m/%d/%Y"), font_title3)
         ws3.write_merge(8, 8, 10, 11, per.payDate.strftime("%m/%d/%Y"), font_title3)   
 
-        """font_style = xlwt.easyxf('font: bold off, color black;\
-                        borders: top_color black, bottom_color black, right_color black, left_color black,\
-                                left thin, right thin, top thin, bottom thin;\
-                        align: horiz right')"""
+        
         ws3.write_merge(5, 5, 5, 6, '$' + '{0:,.2f}'.format(validate_decimals(invoice)), font_title3)
         ws3.write_merge(6, 6, 5, 6, '$' + '{0:,.2f}'.format(validate_decimals(payTotalTotal)), font_title3)
         ws3.write_merge(7, 7, 5, 6, '$' + '{0:,.2f}'.format(validate_decimals(invoice) - validate_decimals(payTotalTotal)), font_title3)
         
-        """font_style = xlwt.easyxf('font: bold off, color black;\
-                        borders: top_color black, bottom_color black, right_color black, left_color black,\
-                                left thin, right thin, top thin, bottom thin;\
-                        align: horiz center')"""
+        
         if validate_decimals(payTotalTotal) > 0 and validate_decimals(invoice) > 0:
             ws3.write_merge(8, 8, 5, 6, str(round((validate_decimals(payTotalTotal)*100) / validate_decimals(invoice),2)) + '%', font_title3)  
         else:    
             ws3.write_merge(8, 8, 5, 6, '0%', font_title3)            
-
-        """font_style = xlwt.easyxf('font: bold on, color black;\
-                        borders: top_color black, bottom_color black, right_color black, left_color black,\
-                                left thin, right thin, top thin, bottom thin;\
-                        pattern: pattern solid, fore_color light_blue;')"""
+       
 
         columns = ['Loc Id', 'Location', 'Regular Time','Over Time','Double Time','Total Time','RT$','OT$','Bonus', 'Production','own vehicle', 'on call', 'payroll', 'Invoice', '% Pay']
 
@@ -3118,7 +3093,7 @@ def get_summary(request, perID):
                 for j in dailyprod:                
                     total += validate_decimals(j.total)
                     if validate_decimals(j.itemID.price) != None:
-                        invoice += (validate_decimals(j.quantity) * float(validate_decimals(j.itemID.price)) )
+                        invoice += validate_decimals(j.quantity) * validate_decimals(j.itemID.price)
                     if validate_decimals(j.itemID.emp_payout) != None:    
                         payroll2 += (validate_decimals(j.quantity) * float(validate_decimals(j.itemID.emp_payout)) )
 
