@@ -16,7 +16,7 @@
         </div>              
        
         <div class="modal-body">
-            <div class="row" id="employees">
+            <div class="row" id="employees" style="display: none;">
                 <div class="col-sm-12">                                     
                     <table id="orders" class="table table-sm table-bordered table-striped">
                         <thead class="table-primary">
@@ -65,7 +65,7 @@
 
                 $("#orders").DataTable();  
             </script>
-            <div id="forma" style="display: none;">
+            <div id="forma">
                 <div class="row">
                     <div class="col-sm-6">
                         <div class="mb-3">
@@ -78,10 +78,10 @@
                         <div class="mb-3">
                             <label for="EmployeeName" class="form-label">Employee</label>
                             <!--{% render_field form.EmployeeID class="form-control" id="selEmp"%}-->
-                            <input type="text" name="EmployeeName" id="EmployeeName" class="form-control" disabled>
+                            <input type="text" name="EmployeeName" id="EmployeeName" class="form-control" value="{{empSelected}}" disabled>
                             <div class="invalid-feedback">{{ form.EmployeeID.errors|first }}</div>                        
                             
-                            <input type="hidden" name="EmployeeID" id="EmployeeID">
+                            <input type="hidden" name="EmployeeID" id="EmployeeID" value="{{empSelected.employeeID}}">
                         </div>
                     </div>
                 </div>

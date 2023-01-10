@@ -390,12 +390,19 @@ def listOrders(request):
     estatus = "0"
     loc = "0"
     
+    context={}
 
     if request.method == "POST":
         estatus = request.POST.get('status')
         loc = request.POST.get('location') 
         locationObject = Locations.objects.filter(LocationID=loc).first()
     
+    context["selectEstatus"] = estatus    
+    context["emp"]=emp
+    context["location"]=locationList
+    context["per"]=per    
+    context["selectLoc"]=loc
+
     if emp:
         if emp.is_admin:     
             if estatus == "0" and loc == "0":   
@@ -408,7 +415,8 @@ def listOrders(request):
                         orders = workOrder.objects.filter(Status = estatus).exclude(linkedOrder__isnull = False, uploaded = False ) 
                     else:
                         orders = workOrder.objects.filter(Location = locationObject).exclude(linkedOrder__isnull = False, uploaded = False ) 
-            return render(request,'order_list.html',{'orders': orders, 'emp':emp, 'location': locationList, 'per': per})
+            context["orders"]=orders
+            return render(request,'order_list.html',context)
 
     if request.user.is_staff:
         if estatus == "0" and loc == "0":    
@@ -421,8 +429,8 @@ def listOrders(request):
                     orders = workOrder.objects.filter(Status = estatus).exclude(linkedOrder__isnull = False, uploaded = False )  
                 else:
                     orders = workOrder.objects.filter(Location = locationObject).exclude(linkedOrder__isnull = False, uploaded = False )  
-
-        return render(request,'order_list.html',{'orders': orders, 'emp':emp, 'location': locationList, 'per': per})
+        context["orders"]=orders
+        return render(request,'order_list.html',context)
 
 
     # orders = workOrder.objects.filter(Location__isnull=True, WCSup__isnull=True)
@@ -437,7 +445,9 @@ def listOrders(request):
             else:
                 orders = workOrder.objects.filter(WCSup__isnull=True, Location = locationObject).exclude(linkedOrder__isnull = False, uploaded = False )
 
-    return render(request,'order_list.html',{'orders': orders, 'emp':emp, 'location': locationList, 'per': per})
+    
+
+    return render(request,'order_list.html',context)
 
    
 
@@ -2110,6 +2120,11 @@ def create_daily_emp(request, id, LocID):
 
         form.instance.total_hours, form.instance.regular_hours,form.instance.ot_hour, form.instance.double_time = calculate_hours(startTime, endTime, lunch_startTime, lunch_endTime)
         form.instance.created_date = datetime.datetime.now()
+
+        empid = request.POST.get('EmployeeID')
+        
+        selectedEmp = Employee.objects.filter(employeeID = empid).first()
+        form.instance.EmployeeID = selectedEmp
         form.save()  
 
         update_ptp_Emp(id, dailyID.split_paymet)             
@@ -2118,6 +2133,7 @@ def create_daily_emp(request, id, LocID):
     context['form']= form
     context["emp"] = emp
     context["daily"] = dailyID
+    context["empList"] = EmpLocation
     return render(request, "create_daily_emp.html", context)
 
 
@@ -2127,9 +2143,10 @@ def update_daily_emp(request, id, LocID):
     obj = get_object_or_404(DailyEmployee, id = id)
 
     per = period.objects.filter(status__in=(1,2)).first()
-    context["per"] = per
+    context["per"] = per    
 
     EmpLocation = Employee.objects.all()
+    empSelected = Employee.objects.filter(employeeID = obj.EmployeeID.employeeID ).first()
  
     form = DailyEmpForm(request.POST or None, instance = obj, qs = EmpLocation)
  
@@ -2140,6 +2157,12 @@ def update_daily_emp(request, id, LocID):
         lunch_endTime = form.instance.end_lunch_time
 
         form.instance.total_hours, form.instance.regular_hours,form.instance.ot_hour, form.instance.double_time = calculate_hours(startTime, endTime, lunch_startTime, lunch_endTime)
+
+        empid = request.POST.get('EmployeeID')
+        
+        selectedEmp = Employee.objects.filter(employeeID = empid).first()
+        form.instance.EmployeeID = selectedEmp
+
         form.save()
 
         update_ptp_Emp(obj.DailyID.id, obj.DailyID.split_paymet) 
@@ -2152,7 +2175,10 @@ def update_daily_emp(request, id, LocID):
     context["form"] = form
     context["emp"] = emp
     context["daily"] = dailyID
-    return render(request, "create_daily_emp.html", context)
+    context["empList"] = EmpLocation
+    context["empSelected"] = empSelected
+    
+    return render(request, "update_daily_emp.html", context)
 
 def delete_daily_emp(request, id, LocID):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
@@ -2195,9 +2221,16 @@ def create_daily_item(request, id, LocID):
 
     form = DailyItemForm(request.POST or None, initial={'DailyID': dailyID}, qs = itemLocation)
     if form.is_valid():    
+        
+        itemid = request.POST.get('itemID')
+        
+        selectedItem = itemPrice.objects.filter(id = itemid).first()
+        form.instance.itemID = selectedItem
+
         price = form.instance.itemID.emp_payout    
         form.instance.total = form.instance.quantity * float(price)
         form.instance.created_date = datetime.datetime.now()
+
         form.save()      
 
         update_ptp_Emp(id, dailyID.split_paymet)
@@ -2206,6 +2239,7 @@ def create_daily_item(request, id, LocID):
          
     context['form']= form
     context["emp"] = emp
+    context["itemList"] = itemLocation
     return render(request, "create_daily_item.html", context)
 
 def update_daily_item(request, id, LocID):
@@ -2218,12 +2252,19 @@ def update_daily_item(request, id, LocID):
     obj = get_object_or_404(DailyItem, id = id)
 
     itemLocation = itemPrice.objects.filter(location__LocationID = obj.DailyID.Location.LocationID)
+    
+    itemSelected = itemPrice.objects.filter(id = obj.itemID.id ).first()
 
     form = DailyItemForm(request.POST or None, instance = obj, qs = itemLocation)
  
     if form.is_valid():
         price = form.instance.itemID.emp_payout    
         form.instance.total = form.instance.quantity * float(price)
+        
+        itemid = request.POST.get('itemID')
+        
+        selectedItem = itemPrice.objects.filter(id = itemid).first()
+        form.instance.itemID = selectedItem
 
         form.save()
         context["emp"] = emp    
@@ -2234,7 +2275,9 @@ def update_daily_item(request, id, LocID):
 
     context["form"] = form
     context["emp"] = emp
-    return render(request, "create_daily_item.html", context)
+    context["itemSelected"] = itemSelected
+
+    return render(request, "update_daily_item.html", context)
 
 def delete_daily_item(request, id, LocID):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
@@ -2492,6 +2535,129 @@ def send_recap_emp(request, perID, empID):
                 item.save()
 
     return HttpResponseRedirect('/location_period_list/' + perID) 
+
+def get_list_orders(request,estatus, loc):
+    emp = Employee.objects.filter(user__username__exact = request.user.username).first()
+    per = period.objects.filter(status__in=(1,2)).first()
+
+    locationObject = Locations.objects.filter(LocationID=loc).first()    
+    
+
+    if emp:
+        if emp.is_admin:     
+            if estatus == "0" and loc == "0":   
+                orders = workOrder.objects.exclude(linkedOrder__isnull = False, uploaded = False )        
+            else:
+                if estatus != "0" and loc != "0":
+                    orders = workOrder.objects.filter(Status = estatus, Location = locationObject).exclude(linkedOrder__isnull = False, uploaded = False )     
+                else:
+                    if estatus != "0":
+                        orders = workOrder.objects.filter(Status = estatus).exclude(linkedOrder__isnull = False, uploaded = False ) 
+                    else:
+                        orders = workOrder.objects.filter(Location = locationObject).exclude(linkedOrder__isnull = False, uploaded = False ) 
+            ordenes=orders
+            return ordenes
+            
+
+    if request.user.is_staff:
+        if estatus == "0" and loc == "0":    
+            orders = workOrder.objects.exclude(linkedOrder__isnull = False, uploaded = False )  
+        else:
+            if estatus != "0" and loc != "0":
+                orders = workOrder.objects.filter(Status = estatus, Location = locationObject).exclude(linkedOrder__isnull = False, uploaded = False )  
+            else:
+                if estatus != "0":
+                    orders = workOrder.objects.filter(Status = estatus).exclude(linkedOrder__isnull = False, uploaded = False )  
+                else:
+                    orders = workOrder.objects.filter(Location = locationObject).exclude(linkedOrder__isnull = False, uploaded = False )  
+        ordenes=orders        
+        return ordenes
+
+
+    # orders = workOrder.objects.filter(Location__isnull=True, WCSup__isnull=True)
+    if estatus == "0" and loc == "0":   
+        orders = workOrder.objects.filter(WCSup__isnull=True).exclude(linkedOrder__isnull = False, uploaded = False )
+    else:
+        if estatus != "0" and loc != "0":
+            orders = workOrder.objects.filter(WCSup__isnull=True, Location = locationObject, Status = estatus).exclude(linkedOrder__isnull = False, uploaded = False )
+        else:
+            if estatus != "0":
+                orders = workOrder.objects.filter(WCSup__isnull=True, Status = estatus).exclude(linkedOrder__isnull = False, uploaded = False )
+            else:
+                orders = workOrder.objects.filter(WCSup__isnull=True, Location = locationObject).exclude(linkedOrder__isnull = False, uploaded = False )
+
+    return orders
+
+
+
+def get_order_list(request,estatus, loc):
+    
+
+    wb = xlwt.Workbook(encoding='utf-8')
+    ws = wb.add_sheet('Summary', cell_overwrite_ok = True) 
+
+    # Sheet header, first row
+    row_num = 7
+
+    font_title = xlwt.XFStyle()
+    font_title.font.bold = True
+    font_title = xlwt.easyxf('font: bold on, color black;\
+                     borders: top_color black, bottom_color black, right_color black, left_color black,\
+                              left thin, right thin, top thin, bottom thin;\
+                     pattern: pattern solid, fore_color light_blue;')
+
+    font_style =  xlwt.XFStyle()              
+
+       
+
+
+    columns = ['prismID', 'work order ID', 'PO', 'PO Amount', 'Status','Location','Supervisor','upload Date','Issued By','Job Name','Job Address']
+
+    for col_num in range(len(columns)):
+        ws.write(row_num, col_num, columns[col_num], font_title) # at 0 row 0 column 
+    
+
+    ordenes = get_list_orders(request, estatus, loc)   
+    for item in ordenes:
+        row_num += 1
+        ws.write(row_num, 0, item.prismID, font_style) # at 0 row 0 column 
+        ws.write(row_num, 1, item.workOrderId, font_style) # at 0 row 0 column 
+        ws.write(row_num, 2, item.PO, font_style) # at 0 row 0 column 
+        ws.write(row_num, 3, item.POAmount, font_style) # at 0 row 0 column 
+        ws.write(row_num, 4, item.Status, font_style) # at 0 row 0 column 
+        
+        if item.Location != None:
+            ws.write(row_num, 5, item.Location.name, font_style) # at 0 row 0 column 
+        else:
+             ws.write(row_num, 5, '', font_style) 
+        
+        if item.WCSup != None:
+            ws.write(row_num, 6, item.WCSup.first_name + ' ' + item.WCSup.last_name, font_style) # at 0 row 0 column 
+        else:
+            ws.write(row_num, 6, '', font_style) # at 0 row 0 column 
+
+        ws.write(row_num, 7, item.UploadDate, font_style) # at 0 row 0 column 
+        ws.write(row_num, 8, item.IssuedBy, font_style) # at 0 row 0 column 
+        ws.write(row_num, 9, item.JobName, font_style) # at 0 row 0 column 
+        ws.write(row_num, 10, item.JobAddress, font_style) # at 0 row 0 column        
+
+
+    ws.col(5).width = 3500
+    ws.col(6).width = 5000
+    ws.col(7).width = 4000
+    ws.col(8).width = 9000
+    ws.col(9).width = 9000
+    ws.col(10).width = 9000
+
+    filename = 'orders.xls'    
+    response = HttpResponse(content_type='application/ms-excel')
+    response['Content-Disposition'] = 'attachment; filename=' + filename 
+
+    wb.save(response)
+
+    return response
+    
+
 
 def get_summary(request, perID):
    
@@ -3159,11 +3325,25 @@ def payroll_detail(request, id):
 
         for empI in dailyEmp:
             empTotal += validate_decimals(empI.payout)
-            dailyDetail.append({'empID': empI.EmployeeID.employeeID, 'empName':empI.EmployeeID, 'payout': empI.payout} )
+            dailyDetail.append({'empID': empI.EmployeeID.employeeID, 'empName':empI.EmployeeID, 'payout': empI.payout, 'day':empI.DailyID.day, 'period': empI.DailyID.Period.weekRange} )
+
+    internalpo = internalPO.objects.filter(woID=obj)
+    poTotal = 0
+    for po in internalpo:
+        poTotal += validate_decimals(po.total)
+
+    balance = validate_decimals(obj.POAmount) - validate_decimals(empTotal) - validate_decimals(poTotal)
+    totalExp = validate_decimals(empTotal) + validate_decimals(poTotal)
+    balance_per = ((validate_decimals(totalExp)*100)/validate_decimals(obj.POAmount))
 
     context["payroll"] = dailyDetail
     context["payrollTotal"] = empTotal
-    context["form"] = obj
+    context["poTotal"] = poTotal
+    context["totalExp"] = totalExp
+    context["balance"] = balance
+    context["balance_per"] = balance_per
+    context["order"] = obj
+    context["po"] = internalpo
     context["emp"] = emp
  
     return render(request, "payroll_detail.html", context)
@@ -3171,7 +3351,7 @@ def payroll_detail(request, id):
 
 def validate_decimals(value):
     try:
-        return round(float(value), 2)
+        return round(float(str(value)), 2)
     except:
        return 0
 

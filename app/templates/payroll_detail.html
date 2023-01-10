@@ -9,8 +9,8 @@
     <form method='post' enctype="multipart/form-data">
         {% csrf_token %}
         <div class="row">      
-            <div class="col-sm-10 my-3"></div>  
-            <div class="col-sm-2 my-3">                
+            <div class="col-sm-11 my-3"></div>  
+            <div class="col-sm-1 my-3">                
                 <a href="/order_list/" type="button" class="btn btn-danger">Close</a> 
             </div>
                
@@ -21,7 +21,84 @@
                     <div class="card-header card-header-wc">
                         <div class="row">
                             <div class="col-sm-9">
-                                <h6 class="" >Payroll Detail</h6>
+                                <h6 class="" >Order Detail</h6>
+                            </div>
+                           
+                        </div>
+                    </div>                 
+                    <div class="card-body">
+                        <div class="row">                   
+                            <div class="col-sm-6">
+                                <div class="mb-3">
+                                    <label for="orderID" class="form-label">Order</label>                                    
+                                    <input type="text" name="orderID" id="orderID" class="form-control" value="{{order}}" disabled>                                                                       
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="mb-3">
+                                    <label for="address" class="form-label">Address</label>                                    
+                                    <input type="text" name="address" id="address" class="form-control" value="{{order.JobAddress}}" disabled>                                                                                                                                               
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">                                             
+                            <div class="col-sm-4">
+                                <div class="mb-3">
+                                    <label for="supervisor" class="form-label">Supervisor</label>                                    
+                                    <input type="text" name="supervisor" id="supervisor" class="form-control" value="{{order.WCSup}}" disabled>                                                                                                                                               
+                                </div>
+                            </div>
+                            <div class="col-sm-4">
+                                <div class="mb-3">
+                                    <label for="location" class="form-label">Location</label>                                    
+                                    <input type="text" name="location" id="location" class="form-control" value="{{order.Location}}" disabled>                                                                       
+                                </div>
+                            </div>
+                            <div class="col-sm-4">
+                                <div class="mb-3">
+                                    <label for="updatedDate" class="form-label">Updated Date</label>                                    
+                                    <input type="text" name="updatedDate" id="updatedDate" class="form-control" value="{{order.UploadDate}}" disabled>                                                                       
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">                                             
+                            <div class="col-sm-3">
+                                <div class="mb-3">
+                                    <label for="POAmount" class="form-label">PO Amount</label>                                    
+                                    <input type="text" name="POAmount" id="POAmount" class="form-control" value="${{order.POAmount|floatformat:2|intcomma}}" disabled> 
+                                </div>
+                            </div>
+                            <div class="col-sm-3">
+                                <div class="mb-3">                                    
+                                    <label for="expenses" class="form-label">Expenses</label>                                    
+                                    <input type="text" name="expenses" id="expenses" class="form-control" value="${{totalExp|floatformat:2|intcomma}}" disabled>                                                                       
+                                </div>
+                            </div>
+                            <div class="col-sm-3">
+                                <div class="mb-3">                                    
+                                    <label for="balance" class="form-label">Balance</label>                                    
+                                    <input type="text" name="balance" id="balance" class="form-control" value="${{balance|floatformat:2|intcomma}}" disabled>                                                                       
+                                </div>
+                            </div>
+                            <div class="col-sm-3">
+                                <div class="mb-3">
+                                    <label for="balance_per" class="form-label">% Balance</label>                                    
+                                    <input type="text" name="balance_per" id="balance_per" class="form-control" value="{{balance_per|floatformat:2|intcomma}}%" disabled>                                                                       
+                                </div>
+                            </div>
+                        </div>
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-12 my-3">
+                <div class="card">
+                    <div class="card-header card-header-wc">
+                        <div class="row">
+                            <div class="col-sm-9">
+                                <h6 class="" >Expenses Details</h6>
                             </div>
                            
                         </div>
@@ -29,9 +106,12 @@
                     <div class="card-body">
                         <div class="row">                   
                             <div class="col-lg-12"> 
+                                Payroll
                                 <table id="orders" class="table table-sm table-bordered table-striped">
                                     <thead>
-                                        <tr class="table-primary">                                                  
+                                        <tr class="table-primary"> 
+                                            <td class="p-1">Period</td> 
+                                            <td class="p-1">daily day</td>                                                
                                             <td class="p-1">empID</td>
                                             <td class="p-1">Name</td>
                                             <td class="p-1">Payout</td>
@@ -40,6 +120,8 @@
                                     <tbody>
                                         {%for item in payroll%}
                                         <tr>
+                                            <td>{{item.period}}</td>
+                                            <td>{{item.day}}</td>
                                             <td>{{item.empID}}</td>
                                             <td>{{item.empName}}</td>
                                             <td>${{item.payout|floatformat:2|intcomma}}</td>
@@ -47,7 +129,7 @@
                                         {%endfor%}
                                         {% if payrollTotal > 0%}
                                             <tr>
-                                                <td colspan="2"> Total</td>
+                                                <td colspan="4"> Total</td>
                                                 
                                                 <td><strong>${{payrollTotal|floatformat:2|intcomma}}</strong></td>
                                             </tr>
@@ -57,6 +139,44 @@
                                 
                             </div>
                         </div>
+                        <br/>           
+                            <div class="row">
+                                <div class="col-lg-12">
+                                    Internal POs
+                                    <table id="orders" class="table table-sm table-bordered table-striped">
+                                        <thead class="table-primary">
+                                            <tr>
+                                                <td class="p-1">PO</td>
+                                                    <td class="p-1">Supervisor</td>
+                                                    <td class="p-1">Pick up Employee</td>
+                                                    <td class="p-1">Product</td>    
+                                                    <td class="p-1">Quantity</td>
+                                                    <td class="p-1">Total</td>                                            
+                                            </tr>              
+                                        </thead>
+                                        <tbody>                                       
+                                            {% for po in po %}
+                                                <tr>
+                                                    <td>{{po.id}}</td>
+                                                    <td>{{po.supervisor}}</td>
+                                                    <td>{{po.pickupEmployee}}</td>
+                                                    <td>{{po.product}}</td>
+                                                    <td>{{po.quantity}}</td>
+                                                    <td>${{po.total|floatformat:2|intcomma}}</td>                                                                                                
+                                                </tr>                                             
+                                            {% endfor %}
+                                            {% if poTotal > 0%}
+                                            <tr>
+                                                <td colspan="5"> Total</td>
+                                                
+                                                <td><strong>${{poTotal|floatformat:2|intcomma}}</strong></td>
+                                            </tr>
+                                            {%endif%}
+                                        </tbody>                              
+                                    </table>
+                                </div>
+                                
+                            </div> 
                         
                     </div>
                 </div>
