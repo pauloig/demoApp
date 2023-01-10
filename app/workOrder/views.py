@@ -2932,7 +2932,7 @@ def get_summary(request, perID):
                     total = 0
                     for i in itemd:
                         if validate_decimals(i.itemID.price) != None:
-                            invoice += validate_decimals(i.quantity) * validate_decimals(i.itemID.price)
+                            invoice += (validate_decimals(i.quantity) * validate_decimals(i.itemID.price))
                             
                         total += validate_decimals(i.total)
 
@@ -3093,7 +3093,7 @@ def get_summary(request, perID):
                 for j in dailyprod:                
                     total += validate_decimals(j.total)
                     if validate_decimals(j.itemID.price) != None:
-                        invoice += validate_decimals(j.quantity) * validate_decimals(j.itemID.price)
+                        invoice += (validate_decimals(j.quantity) * validate_decimals(j.itemID.price))
                     if validate_decimals(j.itemID.emp_payout) != None:    
                         payroll2 += (validate_decimals(j.quantity) * float(validate_decimals(j.itemID.emp_payout)) )
 
