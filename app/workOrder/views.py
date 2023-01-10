@@ -2781,12 +2781,7 @@ def get_summary(request, perID):
                         col_item =  0
                         itemNumber = 0
 
-                        for z in items:
-                            """font_style = xlwt.easyxf('font: bold on, color black;\
-                                                    borders: top_color black, bottom_color black, right_color black, left_color black,\
-                                                            left thin, right thin, top thin, bottom thin;\
-                                                    pattern: pattern solid, fore_color light_blue;')"""
-
+                        for z in items:                            
                             col_item += 1
                             itemNumber += 1
                             try:
@@ -2800,6 +2795,9 @@ def get_summary(request, perID):
                             col_item += 1                                          
                             
                             ws.write(row_num,17 + col_item,z.quantity, font_style)
+                            
+                            col_item += 1 
+                            ws.write(row_num,17 + col_item,z.itemID.price, font_style)
                                         
 
     
@@ -2809,15 +2807,10 @@ def get_summary(request, perID):
             items = DailyItem.objects.filter(DailyID = x).count()                           
 
             if items > sumItem:
-                sumItem = items
-            
-        """font_style = xlwt.easyxf('font: bold on, color black;\
-                                                borders: top_color black, bottom_color black, right_color black, left_color black,\
-                                                        left thin, right thin, top thin, bottom thin;\
-                                                pattern: pattern solid, fore_color light_blue;')"""
-
-        ws.write(7,18 + sumItem*2,'Item Totals', font_title)   
-        ws.write(7,19 + sumItem*2,'Invoice', font_title)                   
+                sumItem = items            
+       
+        ws.write(7,18 + sumItem*3,'Item Totals', font_title)   
+        ws.write(7,19 + sumItem*3,'Invoice', font_title)                   
         
 
         row_num=7
