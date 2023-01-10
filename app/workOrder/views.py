@@ -2702,6 +2702,7 @@ def get_summary(request, perID):
                 ov = 0
                 bonus = 0
                 on_call = 0
+                InvoiceGeneral = 0
                 
             
                 if validate_decimals(i.payout) > 0:                
@@ -2786,9 +2787,7 @@ def get_summary(request, perID):
                             itemNumber += 1
                             try:
                                 ws.write(7,17 + col_item,'Item'+str(itemNumber), font_title)   
-                                ws.write(7,18 + col_item,'Qty'+str(itemNumber), font_title)  
-                                ws.write(7,19 + col_item,'Price'+str(itemNumber), font_title)   
-                                ws.write(7,20 + col_item,'Invoice'+str(itemNumber), font_title)                           
+                                ws.write(7,18 + col_item,'Qty'+str(itemNumber), font_title)                                                         
                             except Exception as e:
                                 None                            
                             
@@ -2796,13 +2795,8 @@ def get_summary(request, perID):
                         
                             col_item += 1                                          
                             
-                            ws.write(row_num,17 + col_item,z.quantity, font_style)
-                            
-                            col_item += 1 
-                            ws.write(row_num,17 + col_item,z.itemID.price, font_style)
-                            
-                            col_item += 1 
-                            ws.write(row_num,17 + col_item,(validate_decimals(z.itemID.price) *z.quantity), font_style)           
+                            ws.write(row_num,17 + col_item,z.quantity, font_style)                            
+                           
 
     
         
@@ -2813,8 +2807,8 @@ def get_summary(request, perID):
             if items > sumItem:
                 sumItem = items            
        
-        ws.write(7,18 + sumItem*4,'Item Totals', font_title)   
-        ws.write(7,19 + sumItem*4,'Invoice', font_title)                   
+        ws.write(7,18 + sumItem*2,'Item Totals', font_title)   
+        ws.write(7,19 + sumItem*2,'Invoice', font_title)                   
         
 
         row_num=7
@@ -2841,8 +2835,9 @@ def get_summary(request, perID):
                             sumQty += validate_decimals(z.quantity)
 
                         if sumQty > 0:
-                            ws.write(row_num,18 + sumItem*4,validate_decimals(sumQty), font_style)   
-                            ws.write(row_num,19 + sumItem*4,validate_decimals(sumInvoice), font_style)     
+                            InvoiceGeneral += validate_decimals(sumInvoice)
+                            ws.write(row_num,18 + sumItem*2,validate_decimals(sumQty), font_style)   
+                            ws.write(row_num,19 + sumItem*2,validate_decimals(sumInvoice), font_style)     
         
 
         ws.col(0).width = 3000
@@ -2991,10 +2986,10 @@ def get_summary(request, perID):
                 ws2.write(row_num, 13,validate_print_decimals(ocTotal), font_style)
                 ws2.write(row_num, 14,validate_print_decimals(payTotal), font_style)
                 ws2.write(2, 13,'Invoice', font_style)
-                ws2.write(2, 14,validate_decimals(invoice), font_style)
+                ws2.write(2, 14,validate_decimals(InvoiceGeneral), font_style)
                 ws2.write(3, 13,'% pay', font_style)   
-                if validate_decimals(payTotalTotal) > 0 and validate_decimals(invoice) > 0:
-                    ws2.write(3, 14,validate_decimals((validate_decimals(payTotalTotal)*100) / validate_decimals(invoice)), font_style)
+                if validate_decimals(payTotalTotal) > 0 and validate_decimals(InvoiceGeneral) > 0:
+                    ws2.write(3, 14,validate_decimals((validate_decimals(payTotalTotal)*100) / validate_decimals(InvoiceGeneral)), font_style)
                 else:
                     ws2.write(3, 14,0, font_style)
     except Exception as e:       
@@ -3044,9 +3039,9 @@ def get_summary(request, perID):
                         borders: top_color black, bottom_color black, right_color black, left_color black,\
                                 left thin, right thin, top thin, bottom thin;\
                         align: horiz right')"""
-        ws3.write_merge(5, 5, 5, 6, '$' + '{0:,.2f}'.format(validate_decimals(invoice)), font_title3)
+        ws3.write_merge(5, 5, 5, 6, '$' + '{0:,.2f}'.format(validate_decimals(InvoiceGeneral)), font_title3)
         ws3.write_merge(6, 6, 5, 6, '$' + '{0:,.2f}'.format(validate_decimals(payTotalTotal)), font_title3)
-        ws3.write_merge(7, 7, 5, 6, '$' + '{0:,.2f}'.format(validate_decimals(invoice) - validate_decimals(payTotalTotal)), font_title3)
+        ws3.write_merge(7, 7, 5, 6, '$' + '{0:,.2f}'.format(validate_decimals(InvoiceGeneral) - validate_decimals(payTotalTotal)), font_title3)
         
         """font_style = xlwt.easyxf('font: bold off, color black;\
                         borders: top_color black, bottom_color black, right_color black, left_color black,\
