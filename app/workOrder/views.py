@@ -2837,8 +2837,8 @@ def get_summary(request, perID):
                             sumQty += validate_decimals(z.quantity)
 
                         if sumQty > 0:
-                            ws.write(row_num,18 + sumItem*2,validate_decimals(sumQty), font_style)   
-                            ws.write(row_num,19 + sumItem*2,validate_decimals(sumInvoice), font_style)     
+                            ws.write(row_num,18 + sumItem*3,validate_decimals(sumQty), font_style)   
+                            ws.write(row_num,19 + sumItem*3,validate_decimals(sumInvoice), font_style)     
         
 
         ws.col(0).width = 3000
