@@ -3378,14 +3378,17 @@ def get_emp_list(request):
             ws.write(row_num, col_num, columns[col_num], font_title) # at 0 row 0 column 
         
 
-        empl = Employee.objects.all()   
+        empl = Employee.objects.all().order_by('employeeID')   
         for item in empl:
             row_num += 1
             ws.write(row_num, 0, item.employeeID, font_style) # at 0 row 0 column 
             ws.write(row_num, 1, item.first_name, font_style) # at 0 row 0 column 
             ws.write(row_num, 2, item.last_name, font_style) # at 0 row 0 column 
             ws.write(row_num, 3, item.middle_initial, font_style) # at 0 row 0 column 
-            ws.write(row_num, 4, item.supervisor_name, font_style) # at 0 row 0 column 
+            
+            if  item.supervisor_name != None:
+                ws.write(row_num, 4, item.supervisor_name.first_name + ' ' + item.supervisor_name.last_name, font_style) # at 0 row 0 column 
+            
             ws.write(row_num, 5, item.termination_date, font_style) # at 0 row 0 column 
             ws.write(row_num, 6, item.hire_created, font_style) # at 0 row 0 column 
             ws.write(row_num, 7, item.hourly_rate, font_style) # at 0 row 0 column 
