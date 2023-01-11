@@ -3353,66 +3353,67 @@ def payroll_detail(request, id):
 
 
 def get_emp_list(request):
+    try:
+        wb = xlwt.Workbook(encoding='utf-8')
+        ws = wb.add_sheet('Employees', cell_overwrite_ok = True) 
 
-    wb = xlwt.Workbook(encoding='utf-8')
-    ws = wb.add_sheet('Employees', cell_overwrite_ok = True) 
+        # Sheet header, first row
+        row_num = 7
 
-    # Sheet header, first row
-    row_num = 7
+        font_title = xlwt.XFStyle()
+        font_title.font.bold = True
+        font_title = xlwt.easyxf('font: bold on, color black;\
+                        borders: top_color black, bottom_color black, right_color black, left_color black,\
+                                left thin, right thin, top thin, bottom thin;\
+                        pattern: pattern solid, fore_color light_blue;')
 
-    font_title = xlwt.XFStyle()
-    font_title.font.bold = True
-    font_title = xlwt.easyxf('font: bold on, color black;\
-                     borders: top_color black, bottom_color black, right_color black, left_color black,\
-                              left thin, right thin, top thin, bottom thin;\
-                     pattern: pattern solid, fore_color light_blue;')
+        font_style =  xlwt.XFStyle()              
 
-    font_style =  xlwt.XFStyle()              
-
-       
-
-
-    columns = ['EID', 'First Name', 'Last Name', 'middle_initial', 'supervisor_name','termination_date','hire_created','hourly_rate','email','Location','user','Is Active', 'Is Supervisor', 'Is Admin']
-
-    for col_num in range(len(columns)):
-        ws.write(row_num, col_num, columns[col_num], font_title) # at 0 row 0 column 
-    
-
-    empl = Employee.objects.all()   
-    for item in empl:
-        row_num += 1
-        ws.write(row_num, 0, item.employeeID, font_style) # at 0 row 0 column 
-        ws.write(row_num, 1, item.first_name, font_style) # at 0 row 0 column 
-        ws.write(row_num, 2, item.last_name, font_style) # at 0 row 0 column 
-        ws.write(row_num, 3, item.middle_initial, font_style) # at 0 row 0 column 
-        ws.write(row_num, 4, item.supervisor_name, font_style) # at 0 row 0 column 
-        ws.write(row_num, 5, item.termination_date, font_style) # at 0 row 0 column 
-        ws.write(row_num, 6, item.hire_created, font_style) # at 0 row 0 column 
-        ws.write(row_num, 7, item.hourly_rate, font_style) # at 0 row 0 column 
-        ws.write(row_num, 8, item.email, font_style) # at 0 row 0 column 
-        if item.Location != None:
-            ws.write(row_num, 9, item.Location.name, font_style) # at 0 row 0 column 
-        
-        if item.user != None:
-            ws.write(row_num, 10, item.user.username, font_style) # at 0 row 0 column 
-
-        if item.is_active:
-            ws.write(row_num, 11, True, font_style) # at 0 row 0 column 
-        else:
-            ws.write(row_num, 11, False, font_style) # at 0 row 0 column 
-        
-        if item.is_supervisor:
-             ws.write(row_num, 12, True, font_style) # at 0 row 0 column 
-        else:
-            ws.write(row_num, 12, False, font_style) # at 0 row 0 column 
-
-        if item.is_admin:
-             ws.write(row_num, 13, True, font_style) # at 0 row 0 column 
-        else:
-            ws.write(row_num, 13, False, font_style) # at 0 row 0 column 
-        
         
 
+
+        columns = ['EID', 'First Name', 'Last Name', 'middle_initial', 'supervisor_name','termination_date','hire_created','hourly_rate','email','Location','user','Is Active', 'Is Supervisor', 'Is Admin']
+
+        for col_num in range(len(columns)):
+            ws.write(row_num, col_num, columns[col_num], font_title) # at 0 row 0 column 
+        
+
+        empl = Employee.objects.all()   
+        for item in empl:
+            row_num += 1
+            ws.write(row_num, 0, item.employeeID, font_style) # at 0 row 0 column 
+            ws.write(row_num, 1, item.first_name, font_style) # at 0 row 0 column 
+            ws.write(row_num, 2, item.last_name, font_style) # at 0 row 0 column 
+            ws.write(row_num, 3, item.middle_initial, font_style) # at 0 row 0 column 
+            ws.write(row_num, 4, item.supervisor_name, font_style) # at 0 row 0 column 
+            ws.write(row_num, 5, item.termination_date, font_style) # at 0 row 0 column 
+            ws.write(row_num, 6, item.hire_created, font_style) # at 0 row 0 column 
+            ws.write(row_num, 7, item.hourly_rate, font_style) # at 0 row 0 column 
+            ws.write(row_num, 8, item.email, font_style) # at 0 row 0 column 
+            if item.Location != None:
+                ws.write(row_num, 9, item.Location.name, font_style) # at 0 row 0 column 
+            
+            if item.user != None:
+                ws.write(row_num, 10, item.user.username, font_style) # at 0 row 0 column 
+
+            if item.is_active:
+                ws.write(row_num, 11, True, font_style) # at 0 row 0 column 
+            else:
+                ws.write(row_num, 11, False, font_style) # at 0 row 0 column 
+            
+            if item.is_supervisor:
+                ws.write(row_num, 12, True, font_style) # at 0 row 0 column 
+            else:
+                ws.write(row_num, 12, False, font_style) # at 0 row 0 column 
+
+            if item.is_admin:
+                ws.write(row_num, 13, True, font_style) # at 0 row 0 column 
+            else:
+                ws.write(row_num, 13, False, font_style) # at 0 row 0 column 
+            
+            
+    except Exception as e:
+        ws.write(0,0,str(e), font_style)    
 
     ws.col(5).width = 3500
     ws.col(6).width = 5000
