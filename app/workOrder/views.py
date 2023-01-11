@@ -2611,43 +2611,75 @@ def get_order_list(request,estatus, loc):
        
 
 
-    columns = ['prismID', 'work order ID', 'PO', 'PO Amount', 'Status','Location','Supervisor','upload Date','Issued By','Job Name','Job Address']
+    columns = ['prismID', 'work order ID', 'PO', 'PO Amount', 'Payroll','Internal PO','Total Expenses', 'Balance','% Balance','Status','Location','Supervisor','upload Date','Issued By','Job Name','Job Address']
 
     for col_num in range(len(columns)):
         ws.write(row_num, col_num, columns[col_num], font_title) # at 0 row 0 column 
     
 
-    ordenes = get_list_orders(request, estatus, loc)   
+    ordenes = get_list_orders(request, estatus, loc)  
+
     for item in ordenes:
         row_num += 1
         ws.write(row_num, 0, item.prismID, font_style) # at 0 row 0 column 
         ws.write(row_num, 1, item.workOrderId, font_style) # at 0 row 0 column 
         ws.write(row_num, 2, item.PO, font_style) # at 0 row 0 column 
         ws.write(row_num, 3, item.POAmount, font_style) # at 0 row 0 column 
-        ws.write(row_num, 4, item.Status, font_style) # at 0 row 0 column 
+
+        dailys = Daily.objects.filter(woID = item)
+        dailyDetail = []
+
+        empTotal = 0
+        for itemd in dailys:
+            dailyEmp = DailyEmployee.objects.filter(DailyID = itemd)
+
+            for empI in dailyEmp:
+                empTotal += validate_decimals(empI.payout)                
+
+        #woo = workOrder.objects.filter(id = item.id)
+
+        internalpo = internalPO.objects.filter(woID=item)
+        poTotal = 0
+        for po in internalpo:
+            poTotal += validate_decimals(po.total)
+
+        balance = validate_decimals(item.POAmount) - validate_decimals(empTotal) - validate_decimals(poTotal)
+        totalExp = validate_decimals(empTotal) + validate_decimals(poTotal)
+        balance_per = ((validate_decimals(totalExp)*100)/validate_decimals(item.POAmount))  
+
+        ws.write(row_num, 4, empTotal, font_style)
+        ws.write(row_num, 5, poTotal,  font_style)
+        ws.write(row_num, 6, totalExp,  font_style)
+        ws.write(row_num, 7, balance,  font_style)
+        ws.write(row_num, 8, balance_per,  font_style)
+
+        ws.write(row_num, 9, item.Status, font_style) # at 0 row 0 column 
         
         if item.Location != None:
-            ws.write(row_num, 5, item.Location.name, font_style) # at 0 row 0 column 
+            ws.write(row_num, 10, item.Location.name, font_style) # at 0 row 0 column 
         else:
-             ws.write(row_num, 5, '', font_style) 
+             ws.write(row_num, 10, '', font_style) 
         
         if item.WCSup != None:
-            ws.write(row_num, 6, item.WCSup.first_name + ' ' + item.WCSup.last_name, font_style) # at 0 row 0 column 
+            ws.write(row_num, 11, item.WCSup.first_name + ' ' + item.WCSup.last_name, font_style) # at 0 row 0 column 
         else:
-            ws.write(row_num, 6, '', font_style) # at 0 row 0 column 
+            ws.write(row_num, 11, '', font_style) # at 0 row 0 column 
 
-        ws.write(row_num, 7, item.UploadDate, font_style) # at 0 row 0 column 
-        ws.write(row_num, 8, item.IssuedBy, font_style) # at 0 row 0 column 
-        ws.write(row_num, 9, item.JobName, font_style) # at 0 row 0 column 
-        ws.write(row_num, 10, item.JobAddress, font_style) # at 0 row 0 column        
+        ws.write(row_num, 12, item.UploadDate, font_style) # at 0 row 0 column 
+        ws.write(row_num, 13, item.IssuedBy, font_style) # at 0 row 0 column 
+        ws.write(row_num, 14, item.JobName, font_style) # at 0 row 0 column 
+        ws.write(row_num, 15, item.JobAddress, font_style) # at 0 row 0 column      
+
+        
+    
 
 
-    ws.col(5).width = 3500
-    ws.col(6).width = 5000
-    ws.col(7).width = 4000
-    ws.col(8).width = 9000
-    ws.col(9).width = 9000
-    ws.col(10).width = 9000
+    ws.col(10).width = 3500
+    ws.col(11).width = 5000
+    ws.col(12).width = 4000
+    ws.col(13).width = 9000
+    ws.col(14).width = 9000
+    ws.col(15).width = 9000
 
     filename = 'orders.xls'    
     response = HttpResponse(content_type='application/ms-excel')
@@ -3318,6 +3350,145 @@ def payroll_detail(request, id):
     context["emp"] = emp
  
     return render(request, "payroll_detail.html", context)
+
+
+def get_emp_list(request):
+
+    wb = xlwt.Workbook(encoding='utf-8')
+    ws = wb.add_sheet('Employees', cell_overwrite_ok = True) 
+
+    # Sheet header, first row
+    row_num = 7
+
+    font_title = xlwt.XFStyle()
+    font_title.font.bold = True
+    font_title = xlwt.easyxf('font: bold on, color black;\
+                     borders: top_color black, bottom_color black, right_color black, left_color black,\
+                              left thin, right thin, top thin, bottom thin;\
+                     pattern: pattern solid, fore_color light_blue;')
+
+    font_style =  xlwt.XFStyle()              
+
+       
+
+
+    columns = ['EID', 'First Name', 'Last Name', 'middle_initial', 'supervisor_name','termination_date','hire_created','hourly_rate','email','Location','user','Is Active', 'Is Supervisor', 'Is Admin']
+
+    for col_num in range(len(columns)):
+        ws.write(row_num, col_num, columns[col_num], font_title) # at 0 row 0 column 
+    
+
+    empl = Employee.objects.all()   
+    for item in empl:
+        row_num += 1
+        ws.write(row_num, 0, item.employeeID, font_style) # at 0 row 0 column 
+        ws.write(row_num, 1, item.first_name, font_style) # at 0 row 0 column 
+        ws.write(row_num, 2, item.last_name, font_style) # at 0 row 0 column 
+        ws.write(row_num, 3, item.middle_initial, font_style) # at 0 row 0 column 
+        ws.write(row_num, 4, item.supervisor_name, font_style) # at 0 row 0 column 
+        ws.write(row_num, 5, item.termination_date, font_style) # at 0 row 0 column 
+        ws.write(row_num, 6, item.hire_created, font_style) # at 0 row 0 column 
+        ws.write(row_num, 7, item.hourly_rate, font_style) # at 0 row 0 column 
+        ws.write(row_num, 8, item.email, font_style) # at 0 row 0 column 
+        if item.Location != None:
+            ws.write(row_num, 9, item.Location.name, font_style) # at 0 row 0 column 
+        
+        if item.user != None:
+            ws.write(row_num, 10, item.user.username, font_style) # at 0 row 0 column 
+
+        if item.is_active:
+            ws.write(row_num, 11, True, font_style) # at 0 row 0 column 
+        else:
+            ws.write(row_num, 11, False, font_style) # at 0 row 0 column 
+        
+        if item.is_supervisor:
+             ws.write(row_num, 12, True, font_style) # at 0 row 0 column 
+        else:
+            ws.write(row_num, 12, False, font_style) # at 0 row 0 column 
+
+        if item.is_admin:
+             ws.write(row_num, 13, True, font_style) # at 0 row 0 column 
+        else:
+            ws.write(row_num, 13, False, font_style) # at 0 row 0 column 
+        
+        
+
+
+    ws.col(5).width = 3500
+    ws.col(6).width = 5000
+    ws.col(7).width = 4000
+    ws.col(8).width = 9000
+    ws.col(9).width = 9000
+    ws.col(10).width = 9000
+
+    filename = 'employees.xls'    
+    response = HttpResponse(content_type='application/ms-excel')
+    response['Content-Disposition'] = 'attachment; filename=' + filename 
+
+    wb.save(response)
+
+    return response
+
+def get_item_list(request):
+
+    wb = xlwt.Workbook(encoding='utf-8')
+    ws = wb.add_sheet('Items', cell_overwrite_ok = True) 
+
+    # Sheet header, first row
+    row_num = 7
+
+    font_title = xlwt.XFStyle()
+    font_title.font.bold = True
+    font_title = xlwt.easyxf('font: bold on, color black;\
+                     borders: top_color black, bottom_color black, right_color black, left_color black,\
+                              left thin, right thin, top thin, bottom thin;\
+                     pattern: pattern solid, fore_color light_blue;')
+
+    font_style =  xlwt.XFStyle()              
+
+       
+
+
+    columns = ['itemID', 'Name', 'Description', 'Location', 'pay_perc','price','emp_payout','rate']
+
+    for col_num in range(len(columns)):
+        ws.write(row_num, col_num, columns[col_num], font_title) # at 0 row 0 column 
+    
+
+    iteml = item.objects.all()   
+    for i in iteml:
+        
+
+        itemP = itemPrice.objects.filter(item=i)
+
+        for ip in itemP:
+            row_num += 1
+            ws.write(row_num, 0, i.itemID, font_style) # at 0 row 0 column 
+            ws.write(row_num, 1, i.name, font_style) # at 0 row 0 column 
+            ws.write(row_num, 2, i.description, font_style)
+            ws.write(row_num, 3, ip.location.name, font_style)
+            ws.write(row_num, 4, ip.pay_perc, font_style)
+            ws.write(row_num, 5, ip.price, font_style)
+            ws.write(row_num, 6, ip.emp_payout, font_style)
+            ws.write(row_num, 7, ip.rate, font_style)
+                        
+
+    ws.col(0).width = 3500
+    ws.col(1).width = 7000
+    ws.col(2).width = 7000
+    ws.col(3).width = 5000
+    ws.col(4).width = 4000
+    ws.col(5).width = 4000
+    ws.col(6).width = 4000
+    ws.col(7).width = 4000
+
+    filename = 'Items.xls'    
+    response = HttpResponse(content_type='application/ms-excel')
+    response['Content-Disposition'] = 'attachment; filename=' + filename 
+
+    wb.save(response)
+
+    return response
 
 
 def validate_decimals(value):

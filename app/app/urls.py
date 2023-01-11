@@ -74,6 +74,8 @@ urlpatterns = [
     path('close_payroll/<id>',views.close_payroll),
     path('payroll_detail/<id>',views.payroll_detail),
     path('get_order_list/<estatus>/<loc>',views.get_order_list),
+    path('get_emp_list/',views.get_emp_list),
+    path('get_item_list/',views.get_item_list),
     path('logout/', LogoutView.as_view(next_page='/login/'), name='logout'),
     path('', include('authentication.urls')),
     path('home/', include('authentication.urls')),
