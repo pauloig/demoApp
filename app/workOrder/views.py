@@ -2767,7 +2767,7 @@ def get_summary(request, perID):
                         on_call = validate_decimals(i.on_call)
 
 
-                    payTotal = validate_decimals(rtPrice + otPrice + dtPrice + bonus + ttp + ov + on_call)
+                    payTotal = validate_decimals(i.payout) #validate_decimals(rtPrice + otPrice + dtPrice + bonus + ttp + ov + on_call)
                     ws.write(row_num,13,validate_print_decimals(i.on_call), font_style)
                     ws.write(row_num,14,validate_print_decimals(payTotal), font_style)
                     ws.write(row_num,15,item.woID.WCSup.last_name + ' ' + item.woID.WCSup.first_name, font_style)
@@ -2868,14 +2868,7 @@ def get_summary(request, perID):
 
         # Sheet header, first row
         row_num = 7
-
-        """font_style = xlwt.XFStyle()
-        font_style.font.bold = True
-        font_style = xlwt.easyxf('font: bold on, color black;\
-                        borders: top_color black, bottom_color black, right_color black, left_color black,\
-                                left thin, right thin, top thin, bottom thin;\
-                        pattern: pattern solid, fore_color light_blue;')"""
-
+       
 
         columns = ['Loc Id', 'Assigned Department', 'Eid', 'Name', 'RT','OT','DT','TT','RT$','OT$','Bonus', 'Production','own vehicle', 'on call', 'payroll']
 
@@ -3023,39 +3016,25 @@ def get_summary(request, perID):
         ws3.write_merge(6, 6, 8, 9, 'From', font_title3)
         ws3.write_merge(7, 7, 8, 9, 'To', font_title3)
         ws3.write_merge(8, 8, 8, 9, 'Pay date', font_title3)
-
-
-        """font_style = xlwt.easyxf('font: bold off, color black;\
-                        borders: top_color black, bottom_color black, right_color black, left_color black,\
-                                left thin, right thin, top thin, bottom thin;\
-                        align: horiz center')"""
+       
 
         ws3.write_merge(5, 5, 10, 11, per.weekRange, font_title3)
         ws3.write_merge(6, 6, 10, 11, per.fromDate.strftime("%m/%d/%Y"), font_title3)
         ws3.write_merge(7, 7, 10, 11, per.toDate.strftime("%m/%d/%Y"), font_title3)
         ws3.write_merge(8, 8, 10, 11, per.payDate.strftime("%m/%d/%Y"), font_title3)   
 
-        """font_style = xlwt.easyxf('font: bold off, color black;\
-                        borders: top_color black, bottom_color black, right_color black, left_color black,\
-                                left thin, right thin, top thin, bottom thin;\
-                        align: horiz right')"""
+       
         ws3.write_merge(5, 5, 5, 6, '$' + '{0:,.2f}'.format(validate_decimals(InvoiceGeneral)), font_title3)
         ws3.write_merge(6, 6, 5, 6, '$' + '{0:,.2f}'.format(validate_decimals(payTotalTotal)), font_title3)
         ws3.write_merge(7, 7, 5, 6, '$' + '{0:,.2f}'.format(validate_decimals(InvoiceGeneral) - validate_decimals(payTotalTotal)), font_title3)
         
-        """font_style = xlwt.easyxf('font: bold off, color black;\
-                        borders: top_color black, bottom_color black, right_color black, left_color black,\
-                                left thin, right thin, top thin, bottom thin;\
-                        align: horiz center')"""
+       
         if validate_decimals(payTotalTotal) > 0 and validate_decimals(invoice) > 0:
             ws3.write_merge(8, 8, 5, 6, str(round((validate_decimals(payTotalTotal)*100) / validate_decimals(invoice),2)) + '%', font_title3)  
         else:    
             ws3.write_merge(8, 8, 5, 6, '0%', font_title3)            
 
-        """font_style = xlwt.easyxf('font: bold on, color black;\
-                        borders: top_color black, bottom_color black, right_color black, left_color black,\
-                                left thin, right thin, top thin, bottom thin;\
-                        pattern: pattern solid, fore_color light_blue;')"""
+        
 
         columns = ['Loc Id', 'Location', 'Regular Time','Over Time','Double Time','Total Time','RT$','OT$','Bonus', 'Production','own vehicle', 'on call', 'payroll', 'Invoice', '% Pay']
 
