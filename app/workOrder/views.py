@@ -995,22 +995,43 @@ def estimate(request, id):
 
     context["estimate"] = True
 
+    itemResume = []
+
+    try:
+        for data in payItems:
+
+            itemResult = next((i for i, item in enumerate(itemResume) if item["item"] == data.itemID.item.itemID), None)
+            amount = 0
+            amount = Decimal(str(data.quantity)) * Decimal(str(data.itemID.price))  
+            if itemResult != None:                  
+                itemResume[itemResult]['quantity'] += data.quantity
+                itemResume[itemResult]['amount'] += amount
+            else:            
+                itemResume.append({'item':data.itemID.item.itemID, 'name': data.itemID.item.name, 'quantity': data.quantity, 'price':data.itemID.price, 'amount':amount,'Encontrado':False})
+           
+        
+    except Exception as e:
+        print(str(e)) 
+
+
+
     itemHtml = ''
     total = 0 
     linea = 0
     try:
-        for data in payItems:
+        context["itemResume"] = itemResume
+        for data in itemResume:
             linea = linea + 1
             amount = 0
 
-            amount = Decimal(str(data.quantity)) * Decimal(str(data.itemID.price))
+            amount = Decimal(str(data['quantity'])) * Decimal(str(data['price']))
             total = total + amount
             itemHtml = itemHtml + " <tr>"
-            itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="20%" align="center"> ' + data.itemID.item.itemID + '</td> '
-            itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px; padding-left: 2px;" width="43%" align="left">    ' + data.itemID.item.name  + '</td> '
-            itemHtml = itemHtml +  ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center">' + str(data.quantity) + '</td> '
-            itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="13%" align="center"> $' + '{0:,.2f}'.format(float(data.itemID.price)) + '</td> '
-            itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> $' + '{0:,.2f}'.format(amount) + '</td> '
+            itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="20%" align="center"> ' + str(data['item']) + '</td> '
+            itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px; padding-left: 2px;" width="43%" align="left">    ' + data['name']  + '</td> '
+            itemHtml = itemHtml +  ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center">' + str(data['quantity']) + '</td> '
+            itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="13%" align="center"> $' + '{0:,.2f}'.format(float(data['price'])) + '</td> '
+            itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> $' + '{0:,.2f}'.format(data['amount']) + '</td> '
             itemHtml = itemHtml + ' </tr> '            
     except Exception as e:
         print(e)
@@ -1112,22 +1133,41 @@ def invoice(request, id):
 
     context["estimate"] = False
 
+    itemResume = []
+
+    try:
+        for data in payItems:
+
+            itemResult = next((i for i, item in enumerate(itemResume) if item["item"] == data.itemID.item.itemID), None)
+            amount = 0
+            amount = Decimal(str(data.quantity)) * Decimal(str(data.itemID.price))  
+            if itemResult != None:                  
+                itemResume[itemResult]['quantity'] += data.quantity
+                itemResume[itemResult]['amount'] += amount
+            else:            
+                itemResume.append({'item':data.itemID.item.itemID, 'name': data.itemID.item.name, 'quantity': data.quantity, 'price':data.itemID.price, 'amount':amount,'Encontrado':False})
+           
+        
+    except Exception as e:
+        print(str(e)) 
+
     itemHtml = ''
     total = 0 
     linea = 0
     try:
-        for data in payItems:
+        context["itemResume"] = itemResume
+        for data in itemResume:
             linea = linea + 1
             amount = 0
             
-            amount = Decimal(str(data.quantity)) * Decimal(str(data.itemID.price))
+            amount = Decimal(str(data['quantity'])) * Decimal(str(data['price']))
             total = total + amount
             itemHtml = itemHtml + " <tr>"
-            itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="20%" align="center"> ' + data.itemID.item.itemID + '</td> '
-            itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px; padding-left: 2px;" width="43%" align="left">   ' + data.itemID.item.name + '</td> '
-            itemHtml = itemHtml +  ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center">' + str(data.quantity) + '</td> '
-            itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="13%" align="center"> $' + '{0:,.2f}'.format(float(data.itemID.price)) + '</td> '
-            itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> $' + '{0:,.2f}'.format(amount) + '</td> '
+            itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="20%" align="center"> ' + str(data['item']) + '</td> '
+            itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px; padding-left: 2px;" width="43%" align="left">   ' + data['name'] + '</td> '
+            itemHtml = itemHtml +  ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center">' + str(data['quantity']) + '</td> '
+            itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="13%" align="center"> $' + '{0:,.2f}'.format(float(data['price'])) + '</td> '
+            itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> $' + '{0:,.2f}'.format(data['amount']) + '</td> '
             itemHtml = itemHtml + ' </tr> '            
     except Exception as e:
         print(e)
@@ -1231,25 +1271,46 @@ def estimate_preview(request, id):
 
     context["estimate"] = True
 
+    itemResume = []
+
+    try:
+        for data in payItems:
+
+            itemResult = next((i for i, item in enumerate(itemResume) if item["item"] == data.itemID.item.itemID), None)
+            amount = 0
+            amount = Decimal(str(data.quantity)) * Decimal(str(data.itemID.price))  
+            if itemResult != None:                  
+                itemResume[itemResult]['quantity'] += data.quantity
+                itemResume[itemResult]['amount'] += amount
+            else:            
+                itemResume.append({'item':data.itemID.item.itemID, 'name': data.itemID.item.name, 'quantity': data.quantity, 'price':data.itemID.price, 'amount':amount,'Encontrado':False})
+           
+        
+    except Exception as e:
+        print(str(e))   
+
+
     itemHtml = ''
     total = 0 
     linea = 0
     try:
-        for data in payItems:
+        context["itemResume"] = itemResume
+        for data in itemResume:
             linea = linea + 1
             amount = 0
            
-            amount = Decimal(str(data.quantity)) * Decimal(str(data.itemID.price))
+            amount = Decimal(str(data['quantity'])) * Decimal(str(data['price']))
             total = total + amount
             itemHtml = itemHtml + ' <tr> '                  
-            itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px;" width="20%" align="center">' + data.itemID.item.itemID + '</td> '
-            itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px; padding-left: 2px;" width="43%" align="left">' + data.itemID.item.name + '</td> '
-            itemHtml = itemHtml +  ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px;" width="12%" align="center">' + str(data.quantity) + '</td> '
-            itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px;" width="13%" align="center"> $' + '{0:,.2f}'.format(float(data.itemID.price)) + '</td> '
-            itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px;" width="12%" align="center"> $'  + '{0:,.2f}'.format(amount) + '</td>'
-            itemHtml = itemHtml + ' </tr> '            
+            itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px;" width="20%" align="center">' + str(data['item']) + '</td> '
+            itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px; padding-left: 2px;" width="43%" align="left">' + data['name'] + '</td> '
+            itemHtml = itemHtml +  ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px;" width="12%" align="center">' + str(data['quantity']) + '</td> '
+            itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px;" width="13%" align="center"> $' + '{0:,.2f}'.format(float(data['price'])) + '</td> '
+            itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px;" width="12%" align="center"> $'  + '{0:,.2f}'.format(data['amount']) + '</td>'
+            itemHtml = itemHtml + ' </tr> '        
     except Exception as e:
-        print(e)
+        itemHtml = itemHtml + str(e)
+        print(str(e))
 
     # obtengo las internal PO
     internal = internalPO.objects.filter(woID = wo)
@@ -1311,22 +1372,41 @@ def invoice_preview(request, id):
 
     context["estimate"] = False
 
+    itemResume = []
+
+    try:
+        for data in payItems:
+
+            itemResult = next((i for i, item in enumerate(itemResume) if item["item"] == data.itemID.item.itemID), None)
+            amount = 0
+            amount = Decimal(str(data.quantity)) * Decimal(str(data.itemID.price))  
+            if itemResult != None:                  
+                itemResume[itemResult]['quantity'] += data.quantity
+                itemResume[itemResult]['amount'] += amount
+            else:            
+                itemResume.append({'item':data.itemID.item.itemID, 'name': data.itemID.item.name, 'quantity': data.quantity, 'price':data.itemID.price, 'amount':amount,'Encontrado':False})
+           
+        
+    except Exception as e:
+        print(str(e))   
+
     itemHtml = ''
     total = 0 
     linea = 0
     
     try:
-        for data in payItems:
+        context["itemResume"] = itemResume
+        for data in itemResume:
             linea = linea + 1
             amount = 0            
-            amount = Decimal(str(data.quantity)) * Decimal(str(data.itemID.price))
+            amount = Decimal(str(data['quantity'])) * Decimal(str(data['price']))
             total = total + amount
             itemHtml = itemHtml + ' <tr> '                  
-            itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px;" width="20%" align="center">' + data.itemID.item.itemID + '</td> '
-            itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px; padding-left: 2px;" width="43%" align="left">' + data.itemID.item.name + '</td> '
-            itemHtml = itemHtml +  ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px;" width="12%" align="center">' + str(data.quantity) + '</td> '
-            itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px;" width="13%" align="center"> $' + '{0:,.2f}'.format(float(data.itemID.price)) + '</td> '
-            itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px;" width="12%" align="center"> $'  + '{0:,.2f}'.format(float(amount)) + '</td>'
+            itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px;" width="20%" align="center">' + str(data['item']) + '</td> '
+            itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px; padding-left: 2px;" width="43%" align="left">' + data['name'] + '</td> '
+            itemHtml = itemHtml +  ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px;" width="12%" align="center">' + str(data['quantity']) + '</td> '
+            itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px;" width="13%" align="center"> $' + '{0:,.2f}'.format(float(data['price'])) + '</td> '
+            itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px;" width="12%" align="center"> $'  + '{0:,.2f}'.format(data['amount']) + '</td>'
             itemHtml = itemHtml + ' </tr> '            
     except Exception as e:
         print(e)
@@ -2080,12 +2160,12 @@ def calculate_hours(startTime, endTime, lunch_startTime, lunch_endTime):
         double_time = 0
     elif endTotal > 8 and endTotal <= 12:
         regular_hours =  8
-        ot_hours = int(endTotal) - 8
+        ot_hours = ((float(endTotal) - 8) * 100)/60
         double_time = 0
     elif endTotal > 12:
         regular_hours =  8
         ot_hours = 4
-        double_time = endTotal - 12
+        double_time = ((float(endTotal - 12) - 8) * 100)/60
     else:
         regular_hours =  0
         ot_hours = 0
@@ -2106,7 +2186,7 @@ def create_daily_emp(request, id, LocID):
     context["per"] = per
 
     for i in dailyE:
-       empList.append(i.EmployeeID.employeeID) 
+       empList.append(i.EmployeeID.emplo|yeeID) 
 
     EmpLocation = Employee.objects.filter().exclude(employeeID__in = empList)
 
@@ -2501,8 +2581,8 @@ def send_recap(request, perID):
                 message += '\n \n best regards,'
                 emailTo = item.EmployeeID.email
                 if emailTo != None:
-                    email =  EmailMessage(subject,message, 'paulo.ismalej@gmail.com' ,[emailTo])
-                    email.attach_file(item.recap.path)
+                    email =  EmailMessage(subject,message, 'recaps@wiringconnection.com' ,[emailTo])
+                    email.attach_file(item.recap.path)                    
                     email.send()
 
                     item.mailingDate = datetime.datetime.now()
@@ -2510,9 +2590,7 @@ def send_recap(request, perID):
 
     return HttpResponseRedirect('/location_period_list/' + perID) 
 
-def send_recap_emp(request, perID, empID):
-
-    #send_mail('Recap','this is your recap to Period ','recaps@wiringconnection.com',['paulo.ismalej@gmail.com'])
+def send_recap_emp(request, perID, empID):   
     per = period.objects.filter(id = perID).first()
     emp = Employee.objects.filter(employeeID = empID).first()
     if per and emp:
@@ -2527,8 +2605,8 @@ def send_recap_emp(request, perID, empID):
 
             emailTo = item.EmployeeID.email
             if emailTo != None:
-                email = EmailMessage(subject,message, 'paulo.ismalej@gmail.com' ,[emailTo])
-                email.attach_file(item.recap.path)
+                email = EmailMessage(subject,message, 'recaps@wiringconnection.com' ,[emailTo])
+                email.attach_file(item.recap.path)                
                 email.send()
 
                 item.mailingDate = datetime.datetime.now()
