@@ -2152,7 +2152,7 @@ def calculate_hours(startTime, endTime, lunch_startTime, lunch_endTime):
     elif endTotal < 0:
         endTotal = 0
 
-    total_hours = endTotal
+    
 
     if endTotal <= 8:
         regular_hours =  endTotal
@@ -2160,7 +2160,7 @@ def calculate_hours(startTime, endTime, lunch_startTime, lunch_endTime):
         double_time = 0
     elif endTotal > 8 and endTotal <= 12:
         regular_hours =  8
-        ot_hours = ((float(endTotal) - 8) * 100)/60
+        ot_hours = ((float(endTotal) - 8) * 100)/60     
         double_time = 0
     elif endTotal > 12:
         regular_hours =  8
@@ -2170,6 +2170,8 @@ def calculate_hours(startTime, endTime, lunch_startTime, lunch_endTime):
         regular_hours =  0
         ot_hours = 0
         double_time = 0  
+
+    total_hours = regular_hours + ot_hours + double_time
 
     return total_hours, regular_hours, ot_hours, double_time
         
