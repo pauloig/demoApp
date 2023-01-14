@@ -1542,6 +1542,7 @@ def upload_employee(request):
     countInserted = 0
     countRejected = 0
     countUpdated = 0
+    error_detail = []
     if request.method == 'POST':
         dataset = Dataset()
         new_item = request.FILES['myfile']
@@ -1552,24 +1553,69 @@ def upload_employee(request):
 
         imported_data = dataset.load(new_item.read(),format='xlsx')
       
-
+        sup = None
+        loc= None
+        
         for data in imported_data:             
             try:         
-                value = Employee(
-                    employeeID = data[0],
-                    first_name = data[1],
-                    last_name = data[2],
-                    hourly_rate = data[3],
-                    email = data[4],
-                    is_active = True
-                )
-                value.save()
+
+                if data[6] != None and data[6]!= '':
+                    sup = Employee.objects.filter(employeeID = int(data[6])).first()
+                
+                if data[7] != None and data[7]!= '':
+                    loc = Locations.objects.filter(LocationID = int(data[7])).first()
+
+                if sup!= None and loc != None:
+                    value = Employee(
+                        employeeID = data[0],
+                        first_name = data[1],
+                        last_name = data[2],
+                        hourly_rate = data[3],
+                        email = data[4],
+                        is_active = True,
+                        supervisor_name = sup,
+                        Location = loc
+                    )
+                    value.save()
+                elif sup!=None:
+                    value = Employee(
+                        employeeID = data[0],
+                        first_name = data[1],
+                        last_name = data[2],
+                        hourly_rate = data[3],
+                        email = data[4],
+                        is_active = True,
+                        supervisor_name = sup                        
+                    )
+                    value.save()
+                elif loc!=None:
+                    value = Employee(
+                        employeeID = data[0],
+                        first_name = data[1],
+                        last_name = data[2],
+                        hourly_rate = data[3],
+                        email = data[4],
+                        is_active = True,
+                        Location = loc                        
+                    )
+                    value.save()
+                else :
+                    value = Employee(
+                        employeeID = data[0],
+                        first_name = data[1],
+                        last_name = data[2],
+                        hourly_rate = data[3],
+                        email = data[4],
+                        is_active = True                     
+                    )
+                    value.save()
 
                 countInserted = countInserted + 1
             except Exception as e:
+                error_detail.append(str(e))
                 countRejected = countRejected + 1                
                        
-    return render(request,'upload_employee.html', {'countInserted':countInserted, 'countRejected':countRejected })
+    return render(request,'upload_employee.html', {'countInserted':countInserted, 'countRejected':countRejected, 'error_detail': error_detail})
 
 def period_list(request):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
