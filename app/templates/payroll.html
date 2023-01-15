@@ -91,12 +91,14 @@
         </div>         
         <div class="row py-2">
             <div class="col-sm-10">   
-                {%if selectedDay > 0 %}      
-                    <a class="btn btn-success px-2" href="/create_daily/{{period.id}}/{{selectedDay}}/{{selectedLocation}}">
-                        Add Crew
-                    </a> 
-                {%endif%}
-                    
+                {% if selectedDay > 0 %}
+                    {%if emp.is_superAdmin  or user.is_staff  or period.status == 1%}  
+
+                        <a class="btn btn-success px-2" href="/create_daily/{{period.id}}/{{selectedDay}}/{{selectedLocation}}">
+                            Add Crew
+                        </a> 
+                    {%endif%}
+                {%endif%}   
                 {% for item in crew %}                         
                     {% if item.crew == selectedCrew %}
                         <a class="btn btn-warning px-2" href="/payroll/{{period.id}}/{{item.day|date:'d'}}/{{item.crew}}/{{selectedLocation}}" role="button">Crew {{item.crew}}</a>
@@ -111,7 +113,9 @@
                 {%if selectedDay > 0 and selectedCrew > 0 %}      
                     {% for item in crew %} 
                         {% if item.crew == selectedCrew %}
-                            <a class="btn btn-danger px-2 mx-5" hx-get="/delete_daily/{{item.id}}/{{selectedLocation}}" hx-target="#dialog"><i class="fa-solid fa-trash-can"></i></a>
+                            {% if emp.is_superAdmin  or user.is_staff  or period.status == 1 %}
+                                <a class="btn btn-danger px-2 mx-5" hx-get="/delete_daily/{{item.id}}/{{selectedLocation}}" hx-target="#dialog"><i class="fa-solid fa-trash-can"></i></a>
+                            {%endif%}
                         {%endif%}
                     {%endfor%}
                 {%endif%}
@@ -134,8 +138,10 @@
                                             <label for="PID" class="form-label">PID - Work Order - PO</label>                
                                             <div class="input-group mb-3">
                                                 <input type="text" class="form-control" placeholder="Enter PID" aria-label="PID" id="PID" name="PID" aria-describedby="basic-addon1" value="{{item.woID.prismID}} - {{item.woID.workOrderId}} - {{item.woID.PO}}" disabled>                                                                                             
-                                                <button hx-get="/orders_payroll/{{item.id}}/{{selectedLocation}}" class="btn btn-primary py-2" hx-target="#dialog" ><i class="fa-sharp fa-solid fa-magnifying-glass"></i></button>                                                
-                                            </div>                                      
+                                                    {% if emp.is_superAdmin  or user.is_staff  or period.status == 1%}
+                                                        <button hx-get="/orders_payroll/{{item.id}}/{{selectedLocation}}" class="btn btn-primary py-2" hx-target="#dialog" ><i class="fa-sharp fa-solid fa-magnifying-glass"></i></button>                                                
+                                                    {%endif%}
+                                                </div>                                      
                                         </div>        
                                     </div>                                  
                                     <div class="col-sm-7">
@@ -160,8 +166,10 @@
                                                             <option value="{{sup.employeeID}}">{{sup.first_name}} {{sup.last_name}}</option>   
                                                         {%endif%}            
                                                     {% endfor %}      
-                                                </select>                                                                                                  
-                                                <button type="button" class="btn btn-primary py-2" data-bs-toggle="modal" data-bs-target="#updateSup"><i class="fa-sharp fa-solid fa-magnifying-glass"></i></button>
+                                                </select>   
+                                                {% if emp.is_superAdmin  or user.is_staff  or period.status == 1 %}                                                                                               
+                                                    <button type="button" class="btn btn-primary py-2" data-bs-toggle="modal" data-bs-target="#updateSup"><i class="fa-sharp fa-solid fa-magnifying-glass"></i></button>
+                                                {%endif%}
                                             </div>                                            
                                         </div>                                                                                                                                                                          
                                     </div>  
@@ -191,9 +199,11 @@
                                     </div> 
                                 </form>
                                     <div class="col-sm-4 pt-3">
-                                        <button type="button" class="btn btn-primary p-3" data-bs-toggle="modal" data-bs-target="#staticBackdrop">
-                                            upload daily
-                                        </button> 
+                                        {% if emp.is_superAdmin  or user.is_staff  or period.status == 1%}
+                                            <button type="button" class="btn btn-primary p-3" data-bs-toggle="modal" data-bs-target="#staticBackdrop">
+                                                upload daily
+                                            </button> 
+                                        {%endif%}
                                         {% if item.pdfDaily != '' and item.pdfDaily != None %}                                        
                                             <a class="btn btn-primary p-3" href="/static/media/{{item.pdfDaily}}" target="_blank"> View Daily</a>  
                                         {% endif %}                                          
@@ -230,7 +240,9 @@
                                                                     <td width="8%" class="p-1">Payout</td>
                                                                     <td width="8%" class="p-1">
                                                                         {% if item.supervisor != None and item.woID != None %}
-                                                                            <a hx-get="/create_daily_emp/{{item.id}}/{{selectedLocation}}" hx-target="#dialog"><i class="fa-solid fa-user-plus"></i></a>
+                                                                            {% if emp.is_superAdmin  or user.is_staff or period.status == 1 %}
+                                                                                <a hx-get="/create_daily_emp/{{item.id}}/{{selectedLocation}}" hx-target="#dialog"><i class="fa-solid fa-user-plus"></i></a>
+                                                                            {%endif%}
                                                                         {% endif %}
                                                                     </td>
         
@@ -250,9 +262,11 @@
                                                                         <td class="p-1">{{emp.double_time|floatformat:2|intcomma}}</td>
                                                                         <td class="p-1" style="color: red;">{%if emp.payout > 0 %}${{emp.payout|floatformat:2|intcomma}}{%else%}$0.00{%endif%}</td>
                                                                         <td class="p-1">
-                                                                            <a hx-get="/update_daily_emp/{{emp.id}}/{{selectedLocation}}" hx-target="#dialog"><i class="fa-solid fa-user-pen" style="color: green;"></i></a>
-                                                                            <a hx-get="/delete_daily_emp/{{emp.id}}/{{selectedLocation}}" hx-target="#dialog">  <i class="fa-solid fa-user-minus" style="color: red;"></i></a>
-                                                                        </td>                                                        
+                                                                            {% if emp.is_superAdmin  or user.is_staff or period.status == 1%}
+                                                                                <a hx-get="/update_daily_emp/{{emp.id}}/{{selectedLocation}}" hx-target="#dialog"><i class="fa-solid fa-user-pen" style="color: green;"></i></a>
+                                                                                <a hx-get="/delete_daily_emp/{{emp.id}}/{{selectedLocation}}" hx-target="#dialog">  <i class="fa-solid fa-user-minus" style="color: red;"></i></a>
+                                                                            {%endif%}
+                                                                            </td>                                                        
                                                                     </tr>
                                                                 {%endfor%}
                                                             </tbody>                                                
@@ -278,7 +292,9 @@
                                                                     <td width="20%" class="p-1">Total</td>  
                                                                     <td width="20%" class="p-1">
                                                                         {% if item.supervisor != None and item.woID != None %}
-                                                                            <a hx-get="/create_daily_item/{{item.id}}/{{selectedLocation}}" hx-target="#dialog"><i class="fa-solid fa-circle-plus"></i></a>
+                                                                            {% if emp.is_superAdmin  or user.is_staff or period.status == 1 %}
+                                                                                <a hx-get="/create_daily_item/{{item.id}}/{{selectedLocation}}" hx-target="#dialog"><i class="fa-solid fa-circle-plus"></i></a>
+                                                                            {% endif %}
                                                                         {% endif %}
                                                                     </td>                                                 
                                                                 </tr>
@@ -291,8 +307,10 @@
                                                                         <td class="p-1">${{itemd.itemID.emp_payout|floatformat:2|intcomma}}</td>
                                                                         <td class="p-1">${{itemd.total|floatformat:2|intcomma}}</td>   
                                                                         <td class="p-1">
-                                                                            <a hx-get="/update_daily_item/{{itemd.id}}/{{selectedLocation}}" hx-target="#dialog"><i class="fa-solid fa-pen-to-square" style="color: green;"></i></a>
-                                                                            <a hx-get="/delete_daily_item/{{itemd.id}}/{{selectedLocation}}" hx-target="#dialog"><i class="fa-solid fa-circle-minus" style="color: red;"></i></a>
+                                                                            {% if emp.is_superAdmin  or user.is_staff or period.status == 1 %}
+                                                                                <a hx-get="/update_daily_item/{{itemd.id}}/{{selectedLocation}}" hx-target="#dialog"><i class="fa-solid fa-pen-to-square" style="color: green;"></i></a>
+                                                                                <a hx-get="/delete_daily_item/{{itemd.id}}/{{selectedLocation}}" hx-target="#dialog"><i class="fa-solid fa-circle-minus" style="color: red;"></i></a>
+                                                                            {%endif%}
                                                                         </td> 
                                                                     </tr>
                                                                 {%endfor%}

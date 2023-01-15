@@ -41,6 +41,7 @@ class Employee(models.Model):
     is_active = models.BooleanField(default=True)
     is_supervisor = models.BooleanField(default=False)
     is_admin = models.BooleanField(default=False)
+    is_superAdmin = models.BooleanField(default=False)
 
     def __str__(self):
         return self.first_name + ", " + self.last_name
@@ -70,6 +71,8 @@ class workOrder(models.Model):
     linkedOrder = models.CharField(max_length=600, null=True, blank=True)
     pre_invoice = models.CharField(max_length=200, null=True, blank=True)
     invoice = models.CharField(max_length=200, null=True, blank=True)
+    created_date = models.DateTimeField(blank=True, null=True)
+    createdBy = models.CharField(max_length=60, blank=True, null=True)
     
 
     class Meta:

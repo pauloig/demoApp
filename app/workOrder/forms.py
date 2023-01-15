@@ -39,7 +39,8 @@ class EmployeesForm(forms.ModelForm):
              "user",
              "is_active",
              "is_supervisor",
-             "is_admin"
+             "is_admin",
+             "is_superAdmin"
         ]
 
     def __init__(self, *args, **kwargs):
@@ -67,6 +68,8 @@ class workOrderForm(forms.ModelForm):
     UserName= forms.CharField(max_length=200, widget=forms.TextInput(attrs={'class':'form-control'}), required=False)
 
     WCSup = forms.ModelChoiceField(label="Supervisor",queryset=Employee.objects.filter(is_supervisor=True, is_active=True, user__isnull=False), widget=forms.Select(attrs={'class': 'form-control'}), required=False)
+    createdBy = forms.CharField(max_length=150, widget=forms.TextInput(attrs={'class':'form-control'}), required=False)
+    created_date = forms.CharField(max_length=150, widget=forms.TextInput(attrs={'class':'form-control'}), required=False)
 
     class Meta:
         model = workOrder
@@ -91,13 +94,17 @@ class workOrderForm(forms.ModelForm):
             'UploadDate',
             'UserName',
             "Location",
+            "created_date",
+            "createdBy"
         ]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['prismID'].disabled = True
         self.fields['workOrderId'].disabled = True
-        self.fields['PO'].disabled = True        
+        self.fields['PO'].disabled = True       
+        self.fields['created_date'].disabled = True
+        self.fields['createdBy'].disabled = True 
 
 
 

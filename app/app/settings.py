@@ -45,16 +45,6 @@ EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
 EMAIL_USE_TLS = bool(os.environ.get('EMAIL_USE_TLS'))
 EMAIL_TIMEOUT = int(os.environ.get('EMAIL_TIMEOUT'))
 
-"""
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = '587'
-EMAIL_HOST_USER= 'recaps@wiringconnection.com'
-SERVER_EMAIL = 'recaps@wiringconnection.com'
-DEFAULT_FROM_EMAIL = 'recaps@wiringconnection.com'
-EMAIL_HOST_PASSWORD = '6184W*con'
-EMAIL_USE_TLS = True
-EMAIL_TIMEOUT = 60  """
-
 # Application definition
 
 INSTALLED_APPS = [

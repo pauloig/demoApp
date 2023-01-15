@@ -112,7 +112,9 @@ def simple_upload(request):
                         CloseDate = data[15],
                         UploadDate = data[17],
                         UserName = data[18],
-                        uploaded = True
+                        uploaded = True,
+                        createdBy = request.user.username,
+                        created_date = datetime.datetime.now()
                     )
                     value.save()
 
@@ -395,6 +397,8 @@ def listOrders(request):
     if request.method == "POST":
         estatus = request.POST.get('status')
         loc = request.POST.get('location') 
+        if loc == None or loc =="":
+            loc = "0"
         locationObject = Locations.objects.filter(LocationID=loc).first()
     
     context["selectEstatus"] = estatus    
@@ -404,7 +408,7 @@ def listOrders(request):
     context["selectLoc"]=loc
 
     if emp:
-        if emp.is_admin:     
+        if emp.is_superAdmin:                
             if estatus == "0" and loc == "0":   
                 orders = workOrder.objects.exclude(linkedOrder__isnull = False, uploaded = False )        
             else:
@@ -417,8 +421,26 @@ def listOrders(request):
                         orders = workOrder.objects.filter(Location = locationObject).exclude(linkedOrder__isnull = False, uploaded = False ) 
             context["orders"]=orders
             return render(request,'order_list.html',context)
+        
+        if emp.is_admin:  
+            context["perfil"]="Admin"          
+            if emp.Location!= None:
+                if estatus == "0" and loc == "0":                     
+                    orders = workOrder.objects.filter(Location = emp.Location).exclude(linkedOrder__isnull = False, uploaded = False) 
+                else:
+                    if estatus != "0" and loc != "0":                          
+                        orders = workOrder.objects.filter(Status = estatus, Location = emp.Location).exclude(linkedOrder__isnull = False, uploaded = False )     
+                    else:
+                        if estatus != "0":                              
+                            orders = workOrder.objects.filter(Status = estatus, Location = emp.Location).exclude(linkedOrder__isnull = False, uploaded = False ) 
+                        else:                             
+                            orders = workOrder.objects.filter(Location = emp.Location).exclude(linkedOrder__isnull = False, uploaded = False ) 
+            else:
+                orders = None
+            context["orders"]=orders
+            return render(request,'order_list.html',context)
 
-    if request.user.is_staff:
+    if request.user.is_staff:        
         if estatus == "0" and loc == "0":    
             orders = workOrder.objects.exclude(linkedOrder__isnull = False, uploaded = False )  
         else:
@@ -432,8 +454,7 @@ def listOrders(request):
         context["orders"]=orders
         return render(request,'order_list.html',context)
 
-
-    # orders = workOrder.objects.filter(Location__isnull=True, WCSup__isnull=True)
+     
     if estatus == "0" and loc == "0":   
         orders = workOrder.objects.filter(WCSup__isnull=True).exclude(linkedOrder__isnull = False, uploaded = False )
     else:
@@ -514,8 +535,10 @@ def order(request, orderID):
     form = workOrderForm(request.POST or None, instance = obj)
 
     if form.is_valid(): 
-        anterior = workOrder.objects.filter(id = orderID).first()
+        anterior = workOrder.objects.filter(id = orderID).first()    
+         
         if form.instance.Status != anterior.Status:
+            form.instance.UploadDate = datetime.datetime.now()
             log = woStatusLog( 
                             woID = anterior,
                             currentStatus = anterior.Status,
@@ -577,7 +600,9 @@ def updateDupOrder(request,pID, dupID):
                             CloseDate = dupOrder.CloseDate,
                             UploadDate = datetime.datetime.now(),
                             UserName = dupOrder.UserName,
-                            uploaded = True )        
+                            uploaded = True,
+                            createdBy = request.user.username,
+                            created_date = datetime.datetime.now() )        
         order.save()        
         dupOrder.delete()
 
@@ -619,7 +644,9 @@ def insertDupOrder(request, dupID):
                             CloseDate = dupOrder.CloseDate,
                             UploadDate = dupOrder.UploadDate,
                             UserName = dupOrder.UserName,
-                            uploaded = True )
+                            uploaded = True,
+                            createdBy = request.user.username,
+                            created_date = datetime.datetime.now() )
         order.save()
         dupOrder.delete()
 
@@ -663,8 +690,9 @@ def create_order(request):
         form.instance.prismID = woID
         form.instance.workOrderId = woID
         form.instance.PO = woID
-        form.instance.Status = '1'
-        form.instance.UploadDate = datetime.datetime.now()
+        form.instance.Status = '1',
+        form.instance.createdBy = request.user.username
+        form.instance.created_date = datetime.datetime.now()
         form.save()
 
 
@@ -1095,6 +1123,7 @@ def estimate(request, id):
         pre = Sequence("preinvoice")
         wo.pre_invoice = str(pre.get_next_value())
         wo.Status=4
+        wo.UploadDate = datetime.datetime.now()
         wo.save()
     
    
@@ -1229,6 +1258,7 @@ def invoice(request, id):
         pre = Sequence("invoice")
         wo.invoice = str(pre.get_next_value())
         wo.Status=5
+        wo.UploadDate = datetime.datetime.now()
         wo.save()
 
     wo2 = workOrder.objects.filter(id=id).first()
@@ -1637,7 +1667,22 @@ def location_period_list(request, id):
     perActive = period.objects.filter(status__in=(1,2)).first()
     context["per"] = perActive
 
-    loca = Locations.objects.all().order_by("LocationID")
+    
+    
+    
+    if request.user.is_staff:
+        loca = Locations.objects.all().order_by("LocationID")
+    else:
+        if emp:
+            if emp.is_superAdmin:
+                loca = Locations.objects.all().order_by("LocationID")
+            elif emp.Location != None:
+                loca = Locations.objects.filter(LocationID = emp.Location.LocationID)
+            else:
+                loca = Locations.objects.filter(LocationID = -1)
+
+    
+    
     locationSummary = []
 
     for locItem in loca:
@@ -1838,6 +1883,7 @@ def update_order_daily(request, woID, dailyID, LocID):
                 anterior.UploadDate = None
                 anterior.UserName = None
                 anterior.WCSup = None
+                anterior.UploadDate = datetime.datetime.now()
                 anterior.save()
 
 
@@ -2089,10 +2135,10 @@ def payroll(request, perID, dID, crewID, LocID):
         week2.append({'day':day, 'shortDate': shortDate, 'longDate': longDate, 'fullDate': fullDate, 'Total': totalItems, 'selected': selectedDay })
     
     
-    if request.user.is_staff or emp.is_admin:
-        superV = Employee.objects.filter(is_supervisor=True, Location = loca)
+    if request.user.is_staff or emp.is_superAdmin:
+        superV = Employee.objects.filter(is_supervisor=True)
     else:
-        superV = Employee.objects.filter(is_supervisor=True, Location = loca)
+        superV = Employee.objects.filter(is_supervisor=True)
 
     if dID != "0":
         # get the list of dailys for the period, Day selected and Location
@@ -2670,7 +2716,7 @@ def get_list_orders(request,estatus, loc):
     
 
     if emp:
-        if emp.is_admin:     
+        if emp.is_superAdmin:     
             if estatus == "0" and loc == "0":   
                 orders = workOrder.objects.exclude(linkedOrder__isnull = False, uploaded = False )        
             else:
@@ -2819,6 +2865,23 @@ def get_order_list(request,estatus, loc):
 
 def get_summary(request, perID):
    
+    emp = Employee.objects.filter(user__username__exact = request.user.username).first()
+
+    if request.user.is_staff:
+        loca = Locations.objects.all().order_by("LocationID")
+    else:
+        if emp:
+            if emp.is_superAdmin:
+                loca = Locations.objects.all().order_by("LocationID")
+            elif emp.Location != None:
+                loca = Locations.objects.filter(LocationID = emp.Location.LocationID)
+            else:
+                loca = Locations.objects.filter(LocationID = -1)
+
+    locList = []
+    for empLoc in loca:
+        locList.append(empLoc.LocationID)
+
     wb = xlwt.Workbook(encoding='utf-8')
     ws = wb.add_sheet('Summary', cell_overwrite_ok = True) 
 
@@ -2842,8 +2905,9 @@ def get_summary(request, perID):
 
     
     try:
+
         per = period.objects.filter(id = perID).first()
-        dailyList = Daily.objects.filter(Period = per).order_by('Location')
+        dailyList = Daily.objects.filter(Period = per, Location__LocationID__in = locList).order_by('Location')
 
         for item in dailyList:        
         
@@ -2928,7 +2992,8 @@ def get_summary(request, perID):
                     payTotal = validate_decimals(i.payout) #validate_decimals(rtPrice + otPrice + dtPrice + bonus + ttp + ov + on_call)
                     ws.write(row_num,13,validate_print_decimals(i.on_call), font_style)
                     ws.write(row_num,14,validate_print_decimals(payTotal), font_style)
-                    ws.write(row_num,15,item.woID.WCSup.last_name + ' ' + item.woID.WCSup.first_name, font_style)
+                    if item.woID.WCSup != None:
+                        ws.write(row_num,15,item.woID.WCSup.last_name + ' ' + item.woID.WCSup.first_name, font_style)
                     ws.write(row_num,16,item.woID.prismID, font_style)
                     ws.write(row_num,17,item.woID.JobAddress, font_style)
 
@@ -3034,12 +3099,13 @@ def get_summary(request, perID):
             ws2.write(row_num, col_num, columns[col_num], font_title) # at 0 row 0 column 
           
 
+
         empList = Employee.objects.all()   
         per = period.objects.filter(id = perID).first()
         invoice = 0
         payTotalTotal = 0
         for item in empList:
-            dailyEmp = DailyEmployee.objects.filter(EmployeeID = item, DailyID__Period = perID).count()
+            dailyEmp = DailyEmployee.objects.filter(EmployeeID = item, DailyID__Period = perID, DailyID__Location__LocationID__in = locList).count()
 
             if dailyEmp > 0:           
                 emp = Employee.objects.filter(employeeID = item.employeeID).first()            
@@ -3200,7 +3266,7 @@ def get_summary(request, perID):
             ws3.write(row_num, col_num, columns[col_num], font_title) # at 0 row 0 column        
 
 
-        loca = Locations.objects.all().order_by("LocationID")    
+        loca = Locations.objects.filter(LocationID__in = locList).order_by("LocationID")    
 
         for locItem in loca:
             row_num += 1
@@ -3364,6 +3430,7 @@ def delete_daily(request, id, LocID):
                 wo.UploadDate = None
                 wo.UserName = None
                 wo.WCSup = None
+                wo.UploadDate = datetime.datetime.now()
                 wo.save()
 
         

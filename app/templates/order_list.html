@@ -15,9 +15,10 @@
                     <h6 class="card-header card-header-wc" >Filters</h6>
                     <div class="card-body">
                         <div class="row">                   
-                            <div class="col-lg-3">                               
+                            <div class="col-lg-3">                                                     
                                 <select class="form-select" aria-label="Default select example" name="status" id="status">
-                                    {%if selectEstatus == "0"%} 
+                                
+                                {%if selectEstatus == "0"%} 
                                         <option value ="0"  selected >Status</option>
                                     {%else%}
                                         <option value ="0" >Status</option>
@@ -47,23 +48,27 @@
                                     {%else%}
                                         <option value="5">Invoiced</option>
                                     {%endif%}
-                              
                                   </select>
                             </div>
                             <div class="col-lg-3">
-                                <select class="form-select" aria-label="Default select example" name="location" id="location">
-                                    {%if selectLoc == "0" %}
-                                        <option value ="0" selected>Location</option>
+                                {{emp.Location}}
+                                {%if emp.is_superAdmin or user.is_staff%} 
+                                    <select class="form-select" aria-label="Default select example" name="location" id="location">                                                
+                                {%else%}
+                                    <select class="form-select" aria-label="Default select example" name="location" id="location" hidden>                                    
+                                {%endif%}
+                                {%if selectLoc == "0" %}
+                                    <option value ="0" selected>Location</option>
+                                {%else%}
+                                    <option value ="0">Location</option>
+                                {%endif%}
+                                {% for data in location %}
+                                    {%if data.LocationID|slugify == selectLoc%}                              
+                                        <option value="{{data.LocationID}}" selected>{{data.name}}</option>
                                     {%else%}
-                                        <option value ="0">Location</option>
+                                        <option value="{{data.LocationID}}">{{data.name}}</option>
                                     {%endif%}
-                                    {% for data in location %}
-                                        {%if data.LocationID|slugify == selectLoc%}                              
-                                            <option value="{{data.LocationID}}" selected>{{data.name}}</option>
-                                        {%else%}
-                                            <option value="{{data.LocationID}}">{{data.name}}</option>
-                                        {%endif%}
-                                    {% endfor %}
+                                {% endfor %}
                                   </select>
                             </div>
                             <div class="col-lg-5">                                                              
@@ -93,14 +98,15 @@
                                 <table id="orders" class="table table-sm table-bordered table-striped">
                                     <thead class="table-primary">
                                         <tr>
-                                            <th scope="col" class="p-1">prism ID</th>
-                                            <th scope="col" class="p-1">work Order Id</th>
-                                            <th scope="col" class="p-1">PO</th>
+                                            <th scope="col" class="p-1">Order</th>                                            
+                                           <!--  <th scope="col" class="p-1">work Order Id</th>
+                                            <th scope="col" class="p-1">PO</th>-->
                                             <th scope="col" class="p-1">PO Amount</th>    
                                             <th scope="col" class="p-1">Status</th>
                                             <th scope="col" class="p-1">Location</th>
                                             <th scope="col" class="p-1">Sup.</th>
-                                            <th scope="col" class="p-1">upload Date</th>
+                                            <th scope="col" class="p-1">created Date</th>
+                                            <th scope="col" class="p-1">last Update</th>
                                             <th scope="col" class="p-1">Issue By</th>
                                             <th scope="col" class="p-1">Job Name</th>
                                             <th scope="col" class="p-1">Job Address</th>                                
@@ -112,29 +118,28 @@
                                     <tbody>                                       
                                         {% for order in orders %}
                                             <tr>
-                                                <td class="p-1">{{order.prismID}}</td>
-                                                <td class="p-1">{{order.workOrderId}}</td>
-                                                <td class="p-1">{{order.PO}}</td>
+                                                <td class="p-1">{{order.prismID}} - {{order.workOrderId}} - {{order.PO}} </td>
+                                                <!--<td class="p-1"></td>
+                                                <td class="p-1"></td>-->
                                                 
                                                 <td class="p-1">${{order.POAmount|floatformat:2|intcomma}}</td>
                                                 <!-- <td>{{order.Status}}</td> -->
                                                 {% if order.Status == "1" %}
                                                     <td class="p-1">Not Started</td>
-                                                {% endif %}
-                                                {% if order.Status == "2" %}
+                                                {% elif order.Status == "2" %}
                                                     <td class="p-1">Work in Progress</td>
-                                                {% endif %}
-                                                {% if order.Status == "3" %}
+                                                {% elif order.Status == "3" %}
                                                     <td class="p-1">Pending Docs</td>
-                                                {% endif %}
-                                                {% if order.Status == "4" %}
+                                                {% elif order.Status == "4" %}
                                                     <td class="p-1">Pending Revised WO</td>
-                                                {% endif %}
-                                                {% if order.Status == "5" %}
+                                                {% elif order.Status == "5" %}
                                                     <td class="p-1">Invoiced</td>
+                                                {%else%}
+                                                    <td class="p-1"></td>
                                                 {% endif %}
                                                 <td class="p-1">{{order.Location}}</td>
                                                 <td class="p-1">{{order.WCSup}}</td>
+                                                <td class="p-1">{{order.created_date|date:'Y-m-d H:i'}}</td> 
                                                 <td class="p-1">{{order.UploadDate}}</td>                   
                                                 <td class="p-1">{{order.IssuedBy}}</td>
                                                 <td class="p-1">{{order.JobName}}</td>
