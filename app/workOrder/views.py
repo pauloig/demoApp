@@ -2280,7 +2280,7 @@ def create_daily_emp(request, id, LocID):
     context["per"] = per
 
     for i in dailyE:
-       empList.append(i.EmployeeID.emplo|yeeID) 
+       empList.append(i.EmployeeID.employeeID) 
 
     EmpLocation = Employee.objects.filter().exclude(employeeID__in = empList)
 

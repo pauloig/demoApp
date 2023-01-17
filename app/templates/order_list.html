@@ -16,8 +16,7 @@
                     <div class="card-body">
                         <div class="row">                   
                             <div class="col-lg-3">                                                     
-                                <select class="form-select" aria-label="Default select example" name="status" id="status">
-                                
+                                <select class="form-select" aria-label="Default select example" name="status" id="status"> 
                                 {%if selectEstatus == "0"%} 
                                         <option value ="0"  selected >Status</option>
                                     {%else%}
@@ -50,8 +49,7 @@
                                     {%endif%}
                                   </select>
                             </div>
-                            <div class="col-lg-3">
-                                {{emp.Location}}
+                            <div class="col-lg-3">                            
                                 {%if emp.is_superAdmin or user.is_staff%} 
                                     <select class="form-select" aria-label="Default select example" name="location" id="location">                                                
                                 {%else%}
