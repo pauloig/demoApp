@@ -690,7 +690,7 @@ def create_order(request):
         form.instance.prismID = woID
         form.instance.workOrderId = woID
         form.instance.PO = woID
-        form.instance.Status = '1',
+        form.instance.Status = 1
         form.instance.createdBy = request.user.username
         form.instance.created_date = datetime.datetime.now()
         form.save()
@@ -1999,7 +1999,7 @@ def update_ptp_Emp(dailyID, split):
            
 
             if empCount > 0:
-                empPtp = 100 / empCount                
+                empPtp =  validate_decimals(100 / empCount)                 
                 empList = DailyEmployee.objects.filter(DailyID = crew)               
 
                 for empl in empList:
@@ -2028,10 +2028,10 @@ def update_ptp_Emp(dailyID, split):
                 emp_ptp += empD.per_to_pay
 
             if itemCount > 0:
-                pay_out = ((itemSum * empD.per_to_pay) / 100)
+                pay_out = validate_decimals(((itemSum * empD.per_to_pay) / 100))
             else: 
                 if empD.EmployeeID.hourly_rate != None: 
-                    empRate = float(empD.EmployeeID.hourly_rate)
+                    empRate = validate_decimals(empD.EmployeeID.hourly_rate)
                 else:
                     empRate = 0
 
@@ -2817,7 +2817,10 @@ def get_order_list(request,estatus, loc):
 
         balance = validate_decimals(item.POAmount) - validate_decimals(empTotal) - validate_decimals(poTotal)
         totalExp = validate_decimals(empTotal) + validate_decimals(poTotal)
-        balance_per = ((validate_decimals(totalExp)*100)/validate_decimals(item.POAmount))  
+        if item.POAmount != None and validate_decimals(item.POAmount) > 0:
+            balance_per = ((validate_decimals(totalExp)*100)/validate_decimals(item.POAmount))  
+        else:
+            balance_per = 0
 
         ws.write(row_num, 4, empTotal, font_style)
         ws.write(row_num, 5, poTotal,  font_style)
@@ -3530,7 +3533,10 @@ def payroll_detail(request, id):
 
     balance = validate_decimals(obj.POAmount) - validate_decimals(empTotal) - validate_decimals(poTotal)
     totalExp = validate_decimals(empTotal) + validate_decimals(poTotal)
-    balance_per = ((validate_decimals(totalExp)*100)/validate_decimals(obj.POAmount))
+    if validate_decimals(obj.POAmount) > 0:
+        balance_per = ((validate_decimals(totalExp)*100)/validate_decimals(obj.POAmount))
+    else:    
+        balance_per = 0
 
     context["payroll"] = dailyDetail
     context["payrollTotal"] = empTotal
