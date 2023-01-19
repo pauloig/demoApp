@@ -2251,8 +2251,10 @@ def calculate_hours(startTime, endTime, lunch_startTime, lunch_endTime):
 
     
 
-    if endTotal <= 8:
-        regular_hours =  endTotal
+    if endTotal <= 8:           
+        r_h = int(endTotal) 
+        r_m = validate_decimals(endTotal % 1)* 100
+        regular_hours =  validate_decimals(r_h + (r_m / 60))
         ot_hours = 0
         double_time = 0
     elif endTotal > 8 and endTotal <= 12:
