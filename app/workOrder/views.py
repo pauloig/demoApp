@@ -2234,8 +2234,13 @@ def calculate_hours(startTime, endTime, lunch_startTime, lunch_endTime):
             total_lunch = 0
         else:
             total_lunch = int(str(lunch_endTime)) - int(str(lunch_startTime))
+
+            if total_lunch < 100:
+                total_lunch = total_lunch + 40
+
     else:
         total_lunch = 0
+
 
     endTotal = total - total_lunch
 
@@ -2254,7 +2259,7 @@ def calculate_hours(startTime, endTime, lunch_startTime, lunch_endTime):
         regular_hours =  8
         ot_temp = (float(endTotal) - 8)   
         ot_h = int(ot_temp) 
-        ot_m = validate_decimals(ot_temp % 1) * 100 
+        ot_m = validate_decimals(ot_temp % 1)* 100
         ot_hours = validate_decimals(ot_h + (ot_m / 60))   
         double_time = 0
     elif endTotal > 12:
