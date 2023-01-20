@@ -3340,6 +3340,13 @@ def get_summary(request, perID):
                     if validate_decimals(j.itemID.emp_payout) != None:    
                         payroll2 += (validate_decimals(j.quantity) * float(validate_decimals(j.itemID.emp_payout)) )
 
+                dailyempleado = DailyEmployee.objects.filter(DailyID=dailyItem)
+                ptpEmp = 0
+                for h in dailyempleado:
+                    ptpEmp += h.per_to_pay
+
+                total = validate_decimals((total * ptpEmp) / 100)
+
                 if validate_decimals(dailyItem.own_vehicle) != None:
                     ov = validate_decimals(((validate_decimals(total) * validate_decimals(dailyItem.own_vehicle)) / 100))
                     ownvehicle += validate_decimals(ov)
