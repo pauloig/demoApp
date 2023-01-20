@@ -1,7 +1,7 @@
 import re
 from types import CoroutineType
 from django import forms
-from .models import Locations, item, workOrder, workOrderDuplicate, Employee, itemPrice, internalPO, period, DailyEmployee, DailyItem, Daily
+from .models import Locations, item, workOrder, workOrderDuplicate, Employee, itemPrice, internalPO, period, DailyEmployee, DailyItem, Daily, vendor, subcontractor
 
 class LocationsForm(forms.ModelForm):
     LocationID = forms.CharField(max_length=10, widget=forms.TextInput(attrs={'class':'form-control'}))
@@ -261,3 +261,35 @@ class DailyItemForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields['DailyID'].disabled = True
         self.fields['itemID'].queryset = qs
+
+class venforForm(forms.ModelForm):
+    name = forms.CharField(max_length=200, widget=forms.TextInput(attrs={'class':'form-control'}))
+    address = forms.CharField(max_length=200, widget=forms.Textarea(attrs={'class':'form-control'}))
+    contact = forms.CharField(max_length=100, widget=forms.Textarea(attrs={'class':'form-control'}))
+    contactPosition = forms.CharField(max_length=100, widget=forms.Textarea(attrs={'class':'form-control'}))
+    contactPhone = forms.CharField(max_length=50, widget=forms.Textarea(attrs={'class':'form-control'}))
+    description = forms.CharField(max_length=200, widget=forms.Textarea(attrs={'class':'form-control'}))
+    is_active = forms.BooleanField(required=False)
+    created_date = forms.CharField(max_length=200, widget=forms.Textarea(attrs={'class':'form-control'}))
+    createdBy = forms.CharField(max_length=200, widget=forms.Textarea(attrs={'class':'form-control'}))
+
+
+    class Meta:
+        model = vendor
+        fields = [
+            'name',
+            'address',
+            'contact', 
+            'contactPosition',
+            'contactPhone',
+            'description',
+            'is_active',
+            'created_date',
+            'createdBy'        
+        ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['created_date'].disabled = True
+        self.fields['createdBy'].disabled = True
+      

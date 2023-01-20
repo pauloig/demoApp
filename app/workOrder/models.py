@@ -296,3 +296,26 @@ class woStatusLog(models.Model):
     def __str__(self):
         return str(self.woID) + " - " + str(self.currentStatus)
 
+
+class vendor(models.Model):   
+    name = models.CharField(max_length=200, blank=True, null=True)
+    address = models.CharField(max_length=200, blank=True, null=True)
+    contact = models.CharField(max_length=100, blank=True, null=True)
+    contactPosition = models.CharField(max_length=100, blank=True, null=True)
+    contactPhone = models.CharField(max_length=50, blank=True, null=True)
+    description = models.CharField(max_length=200, blank=True, null=True)
+    is_active = models.BooleanField(default=True)
+    created_date = models.DateTimeField(blank=True, null=True)
+    createdBy = models.CharField(max_length=60, blank=True, null=True)
+
+class subcontractor(models.Model):
+    name = models.CharField(max_length=200, blank=True, null=True)
+    address = models.CharField(max_length=200, blank=True, null=True)
+    contact = models.CharField(max_length=100, blank=True, null=True)
+    contactPosition = models.CharField(max_length=100, blank=True, null=True)
+    contactEmail = models.EmailField(max_length=100, blank=True, null=True)
+    contactPhone = models.CharField(max_length=50, blank=True, null=True)
+    description = models.CharField(max_length=200, blank=True, null=True)
+    is_active = models.BooleanField(default=True)
+    created_date = models.DateTimeField(blank=True, null=True)
+    createdBy = models.CharField(max_length=60, blank=True, null=True)
