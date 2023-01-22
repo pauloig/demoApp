@@ -147,17 +147,19 @@
                                         <thead class="table-primary">
                                             <tr>
                                                 <td class="p-1">PO</td>
-                                                    <td class="p-1">Supervisor</td>
-                                                    <td class="p-1">Pick up Employee</td>
-                                                    <td class="p-1">Product</td>    
-                                                    <td class="p-1">Quantity</td>
-                                                    <td class="p-1">Total</td>                                            
+                                                <th scope="p-1">Vendor</th>
+                                                <td class="p-1">Supervisor</td>                                                
+                                                <td class="p-1">Pick up Employee</td>
+                                                <td class="p-1">Product</td>    
+                                                <td class="p-1">Quantity</td>
+                                                <td class="p-1">Total</td>                                            
                                             </tr>              
                                         </thead>
                                         <tbody>                                       
                                             {% for po in po %}
                                                 <tr>
                                                     <td>{{po.id}}</td>
+                                                    <td>{{po.vendor}}</td>
                                                     <td>{{po.supervisor}}</td>
                                                     <td>{{po.pickupEmployee}}</td>
                                                     <td>{{po.product}}</td>

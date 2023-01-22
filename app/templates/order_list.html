@@ -172,6 +172,9 @@
                                                     {%if order.Status >= "2" %}                                                    
                                                         <a data-bs-toggle="tooltip" data-bs-placement="top" title="Payroll Detail" href="/payroll_detail/{{order.id}}"><i class="fa-solid fa-file" style="color: green;"></i></a>                                                                                                                 
                                                     {%endif%}
+                                                    {%if order.Status >= "2" and order.Status < "5"%}                                                    
+                                                        <a data-bs-toggle="tooltip" data-bs-placement="top" title="External Production" href="/external_prod_list/{{order.id}}"><i class="fa-solid fa-circle-plus" style="color: green;"></i></a>                                                                                                                 
+                                                    {%endif%}
                                                 </td>
                                             </tr>                                             
                                         {% endfor %}

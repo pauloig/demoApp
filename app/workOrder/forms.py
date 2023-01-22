@@ -1,7 +1,7 @@
 import re
 from types import CoroutineType
 from django import forms
-from .models import Locations, item, workOrder, workOrderDuplicate, Employee, itemPrice, internalPO, period, DailyEmployee, DailyItem, Daily, vendor, subcontractor
+from .models import Locations, item, workOrder, workOrderDuplicate, Employee, itemPrice, internalPO, period, DailyEmployee, DailyItem, Daily, vendor, subcontractor, externalProduction, externalProdItem
 
 class LocationsForm(forms.ModelForm):
     LocationID = forms.CharField(max_length=10, widget=forms.TextInput(attrs={'class':'form-control'}))
@@ -149,7 +149,7 @@ class ItemPriceForm(forms.ModelForm):
         self.fields['item'].disabled = True
 
 class InternalPOForm(forms.ModelForm):    
-
+    vendor = forms.ModelChoiceField(queryset=vendor.objects.filter(is_active=True), widget=forms.Select(attrs={'class': 'form-control'}), required=False)
     supervisor = forms.ModelChoiceField(queryset=Employee.objects.filter(is_active=True, is_supervisor = True), widget=forms.Select(attrs={'class': 'form-control'}), required=False)
     pickupEmployee = forms.ModelChoiceField(queryset=Employee.objects.filter(is_active=True), widget=forms.Select(attrs={'class': 'form-control'}), required=False)
     product = forms.CharField(label="Product",max_length=200, widget=forms.TextInput(attrs={'class':'form-control'}), required=False)
@@ -161,6 +161,7 @@ class InternalPOForm(forms.ModelForm):
         model = internalPO
         fields = [
             'woID',
+            'vendor',
             'supervisor',
             'pickupEmployee',
             'product',
@@ -262,16 +263,16 @@ class DailyItemForm(forms.ModelForm):
         self.fields['DailyID'].disabled = True
         self.fields['itemID'].queryset = qs
 
-class venforForm(forms.ModelForm):
-    name = forms.CharField(max_length=200, widget=forms.TextInput(attrs={'class':'form-control'}))
-    address = forms.CharField(max_length=200, widget=forms.Textarea(attrs={'class':'form-control'}))
-    contact = forms.CharField(max_length=100, widget=forms.Textarea(attrs={'class':'form-control'}))
-    contactPosition = forms.CharField(max_length=100, widget=forms.Textarea(attrs={'class':'form-control'}))
-    contactPhone = forms.CharField(max_length=50, widget=forms.Textarea(attrs={'class':'form-control'}))
-    description = forms.CharField(max_length=200, widget=forms.Textarea(attrs={'class':'form-control'}))
-    is_active = forms.BooleanField(required=False)
-    created_date = forms.CharField(max_length=200, widget=forms.Textarea(attrs={'class':'form-control'}))
-    createdBy = forms.CharField(max_length=200, widget=forms.Textarea(attrs={'class':'form-control'}))
+class vendorForm(forms.ModelForm):
+    name = forms.CharField(max_length=200, widget=forms.TextInput(attrs={'class':'form-control'}))   
+    address = forms.CharField(max_length=200, widget=forms.TextInput(attrs={'class':'form-control'}), required=False)
+    contact = forms.CharField(max_length=100, widget=forms.TextInput(attrs={'class':'form-control'}), required=False)
+    contactPosition = forms.CharField(label="Contact Position",max_length=100, widget=forms.TextInput(attrs={'class':'form-control'}), required=False)
+    contactPhone = forms.CharField(label="Contact Phone",max_length=50, widget=forms.TextInput(attrs={'class':'form-control'}), required=False)
+    description = forms.CharField(max_length=200, widget=forms.TextInput(attrs={'class':'form-control'}), required=False)
+    is_active = forms.BooleanField(label="Is Active", required=False)
+    created_date = forms.CharField(label="Created Date",max_length=200, widget=forms.TextInput(attrs={'class':'form-control'}), required=False)
+    createdBy = forms.CharField(label="Created By",max_length=200, widget=forms.TextInput(attrs={'class':'form-control'}), required=False)
 
 
     class Meta:
@@ -292,4 +293,75 @@ class venforForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields['created_date'].disabled = True
         self.fields['createdBy'].disabled = True
+
+
+class subcontractorForm(forms.ModelForm):
+    name = forms.CharField(max_length=200, widget=forms.TextInput(attrs={'class':'form-control'}))   
+    address = forms.CharField(max_length=200, widget=forms.TextInput(attrs={'class':'form-control'}), required=False)
+    contact = forms.CharField(max_length=100, widget=forms.TextInput(attrs={'class':'form-control'}), required=False)
+    contactPosition = forms.CharField(label="Contact Position",max_length=100, widget=forms.TextInput(attrs={'class':'form-control'}), required=False)
+    contactEmail = forms.EmailField(label="Contact Email",max_length=50, widget=forms.EmailInput(attrs={'class':'form-control'}), required=False)
+    contactPhone = forms.CharField(label="Contact Phone",max_length=50, widget=forms.TextInput(attrs={'class':'form-control'}), required=False)
+    description = forms.CharField(max_length=200, widget=forms.TextInput(attrs={'class':'form-control'}), required=False)
+    is_active = forms.BooleanField(label="Is Active", required=False)
+    created_date = forms.CharField(label="Created Date",max_length=200, widget=forms.TextInput(attrs={'class':'form-control'}), required=False)
+    createdBy = forms.CharField(label="Created By",max_length=200, widget=forms.TextInput(attrs={'class':'form-control'}), required=False)
+
+
+    class Meta:
+        model = subcontractor
+        fields = [
+            'name',
+            'address',
+            'contact', 
+            'contactPosition',
+            'contactEmail',
+            'contactPhone',
+            'description',
+            'is_active',
+            'created_date',
+            'createdBy'        
+        ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['created_date'].disabled = True
+        self.fields['createdBy'].disabled = True
       
+class extProdForm(forms.ModelForm):
+    
+    woID = forms.ModelChoiceField(label = "Selected Work Order", queryset=workOrder.objects.all(), widget=forms.Select(attrs={'class':'form-control'}))
+    subcontractor = forms.ModelChoiceField(queryset=subcontractor.objects.filter(is_active=True), widget=forms.Select(attrs={'class': 'form-control'})) 
+    invoiceNumber = forms.CharField(label="Invoice Number", max_length=200, widget=forms.TextInput(attrs={'class':'form-control'}))  
+    total_invoice = forms.CharField(label="Total Invoice", max_length=200, widget=forms.TextInput(attrs={'class':'form-control'}))  
+    invoice_date = forms.DateField(label="Invoice Date", widget=forms.DateInput(format=('%Y-%m-%d'),attrs={'class': 'form-control','type': 'date'}))
+    class Meta:
+        model = externalProduction
+        fields = [
+            'woID',
+            'subcontractor',
+            'invoiceNumber',
+            'total_invoice',
+            'invoice_date'          
+        ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['woID'].disabled = True
+
+class extProdItemForm(forms.ModelForm):
+    """ itemID = forms.ModelChoiceField(queryset=itemPrice.objects.filter(location__LocationID = ),required=False)"""
+
+    class Meta:
+        model = externalProdItem
+        fields = [
+            'externalProdID',
+            'itemID',
+            'quantity',            
+        ]
+
+    def __init__(self, *args, **kwargs):
+        qs = kwargs.pop('qs')
+        super().__init__(*args, **kwargs)
+        self.fields['externalProdID'].disabled = True
+        self.fields['itemID'].queryset = qs

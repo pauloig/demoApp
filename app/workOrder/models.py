@@ -188,19 +188,6 @@ class payrollDetail(models.Model):
     class Meta:
             unique_together = ('location', 'employee', 'date', 'prismID','workOrderId','PO', 'item')
 
-
-class internalPO(models.Model):
-    woID = models.ForeignKey(workOrder, on_delete=models.CASCADE, db_column ='woID')
-    supervisor = models.ForeignKey(Employee, on_delete=models.SET_NULL, null=True, blank=True, db_column='supervisor', related_name='supervisor')
-    pickupEmployee = models.ForeignKey(Employee, on_delete=models.SET_NULL, null=True, blank=True, db_column='pickupEmployee', related_name='pickupEmployee')
-    product = models.CharField(max_length=600, blank=True, null=True)
-    quantity = models.CharField(max_length=20, blank=True, null=True)
-    total = models.CharField(max_length=20, blank=True, null=True)
-    subcontractor = models.BooleanField(default=False) 
-    receipt = models.ImageField(null=True, upload_to="po")
-
-    class Meta:
-        unique_together = ('id', 'woID')
         
 class period(models.Model):
     periodID = models.IntegerField(null=False, blank=False)
@@ -308,6 +295,9 @@ class vendor(models.Model):
     created_date = models.DateTimeField(blank=True, null=True)
     createdBy = models.CharField(max_length=60, blank=True, null=True)
 
+    def __str__(self):
+        return str(self.id) + " - " + str(self.name)
+
 class subcontractor(models.Model):
     name = models.CharField(max_length=200, blank=True, null=True)
     address = models.CharField(max_length=200, blank=True, null=True)
@@ -319,3 +309,49 @@ class subcontractor(models.Model):
     is_active = models.BooleanField(default=True)
     created_date = models.DateTimeField(blank=True, null=True)
     createdBy = models.CharField(max_length=60, blank=True, null=True)
+
+    def __str__(self):
+        return str(self.id) + " - " + str(self.name)
+
+class internalPO(models.Model):
+    woID = models.ForeignKey(workOrder, on_delete=models.CASCADE, db_column ='woID')
+    vendor = models.ForeignKey(vendor, on_delete=models.SET_NULL, null=True, blank=True, db_column='vendor')
+    supervisor = models.ForeignKey(Employee, on_delete=models.SET_NULL, null=True, blank=True, db_column='supervisor', related_name='supervisor')
+    pickupEmployee = models.ForeignKey(Employee, on_delete=models.SET_NULL, null=True, blank=True, db_column='pickupEmployee', related_name='pickupEmployee')
+    product = models.CharField(max_length=600, blank=True, null=True)
+    quantity = models.CharField(max_length=20, blank=True, null=True)
+    total = models.CharField(max_length=20, blank=True, null=True)
+    subcontractor = models.BooleanField(default=False) 
+    receipt = models.FileField(null=True, upload_to="po")
+
+    class Meta:
+        unique_together = ('id', 'woID')
+
+    def __str__(self):
+        return str(self.woID) + " - " + str(self.id)
+
+class externalProduction(models.Model):
+    woID = models.ForeignKey(workOrder, on_delete=models.CASCADE, db_column ='woID')
+    subcontractor = models.ForeignKey(subcontractor, on_delete=models.SET_NULL, null=True, blank=True,  db_column ='subcontractor')
+    invoiceNumber = models.CharField(max_length=60, blank=True, null=True)    
+    invoice = models.FileField(null=True, upload_to="external_invoice")
+    total_invoice = models.FloatField(blank=True, null=True)
+    invoice_date = models.DateField(null=True, blank=True)
+    created_date = models.DateTimeField(null=True, blank=True)
+    createdBy = models.CharField(max_length=60, blank=True, null=True)
+
+    def __str__(self):
+        return str(self.woID) + " - " + str(self.id)
+
+
+class externalProdItem(models.Model):    
+    externalProdID = models.ForeignKey(externalProduction, on_delete=models.CASCADE, db_column ='externalProdID')
+    itemID = models.ForeignKey(itemPrice, on_delete=models.CASCADE, db_column ='itemID', null=False, blank=False )
+    quantity = models.IntegerField(null=False, blank=False) 
+    total = models.FloatField(null=True, blank=True)
+    created_date = models.DateTimeField(null=True, blank=True)
+    createdBy = models.CharField(max_length=60, blank=True, null=True)
+
+    def __str__(self):
+        return str(self.externalProdID) + " - " + str(self.id)
+ 

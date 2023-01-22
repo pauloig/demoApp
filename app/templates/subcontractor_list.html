@@ -1,0 +1,66 @@
+{% extends 'index.html' %} 
+{%load static%}
+
+{% block container %}
+
+<div class="container">
+    <form method='post' enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <div class="row">     
+            <div class="col-sm-8 my-3"></div>  
+            <div class="col-sm-4 my-3">
+                <a class="btn btn-success" href="/create_subcontractor/" role="button">Create Subcontractor</a>
+                <a href="/" type="button" class="btn btn-danger">Close</a> 
+            </div>
+               
+        </div>        
+               
+        <div class="row">
+            <div class="col-sm-12 my-3">
+                <div class="card">
+                    <div class="card-header card-header-wc">
+                        <div class="row">
+                            <div class="col-sm-9">
+                                <h6 class="" >Subcontractor List</h6>
+                            </div>
+                           
+                        </div>
+                    </div>                 
+                    <div class="card-body">
+                        <div class="row">                   
+                            <div class="col-lg-12"> 
+                                <table id="orders" class="table table-sm table-bordered table-striped">
+                                    <thead class="table-primary">
+                                        <tr>
+                                            <th scope="col" style="width: 5%">Id</th>
+                                            <th scope="col" style="width: 30%">Name</th>
+                                            <th scope="col" style="width: 30%">Address</th>
+                                            <th scope="col" style="width: 30%">Contact</th>
+                                            <th scope="col" style="width: 5%">Is Active</th>
+                                            <th scope="col" style="width: 5%"></th>
+                                        </tr>              
+                                    </thead>
+                                    <tbody>                                       
+                                        {% for item in subcontractor %}
+                                            <tr>
+                                                <td>{{item.id}}</td>
+                                                <td>{{item.name}}</td>
+                                                <td>{{item.address}}</td>
+                                                <td>{{item.contact}}</td>
+                                                <td>{{item.is_active}}</td>
+                                                <td> <a href="/update_subcontractor/{{item.id}}"><i class="fa-solid fa-pen-to-square" style="color: green;"></i></a></td>
+                                                
+                                            </tr>                                             
+                                        {% endfor %}
+                                    </tbody>                              
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}

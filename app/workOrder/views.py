@@ -14,13 +14,13 @@ from telnetlib import WONT
 from unittest import TextTestResult
 from urllib import response
 from django.shortcuts import render, get_object_or_404, HttpResponseRedirect, redirect
-from .models import Employee, payrollDetail, workOrder, workOrderDuplicate, Locations, item, itemPrice, payroll, internalPO, period, Daily, DailyEmployee, DailyItem, employeeRecap, woStatusLog
+from .models import Employee, payrollDetail, workOrder, workOrderDuplicate, Locations, item, itemPrice, payroll, internalPO, period, Daily, DailyEmployee, DailyItem, employeeRecap, woStatusLog, vendor, subcontractor, externalProduction, externalProdItem
 from .resources import workOrderResource
 from django.contrib import messages
 from tablib import Dataset
 from django.http import HttpResponse, FileResponse, HttpRequest
 from django.db import IntegrityError
-from .forms import EmployeesForm, InternalPOForm, ItemForm, ItemPriceForm, LocationsForm, workOrderForm, DailyEmpForm, DailyItemForm, dailydForm, dailySupForm
+from .forms import EmployeesForm, InternalPOForm, ItemForm, ItemPriceForm, LocationsForm, workOrderForm, DailyEmpForm, DailyItemForm, dailydForm, dailySupForm, vendorForm, subcontractorForm, extProdForm, extProdItemForm
 from sequences import get_next_value, Sequence
 from datetime import date
 from django.utils.dateparse import parse_date
@@ -3729,3 +3729,310 @@ def validate_print_decimals(value):
     except:
        return ''      
 
+
+def vendor_list(request):
+    emp = Employee.objects.filter(user__username__exact = request.user.username).first()
+    context ={}
+    per = period.objects.filter(status__in=(1,2)).first()
+    context["per"] = per
+ 
+    context["vendor"] = vendor.objects.all()
+    context["emp"]= emp
+    return render(request, "vendor_list.html", context)
+
+
+def create_vendor(request):
+    emp = Employee.objects.filter(user__username__exact = request.user.username).first()
+    context ={}
+    per = period.objects.filter(status__in=(1,2)).first()
+    context["per"] = per
+ 
+    form = vendorForm(request.POST or None)
+    if form.is_valid():
+        form.instance.createdBy = request.user.username
+        form.instance.created_date = datetime.datetime.now()
+        form.save()               
+        return HttpResponseRedirect("/vendor_list/")
+         
+    context['form']= form
+    context["emp"]=emp
+    return render(request, "create_vendor.html", context)
+
+
+def update_vendor(request, id):
+    emp = Employee.objects.filter(user__username__exact = request.user.username).first()
+    context ={}
+    per = period.objects.filter(status__in=(1,2)).first()
+    context["per"] = per
+
+    obj = get_object_or_404(vendor, id = id)
+ 
+    form = vendorForm(request.POST or None, instance = obj)
+ 
+    if form.is_valid():
+        form.save()
+        return HttpResponseRedirect("/vendor_list/")
+
+    context["form"] = form
+    context["emp"] = emp
+    return render(request, "create_vendor.html", context)
+
+
+def subcontractor_list(request):
+    emp = Employee.objects.filter(user__username__exact = request.user.username).first()
+    context ={}
+    per = period.objects.filter(status__in=(1,2)).first()
+    context["per"] = per
+ 
+    context["subcontractor"] = subcontractor.objects.all()
+    context["emp"]= emp
+    return render(request, "subcontractor_list.html", context)
+
+def create_subcontractor(request):
+    emp = Employee.objects.filter(user__username__exact = request.user.username).first()
+    context ={}
+    per = period.objects.filter(status__in=(1,2)).first()
+    context["per"] = per
+ 
+    form = subcontractorForm(request.POST or None)
+    if form.is_valid():
+        form.instance.createdBy = request.user.username
+        form.instance.created_date = datetime.datetime.now()
+        form.save()               
+        return HttpResponseRedirect("/subcontractor_list/")
+         
+    context['form']= form
+    context["emp"]=emp
+    return render(request, "create_subcontractor.html", context)
+
+
+def update_subcontractor(request, id):
+    emp = Employee.objects.filter(user__username__exact = request.user.username).first()
+    context ={}
+    per = period.objects.filter(status__in=(1,2)).first()
+    context["per"] = per
+
+    obj = get_object_or_404(subcontractor, id = id)
+ 
+    form = subcontractorForm(request.POST or None, instance = obj)
+ 
+    if form.is_valid():
+        form.save()
+        return HttpResponseRedirect("/subcontractor_list/")
+
+    context["form"] = form
+    context["emp"] = emp
+    return render(request, "create_subcontractor.html", context)
+
+
+def external_prod_list(request, id):
+    emp = Employee.objects.filter(user__username__exact = request.user.username).first()
+    context = {}    
+    per = period.objects.filter(status__in=(1,2)).first()
+    context["per"] = per
+
+    wo = workOrder.objects.filter(id=id).first()
+    context["order"] = wo
+    context["externalProd"] = externalProduction.objects.filter(woID = wo)
+    context["emp"] = emp
+    return render(request, "external_prod_list.html", context)
+
+def create_external_prod(request, woID):
+    emp = Employee.objects.filter(user__username__exact = request.user.username).first()
+    context ={}
+    per = period.objects.filter(status__in=(1,2)).first()
+    context["per"] = per
+    
+    woid = workOrder.objects.filter(id = woID).first()
+
+    form = extProdForm(request.POST or None, initial={'woID': woid})
+    context['id'] = None
+
+    if form.is_valid():
+        form.instance.createdBy = request.user.username
+        form.instance.created_date = datetime.datetime.now()
+        form.save()  
+        context["id"] = form.instance.id  
+
+        context["items"] = externalProdItem.objects.filter(externalProdID = form.instance)
+
+        return HttpResponseRedirect("/get_external_prod/" + str(form.instance.id))
+
+    context["order"] = woid     
+    context['form']= form
+    context["emp"]=emp
+    return render(request, "create_external_prod.html", context)
+
+def get_external_prod(request, id):
+    emp = Employee.objects.filter(user__username__exact = request.user.username).first()
+    context ={}
+    per = period.objects.filter(status__in=(1,2)).first()
+    context["per"] = per
+
+    context["externalProduction"] = externalProduction.objects.filter(id = id).first()
+
+    obj = get_object_or_404(externalProduction , id = id )
+
+    context["external"] = externalProduction.objects.filter(id = id).first()
+
+    form = extProdForm(request.POST or None, instance = obj)
+
+    context["id"] = id
+    context["items"] = externalProdItem.objects.filter(externalProdID = obj)
+
+    woid = workOrder.objects.filter(id = obj.woID.id).first()
+
+    context["order"] = woid 
+    context["form"] = form
+    context["emp"] = emp
+    return render(request, "create_external_prod.html", context)
+
+def update_external_prod(request, id):
+    emp = Employee.objects.filter(user__username__exact = request.user.username).first()
+    context ={}
+    per = period.objects.filter(status__in=(1,2)).first()
+    context["per"] = per
+
+    context["externalProduction"] = externalProduction.objects.filter(id = id).first()
+
+    obj = get_object_or_404(externalProduction , id = id )
+
+    context["external"] = externalProduction.objects.filter(id = id).first()
+
+    form = extProdForm(request.POST or None, instance = obj)
+
+    if form.is_valid():
+        try:
+            newFile = request.FILES['myfile']
+            form.instance.invoice = newFile
+        except Exception as e:
+            None
+        form.save()
+
+        return HttpResponseRedirect("/get_external_prod/" + str(obj.id))
+
+    context["id"] = id
+    context["items"] = externalProdItem.objects.filter(externalProdID = obj)
+
+    woid = workOrder.objects.filter(id = obj.woID.id).first()
+
+    context["order"] = woid 
+    context["form"] = form
+    context["emp"] = emp
+    return render(request, "update_external_prod.html", context)
+
+def upload_external_prod(request, id):
+    emp = Employee.objects.filter(user__username__exact = request.user.username).first()    
+    context ={}  
+    context["emp"] = emp
+    per = period.objects.filter(status__in=(1,2)).first()
+    context["per"] = per
+
+
+    if request.method == 'POST':
+        new_invoice = request.FILES['myfile']
+        
+        d = externalProduction.objects.filter(id = id).first()
+
+        if d:            
+            d.invoice = new_invoice            
+            d.save()   
+
+    return HttpResponseRedirect("/get_external_prod/" + str(id))
+
+
+def create_ext_prod_item(request, id):
+    emp = Employee.objects.filter(user__username__exact = request.user.username).first()
+    context ={}
+
+    per = period.objects.filter(status__in=(1,2)).first()
+    context["per"] = per
+
+    dailyID = externalProduction.objects.filter(id = id).first()
+
+    dailyI = externalProdItem.objects.filter(externalProdID = dailyID)
+    itemList = []
+
+    for i in dailyI:
+       itemList.append(i.itemID.item.itemID) 
+
+    itemLocation = itemPrice.objects.filter(location__LocationID = dailyID.woID.Location.LocationID).exclude(item__itemID__in = itemList)
+
+    form = extProdItemForm(request.POST or None, initial={'externalProdID': dailyID}, qs = itemLocation)
+    if form.is_valid():    
+        
+        itemid = request.POST.get('itemID')
+        
+        selectedItem = itemPrice.objects.filter(id = itemid).first()
+        form.instance.itemID = selectedItem
+
+        price = form.instance.itemID.price    
+        form.instance.total = form.instance.quantity * float(price)
+        form.instance.created_date = datetime.datetime.now()
+
+        form.save()      
+
+        return HttpResponseRedirect("/get_external_prod/" + str(form.instance.externalProdID.id))       
+         
+    context['form']= form
+    context["emp"] = emp
+    context["itemList"] = itemLocation
+    return render(request, "create_ext_prod_item.html", context)
+
+
+def update_ext_prod_item(request, id):
+    emp = Employee.objects.filter(user__username__exact = request.user.username).first()
+    context ={}
+
+    per = period.objects.filter(status__in=(1,2)).first()
+    context["per"] = per
+
+    obj = get_object_or_404(externalProdItem, id = id)
+
+    itemLocation = itemPrice.objects.filter(location__LocationID = obj.externalProdID.woID.Location.LocationID)
+    
+    itemSelected = itemPrice.objects.filter(id = obj.itemID.id ).first()
+
+    form = extProdItemForm(request.POST or None, instance = obj, qs = itemLocation)
+ 
+    if form.is_valid():
+        price = form.instance.itemID.price    
+        form.instance.total = form.instance.quantity * float(price)
+        
+        itemid = request.POST.get('itemID')
+        
+        selectedItem = itemPrice.objects.filter(id = itemid).first()
+        form.instance.itemID = selectedItem
+
+        form.save()
+        context["emp"] = emp     
+
+        return HttpResponseRedirect("/get_external_prod/" + str(form.instance.externalProdID.id)) 
+
+    context["form"] = form
+    context["emp"] = emp
+    context["itemSelected"] = itemSelected
+
+    return render(request, "update_ext_prod_item.html", context)
+
+
+def delete_ext_prod_item(request, id):
+    emp = Employee.objects.filter(user__username__exact = request.user.username).first()
+    context ={}
+
+    per = period.objects.filter(status__in=(1,2)).first()
+    context["per"] = per
+
+    obj = get_object_or_404(externalProdItem, id = id)
+ 
+    context["form"] = obj
+    context["emp"] = emp
+ 
+    if request.method == 'POST':
+        obj.delete()
+
+
+        return HttpResponseRedirect("/get_external_prod/" + str(obj.externalProdID.id)) 
+
+   
+    return render(request, "delete_ext_prod_item.html", context)

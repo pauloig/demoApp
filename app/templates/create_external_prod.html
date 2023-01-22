@@ -1,0 +1,193 @@
+{% extends 'index.html' %} 
+{%load static%}
+{%load humanize%}
+{% block container %}
+{% load widget_tweaks%}
+
+<div class="container">
+    <form method='post' action="{{request.path}}" enctype="multipart/form-data">
+        {% csrf_token %}
+   
+        
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="card rounded">
+                    <h6 class="card-header card-header-wc">External Production</h6>
+                        <div class="card-body">                    
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <div class="mb-3">
+                                        <label for="{{ form.woID.id_for_label }}" class="form-label">Selected Work Order</label>
+                                        {% if id != None %}
+                                            {% render_field form.woID|append_attr:"disabled:disabled" class="form-control" %}
+                                        {% else %}
+                                            {% render_field form.woID|append_attr:"required:required" class="form-control" %}
+                                        {% endif %}
+                                        
+                                        <div class="invalid-feedback">{{ form.woID.errors|first }}</div>
+                                    </div>
+                                </div>                
+                                <div class="col-sm-6">
+                                    <label for="{{ form.subcontractor.id_for_label }}" class="form-label">Subcontractor</label>
+                                    {% if id != None %}
+                                        {% render_field form.subcontractor|append_attr:"disabled:disabled" class="form-control" %}
+                                    {% else %}
+                                        {% render_field form.subcontractor|append_attr:"required:required" class="form-control" %}
+                                    {% endif %}    
+                                    
+                                    <div class="invalid-feedback">{{ form.subcontractor.errors|first }}</div>
+                                </div>                                   
+                            </div>  
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <div class="mb-3">
+                                        <label for="{{ form.invoiceNumber.id_for_label }}" class="form-label">Invoice Number</label>
+                                        {% if id != None %}
+                                            {% render_field form.invoiceNumber|append_attr:"disabled:disabled" class="form-control" %}
+                                        {% else %}
+                                            {% render_field form.invoiceNumber|append_attr:"required:required" class="form-control" %}
+                                        {% endif %} 
+                                        
+                                        <div class="invalid-feedback">{{ form.invoiceNumber.errors|first }}</div>
+                                    </div>
+                                </div>                
+                                <div class="col-sm-6">
+                                    <label for="{{ form.total_invoice.id_for_label }}" class="form-label">Total Invoice</label>
+                                    {% if id != None %}
+                                        {% render_field form.total_invoice|append_attr:"disabled:disabled" class="form-control" %}
+                                    {% else %}
+                                        {% render_field form.total_invoice|append_attr:"required:required" class="form-control" %}
+                                    {% endif %}     
+                                    
+                                    <div class="invalid-feedback">{{ form.total_invoice.errors|first }}</div>
+                                </div>                                   
+                            </div>  
+                            <div class="row">
+                                <div class="col-lg-6">
+                                    <label for="{{ form.invoice_date.id_for_label }}" class="form-label">Invoice Date</label>
+                                    {% if id != None %}
+                                        {% render_field form.invoice_date|append_attr:"disabled:disabled" class="form-control" %}
+                                    {% else %}
+                                        {% render_field form.invoice_date|append_attr:"required:required" class="form-control" %}
+                                    {% endif %}     
+                                    
+                                    <div class="invalid-feedback">{{ form.invoice_date.errors|first }}</div>
+                                </div>
+                                <div class="col-lg-6">                                  
+                                   {%if id != None%}
+                                        <label class="form-label" for="file">Invoice</label>
+                                        <div class="input-group-btn">
+                                            <div class="input-group mb-3">
+                                                <div class="form-outline" style="align-items: center;">  
+                                                {% if external.invoice != '' and external.invoice != None %}   
+                                                    <a class="btn btn-info" href="/static/media/{{external.invoice}}" target="_blank">View Invoice</a>  
+                                                {%endif%}
+                                                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#staticBackdrop">
+                                                    upload Invoice
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {%endif%}                                                                 
+                                </div>                       
+                            </div> 
+                            <br> 
+                            <div class="row">
+                                <div class="col-lg-6">  
+                                    
+                                        <div class="form-outline" style="align-items: center;">  
+                                            {%if id == None %}                                                                 
+                                                <input class="btn btn-primary" type="submit" value="Save">
+                                            {%else%}
+                                                <a class="btn btn-success" hx-get="/update_external_prod/{{externalProduction.id}}" hx-target="#dialog">UPDATE</a>
+                                                
+                                            {%endif%}
+                                            <a class="btn btn-danger" href="/external_prod_list/{{order.id}}" role="button">Close</a>
+                                        </div>
+                                
+                                        
+                                    
+                                </div>
+                            </div> 
+                                                                
+                    </div>
+                </div>                 
+            </div>
+        </div>  
+        {%if id != None %}
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="card rounded">
+                        <h6 class="card-header card-header-wc">Production Detail</h6>
+                            <div class="card-body">                    
+                            
+                                <div class="row">
+                                    <div class="col-sm-12">
+                                        <table  class="table table-sm table-bordered table-striped">
+                                            <thead>
+                                                <tr class="table-primary">                                                    
+                                                    <td width="40%" class="p-1">Item</td>
+                                                    <td width="15%" class="p-1">Qty.</td>
+                                                    <td width="15%" class="p-1">Price</td>
+                                                    <td width="15%" class="p-1">Total</td>  
+                                                    <td width="15%" class="p-1">                                              
+                                                        <a hx-get="/create_ext_prod_item/{{externalProduction.id}}" hx-target="#dialog"><i class="fa-solid fa-circle-plus"></i></a>
+                                                    </td>                                                 
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {%for itemd in items %}
+                                                    <tr>
+                                                        <td class="p-1">{{itemd.itemID.item.itemID}}</td>
+                                                        <td class="p-1">{{itemd.quantity}}</td>
+                                                        <td class="p-1">${{itemd.itemID.emp_payout|floatformat:2|intcomma}}</td>
+                                                        <td class="p-1">${{itemd.total|floatformat:2|intcomma}}</td>   
+                                                        <td class="p-1">
+                                                            {% if emp.is_superAdmin  or user.is_staff or period.status == 1 %}
+                                                                <a hx-get="/update_ext_prod_item/{{itemd.id}}" hx-target="#dialog"><i class="fa-solid fa-pen-to-square" style="color: green;"></i></a>
+                                                                <a hx-get="/delete_ext_prod_item/{{itemd.id}}" hx-target="#dialog"><i class="fa-solid fa-circle-minus" style="color: red;"></i></a>
+                                                            {%endif%}
+                                                        </td> 
+                                                    </tr>
+                                                {%endfor%}
+                                            </tbody>                                                
+                                        </table>
+                                    </div>                                           
+                                </div>  
+                                                                
+                        </div>
+                    </div>                 
+                </div>
+            </div>   
+        {%endif%}   
+    </form>
+
+
+    <!-- Modal -->
+    <div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+        <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+            <h5 class="modal-title" id="staticBackdropLabel">Upload Invoice</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method='post'  action="/upload_external_prod/{{externalProduction.id}}" enctype="multipart/form-data" id="daily_upload" >
+                    {% csrf_token %}                                                                                                                                                                      
+                    <label class="form-label" for="file">Select File</label>                                    
+                    <div class="input-group-btn">
+                        <div class="input-group mb-3">
+                            <input type="file" class="form-control" id="myfile" name="myfile" accept="application/pdf, image/png, image/jpeg" required>                                                                                                                                        
+                        </div>                                                    
+                    </div>                                                                                      
+                </form>
+            </div>
+            <div class="modal-footer">                                        
+            <button type="submit" form="daily_upload" class="btn btn-primary">Upload</button>
+            <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
