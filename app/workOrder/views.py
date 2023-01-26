@@ -14,13 +14,13 @@ from telnetlib import WONT
 from unittest import TextTestResult
 from urllib import response
 from django.shortcuts import render, get_object_or_404, HttpResponseRedirect, redirect
-from .models import Employee, payrollDetail, workOrder, workOrderDuplicate, Locations, item, itemPrice, payroll, internalPO, period, Daily, DailyEmployee, DailyItem, employeeRecap, woStatusLog, vendor, subcontractor, externalProduction, externalProdItem
+from .models import Employee, payrollDetail, workOrder, workOrderDuplicate, Locations, item, itemPrice, payroll, internalPO, period, Daily, DailyEmployee, DailyItem, employeeRecap, woStatusLog, vendor, subcontractor, externalProduction, externalProdItem, authorizedBilling, woEstimate, woInvoice
 from .resources import workOrderResource
 from django.contrib import messages
 from tablib import Dataset
 from django.http import HttpResponse, FileResponse, HttpRequest
 from django.db import IntegrityError
-from .forms import EmployeesForm, InternalPOForm, ItemForm, ItemPriceForm, LocationsForm, workOrderForm, DailyEmpForm, DailyItemForm, dailydForm, dailySupForm, vendorForm, subcontractorForm, extProdForm, extProdItemForm
+from .forms import EmployeesForm, InternalPOForm, ItemForm, ItemPriceForm, LocationsForm, workOrderForm, DailyEmpForm, DailyItemForm, dailydForm, dailySupForm, vendorForm, subcontractorForm, extProdForm, extProdItemForm, authorizedBillingForm  
 from sequences import get_next_value, Sequence
 from datetime import date
 from django.utils.dateparse import parse_date
@@ -964,12 +964,24 @@ def po_list(request, id):
     context["emp"] = emp
     return render(request, "po_order_list.html", context)
 
+def internal_po_list(request):
+    emp = Employee.objects.filter(user__username__exact = request.user.username).first()
+    context = {}    
+    per = period.objects.filter(status__in=(1,2)).first()
+    context["per"] = per
 
-def update_po(request, id):
+    context["po"] = internalPO.objects.all().order_by('-id')
+    context["emp"] = emp
+    return render(request, "internal_po_list.html", context)
+
+
+def update_po(request, id, woID):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context ={}
     per = period.objects.filter(status__in=(1,2)).first()
     context["per"] = per
+
+    context["woID"] = int(woID)
 
     context["po"] = internalPO.objects.filter(id = id).first()
 
@@ -984,11 +996,40 @@ def update_po(request, id):
         except Exception as e:
             None
         form.save()
-        return HttpResponseRedirect("/po_list/" + str(obj.woID.id))
+
+        if int(woID) > 0:
+            return HttpResponseRedirect("/po_list/" + str(obj.woID.id))
+        else:
+            return HttpResponseRedirect("/internal_po_list/")
 
     context["form"] = form
     context["emp"] = emp
     return render(request, "update_po.html", context)
+
+def delete_po(request, id, woID):
+    emp = Employee.objects.filter(user__username__exact = request.user.username).first()
+    context ={}
+
+    per = period.objects.filter(status__in=(1,2)).first()
+    context["per"] = per
+
+    context["woID"] = int(woID)
+
+    obj = get_object_or_404(internalPO, id = id)
+ 
+    context["form"] = obj
+    context["emp"] = emp
+ 
+    if request.method == 'POST':
+        obj.delete()
+
+        if int(woID) > 0:
+            return HttpResponseRedirect("/po_list/" + str(woID))
+        else:
+            return HttpResponseRedirect("/internal_po_list/") 
+
+   
+    return render(request, "delete_po.html", context)
 
 def create_po(request, id):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
@@ -1007,48 +1048,35 @@ def create_po(request, id):
     context["selectedWO"] = id
     return render(request, "create_po.html", context)
 
-def estimate(request, id):
+def estimate(request, id, estimateID):
+    emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context = {}    
     per = period.objects.filter(status__in=(1,2)).first()
     context["per"] = per
 
     wo = workOrder.objects.filter(id=id).first()
-    
 
-    daily = Daily.objects.filter(woID = wo).first()
-    context["payroll"] = daily
-
-    payItems = DailyItem.objects.filter(DailyID__woID = wo)
-    context["items"] = payItems
+    context["order"] = wo
+    context["emp"] = emp
 
     context["estimate"] = True
 
     itemResume = []
 
-    try:
-        for data in payItems:
+    
+    authBilling = authorizedBilling.objects.filter(woID = wo, estimate = estimateID)
 
-            itemResult = next((i for i, item in enumerate(itemResume) if item["item"] == data.itemID.item.itemID), None)
-            amount = 0
-            amount = Decimal(str(data.quantity)) * Decimal(str(data.itemID.price))  
-            if itemResult != None:                  
-                itemResume[itemResult]['quantity'] += data.quantity
-                itemResume[itemResult]['amount'] += amount
-            else:            
-                itemResume.append({'item':data.itemID.item.itemID, 'name': data.itemID.item.name, 'quantity': data.quantity, 'price':data.itemID.price, 'amount':amount,'Encontrado':False})
-           
-        
-    except Exception as e:
-        print(str(e)) 
-
-
+    for data in authBilling:
+        if data.quantity > 0:
+            itemResume.append({'item':data.itemID.item.itemID, 'name': data.itemID.item.name, 'quantity': data.quantity, 'price':data.itemID.price, 'amount':data.total,'Encontrado':False})
+    
 
     itemHtml = ''
     total = 0 
     linea = 0
     try:
-        context["itemResume"] = itemResume
-        for data in itemResume:
+        itemResumeS = sorted(itemResume, key=lambda d: d['item']) 
+        for data in itemResumeS:
             linea = linea + 1
             amount = 0
 
@@ -1062,10 +1090,12 @@ def estimate(request, id):
             itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> $' + '{0:,.2f}'.format(data['amount']) + '</td> '
             itemHtml = itemHtml + ' </tr> '            
     except Exception as e:
+        itemHtml = itemHtml + str(e)
         print(e)
 
     # obtengo las internal PO
-    internal = internalPO.objects.filter(woID = wo)
+    internal = internalPO.objects.filter(woID = wo, nonBillable = False, estimate = estimateID)
+
     totaPO = 0
 
     for data in internal:        
@@ -1106,30 +1136,11 @@ def estimate(request, id):
 
 
     template_path = 'invoice_template.html'
-
+    context["estimateID"] = estimateID
     template= get_template(template_path)
 
-    if (wo.pre_invoice != 0 and wo.pre_invoice != " " and wo.pre_invoice is None):     
-
-        log = woStatusLog( 
-                            woID = wo,
-                            currentStatus = wo.Status,
-                            nextStatus = 4,
-                            createdBy = request.user.username,
-                            created_date = datetime.datetime.now()
-                            )
-        log.save()
-
-        pre = Sequence("preinvoice")
-        wo.pre_invoice = str(pre.get_next_value())
-        wo.Status=4
-        wo.UploadDate = datetime.datetime.now()
-        wo.save()
-    
-   
-
     wo2 = workOrder.objects.filter(id=id).first()
-    fileName = "estimate-" + wo2.pre_invoice + ".pdf"
+    fileName = "estimate-" + str(estimateID) + ".pdf"
 
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename=' + fileName
@@ -1145,47 +1156,221 @@ def estimate(request, id):
     if pisa_status.err:
         return HttpResponse('We had some errors <pre>' + html + '</pre>')
     
-    return response     
+    return response 
 
-def invoice(request, id):
+def partial_estimate(request, id, isPartial, Status):
     context = {}    
     per = period.objects.filter(status__in=(1,2)).first()
     context["per"] = per
 
     wo = workOrder.objects.filter(id=id).first()
 
-    daily = Daily.objects.filter(woID = wo).first()
-    context["payroll"] = daily
+    openEstimate = woEstimate.objects.filter(woID = wo, Status = 1).count()
 
-    payItems = DailyItem.objects.filter(DailyID__woID = wo)
-    context["items"] = payItems
+    if openEstimate == 0 and int(Status) == 1:
+        pre = Sequence("preinvoice")
+        estimateID = str(pre.get_next_value())
+
+        #creating the estimate
+        estimateObject = woEstimate(
+            woID = wo,
+            estimateNumber = estimateID,
+            Status = 1,
+            is_partial = isPartial,
+            created_date = datetime.datetime.now(),
+            createdBy = request.user.username
+        )
+
+        estimateObject.save()
+
+        est = woEstimate.objects.filter(woID = wo, Status = 1).first()
+
+        if est.is_partial == False:
+            log = woStatusLog( 
+                                woID = wo,
+                                currentStatus = wo.Status,
+                                nextStatus = 4,
+                                createdBy = request.user.username,
+                                created_date = datetime.datetime.now()
+                                )
+            log.save()        
+        
+            wo.Status=4        
+            wo.UploadDate = datetime.datetime.now()
+            wo.save()   
+
+    elif openEstimate > 0 and int(Status) == 1: 
+        est = woEstimate.objects.filter(woID = wo, Status = 1).first()
+        estimateID = est.estimateNumber
+
+        if est.is_partial == False:
+            log = woStatusLog( 
+                                woID = wo,
+                                currentStatus = wo.Status,
+                                nextStatus = 4,
+                                createdBy = request.user.username,
+                                created_date = datetime.datetime.now()
+                                )
+            log.save()        
+        
+            wo.Status=4        
+            wo.UploadDate = datetime.datetime.now()
+            wo.save()    
+
+    elif int(Status) == 2:
+        est = woEstimate.objects.filter(woID = wo, Status = 1).first()
+        estimateID = est.estimateNumber
+
+
+        pre = Sequence("invoice")
+        invoiceID = str(pre.get_next_value())
+
+        if est.is_partial == False:
+            log = woStatusLog( 
+                                woID = wo,
+                                currentStatus = 4,
+                                nextStatus = 5,
+                                createdBy = request.user.username,
+                                created_date = datetime.datetime.now()
+                                )
+            log.save()        
+        
+            wo.Status=5        
+            wo.UploadDate = datetime.datetime.now()
+            wo.save()    
+
+            
+        #creating the estimate
+        invoiceObject = woInvoice(
+            woID = wo,
+            invoiceNumber = invoiceID,
+            Status = 1,
+            created_date = datetime.datetime.now(),
+            createdBy = request.user.username
+        )
+
+        invoiceObject.save()
+
+    
+
+    
+    if int(Status) == 1:
+        #Update dailyItems
+        dailyI = DailyItem.objects.filter(DailyID__woID = wo, Status = 1)
+
+        for i in dailyI:
+            dItem = DailyItem.objects.filter(id = i.id).first()
+
+            dItem.Status = 2
+            dItem.estimate = estimateID
+            dItem.save()
+        
+        #Update externalProdItem
+        epItem = externalProdItem.objects.filter(externalProdID__woID = wo, Status = 1)
+
+        for j in epItem:
+            eItem = externalProdItem.objects.filter(id = j.id).first()
+
+            eItem.Status = 2
+            eItem.estimate = estimateID
+            eItem.save()
+
+        #Update authorizedItem
+        authItem = authorizedBilling.objects.filter(woID = wo, Status = 1)
+
+        for k in authItem:
+            aItem = authorizedBilling.objects.filter(id = k.id).first()
+
+            aItem.Status = 2
+            aItem.estimate = estimateID
+            aItem.save()
+        
+        #Update Internal PO
+        internal = internalPO.objects.filter(woID = wo, Status = 1)
+
+        for l in internal:
+            iItem = internalPO.objects.filter(id = l.id).first()
+
+            iItem.Status = 2
+            iItem.estimate = estimateID
+            iItem.save()
+    elif int(Status) == 2:
+        #Update dailyItems
+        dailyI = DailyItem.objects.filter(DailyID__woID = wo, estimate = estimateID)
+
+        for i in dailyI:
+            dItem = DailyItem.objects.filter(id = i.id).first()
+
+            dItem.Status = 3
+            dItem.invoice = invoiceID
+            dItem.save()
+        
+        #Update externalProdItem
+        epItem = externalProdItem.objects.filter(externalProdID__woID = wo, estimate = estimateID)
+
+        for j in epItem:
+            eItem = externalProdItem.objects.filter(id = j.id).first()
+
+            eItem.Status = 3
+            eItem.invoice = invoiceID
+            eItem.save()
+
+        #Update authorizedItem
+        authItem = authorizedBilling.objects.filter(woID = wo, estimate = estimateID)
+
+        for k in authItem:
+            aItem = authorizedBilling.objects.filter(id = k.id).first()
+
+            aItem.Status = 3
+            aItem.invoice = invoiceID
+            aItem.save()
+        
+        #Update Internal PO
+        internal = internalPO.objects.filter(woID = wo, estimate = estimateID)
+
+        for l in internal:
+            iItem = internalPO.objects.filter(id = l.id).first()
+
+            iItem.Status = 3
+            iItem.invoice = invoiceID
+            iItem.save()
+        
+
+        est = woEstimate.objects.filter(woID = wo, estimateNumber = estimateID).first()       
+        est.Status = 2
+        est.save()
+
+    return HttpResponseRedirect("/billing_list/" + str(id)) 
+
+
+
+def invoice(request, id, invoiceID):
+    emp = Employee.objects.filter(user__username__exact = request.user.username).first()
+    context = {}    
+    per = period.objects.filter(status__in=(1,2)).first()
+    context["per"] = per
+
+    wo = workOrder.objects.filter(id=id).first()
+
+    context["order"] = wo
+    context["emp"] = emp
 
     context["estimate"] = False
 
     itemResume = []
 
-    try:
-        for data in payItems:
+    authBilling = authorizedBilling.objects.filter(woID = wo, invoice = invoiceID)
 
-            itemResult = next((i for i, item in enumerate(itemResume) if item["item"] == data.itemID.item.itemID), None)
-            amount = 0
-            amount = Decimal(str(data.quantity)) * Decimal(str(data.itemID.price))  
-            if itemResult != None:                  
-                itemResume[itemResult]['quantity'] += data.quantity
-                itemResume[itemResult]['amount'] += amount
-            else:            
-                itemResume.append({'item':data.itemID.item.itemID, 'name': data.itemID.item.name, 'quantity': data.quantity, 'price':data.itemID.price, 'amount':amount,'Encontrado':False})
-           
-        
-    except Exception as e:
-        print(str(e)) 
+    for data in authBilling:
+        if data.quantity > 0:
+            itemResume.append({'item':data.itemID.item.itemID, 'name': data.itemID.item.name, 'quantity': data.quantity, 'price':data.itemID.price, 'amount':data.total,'Encontrado':False})
 
     itemHtml = ''
     total = 0 
     linea = 0
     try:
-        context["itemResume"] = itemResume
-        for data in itemResume:
+        itemResumeS = sorted(itemResume, key=lambda d: d['item']) 
+        for data in itemResumeS:
             linea = linea + 1
             amount = 0
             
@@ -1201,8 +1386,9 @@ def invoice(request, id):
     except Exception as e:
         print(e)
 
+
     # obtengo las internal PO
-    internal = internalPO.objects.filter(woID = wo)
+    internal = internalPO.objects.filter(woID = wo, nonBillable = False, invoice = invoiceID)
     totaPO = 0
     for data in internal:
         linea = linea + 1
@@ -1241,10 +1427,10 @@ def invoice(request, id):
     context["total"] = total
 
     template_path = 'invoice_template.html'
-
+    context["invoiceID"] = invoiceID
     template= get_template(template_path)
 
-    if (wo.invoice != 0 and wo.invoice != " " and wo.invoice is None):  
+    """if (wo.invoice != 0 and wo.invoice != " " and wo.invoice is None):  
 
         log = woStatusLog( 
                             woID = wo,
@@ -1260,10 +1446,10 @@ def invoice(request, id):
         wo.Status=5
         wo.UploadDate = datetime.datetime.now()
         wo.save()
-
+    """
     wo2 = workOrder.objects.filter(id=id).first()
 
-    fileName = "invoice-" + wo2.invoice + ".pdf"
+    fileName = "invoice-" + str(invoiceID) + ".pdf"
 
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename=' + fileName
@@ -1282,7 +1468,7 @@ def invoice(request, id):
     return response   
 
 
-def estimate_preview(request, id):
+def estimate_preview(request, id, estimateID):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context = {}    
     per = period.objects.filter(status__in=(1,2)).first()
@@ -1293,57 +1479,49 @@ def estimate_preview(request, id):
     context["order"] = wo
     context["emp"] = emp
 
-    daily = Daily.objects.filter(woID = wo).first()
-    context["payroll"] = daily
-
-    payItems = DailyItem.objects.filter(DailyID__woID = wo)
-    context["items"] = payItems
-
     context["estimate"] = True
 
     itemResume = []
 
-    try:
-        for data in payItems:
+    if int(str(estimateID)) == 0:
+        authBilling = authorizedBilling.objects.filter(woID = wo, Status = 1)
+    else:
+        authBilling = authorizedBilling.objects.filter(woID = wo, estimate = estimateID)
 
-            itemResult = next((i for i, item in enumerate(itemResume) if item["item"] == data.itemID.item.itemID), None)
-            amount = 0
-            amount = Decimal(str(data.quantity)) * Decimal(str(data.itemID.price))  
-            if itemResult != None:                  
-                itemResume[itemResult]['quantity'] += data.quantity
-                itemResume[itemResult]['amount'] += amount
-            else:            
-                itemResume.append({'item':data.itemID.item.itemID, 'name': data.itemID.item.name, 'quantity': data.quantity, 'price':data.itemID.price, 'amount':amount,'Encontrado':False})
-           
-        
-    except Exception as e:
-        print(str(e))   
+    for data in authBilling:
+        if data.quantity > 0:
+            itemResume.append({'item':data.itemID.item.itemID, 'name': data.itemID.item.name, 'quantity': data.quantity, 'price':data.itemID.price, 'amount':data.total,'Encontrado':False})
 
 
     itemHtml = ''
     total = 0 
     linea = 0
-    try:
-        context["itemResume"] = itemResume
-        for data in itemResume:
+    try:        
+        itemResumeS = sorted(itemResume, key=lambda d: d['item']) 
+        for data in itemResumeS:
             linea = linea + 1
             amount = 0
            
             amount = Decimal(str(data['quantity'])) * Decimal(str(data['price']))
             total = total + amount
-            itemHtml = itemHtml + ' <tr> '                  
-            itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px;" width="20%" align="center">' + str(data['item']) + '</td> '
-            itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px; padding-left: 2px;" width="43%" align="left">' + data['name'] + '</td> '
-            itemHtml = itemHtml +  ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px;" width="12%" align="center">' + str(data['quantity']) + '</td> '
-            itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px;" width="13%" align="center"> $' + '{0:,.2f}'.format(float(data['price'])) + '</td> '
-            itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px;" width="12%" align="center"> $'  + '{0:,.2f}'.format(data['amount']) + '</td>'
-            itemHtml = itemHtml + ' </tr> '        
+           
+            itemHtml = itemHtml + " <tr>"
+            itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="20%" align="center"> ' + str(data['item']) + '</td> '
+            itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px; padding-left: 2px;" width="43%" align="left">    ' + data['name']  + '</td> '
+            itemHtml = itemHtml +  ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center">' + str(data['quantity']) + '</td> '
+            itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="13%" align="center"> $' + '{0:,.2f}'.format(float(data['price'])) + '</td> '
+            itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> $' + '{0:,.2f}'.format(data['amount']) + '</td> '
+            itemHtml = itemHtml + ' </tr> '          
     except Exception as e:
         itemHtml = itemHtml + str(e)
         print(str(e))
 
     # obtengo las internal PO
-    internal = internalPO.objects.filter(woID = wo)
+    if int(str(estimateID)) == 0:
+        internal = internalPO.objects.filter(woID = wo, nonBillable = False, Status = 1)
+    else:
+        internal = internalPO.objects.filter(woID = wo, nonBillable = False, estimate = estimateID)
+
     totaPO = 0
     for data in internal:
         linea = linea + 1
@@ -1351,39 +1529,39 @@ def estimate_preview(request, id):
         total = total + amount
         totaPO += amount
         itemHtml = itemHtml + ' <tr> '
-        itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px;" width="20%" align="center">'  + 'N/A'+ '</td> '
-        itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px; padding-left: 2px;" width="43%" align="left">' + data.product + '</td> '
-        itemHtml = itemHtml +  ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px;" width="12%" align="center">' + data.quantity + '</td> '
-        itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px;" width="13%" align="center">' +'N/A' + '</td> '
-        itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px;" width="12%" align="center"> $'  + '{0:,.2f}'.format(float(data.total)) + '</td>'
+        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="20%" align="center"> N/A </td> '
+        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px; padding-left: 2px;" width="43%" align="left">' + data.product + '</td> '
+        itemHtml = itemHtml +  ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center">' + data.quantity + '</td> '
+        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="13%" align="center"> N/A </td> '
+        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> $'  + '{0:,.2f}'.format(float(data.total)) + '</td>'
         itemHtml = itemHtml + ' </tr> '
 
     if totaPO > 0:
         totaPO = totaPO * Decimal(str(0.10))
         total = total + totaPO
         itemHtml = itemHtml + ' <tr> '
-        itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px;" width="20%" align="center"></td> '
-        itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px; padding-left: 2px;" width="43%" align="left"> Markup</td> '
-        itemHtml = itemHtml +  ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px;" width="12%" align="center"> </td> '
-        itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px;" width="13%" align="center"></td> '
-        itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px;" width="12%" align="center"> $'  + '{0:,.2f}'.format(float(totaPO)) + '</td>'
+        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="20%" align="center"> </td> '
+        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px; padding-left: 2px;" width="43%" align="left"> Markup </td> '
+        itemHtml = itemHtml +  ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"></td> '
+        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="13%" align="center"> </td> '
+        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> $'  + '{0:,.2f}'.format(float(totaPO)) + '</td>'
         itemHtml = itemHtml + ' </tr> '
    
-    for i in range(21-linea):
-        itemHtml = itemHtml + ' <tr> '
-        itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px;" width="20%" align="center">'  + '&nbsp;'+ '</td> '
-        itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px; padding-left: 2px;" width="43%" align="left">' + '&nbsp;' + '</td> '
-        itemHtml = itemHtml +  ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px;" width="12%" align="center">' + '&nbsp;' + '</td> '
-        itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px;" width="13%" align="center">' +'&nbsp;' + '</td> '
-        itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px;" width="12%" align="center">'  + '&nbsp;' + '</td>'
-        itemHtml = itemHtml + ' </tr> '
+    for i in range(21-linea):     
+        itemHtml = itemHtml + '<tr>'
+        itemHtml = itemHtml + '<td style="border-left:1px solid #444; border-right:1px solid #444;" width="20%" align="center">&nbsp;</td> '
+        itemHtml = itemHtml + '<td style="border-left:1px solid #444; border-right:1px solid #444;" width="43%" align="center">&nbsp;</td> '
+        itemHtml = itemHtml + '<td style="border-left:1px solid #444; border-right:1px solid #444;" width="12%" align="center">&nbsp;</td> '
+        itemHtml = itemHtml + '<td style="border-left:1px solid #444; border-right:1px solid #444;" width="13%" align="center">&nbsp;</td> '
+        itemHtml = itemHtml + '<td style="border-left:1px solid #444; border-right:1px solid #444;" width="12%" align="center">&nbsp;</td> '
+        itemHtml = itemHtml + '</tr> '
         
     context["itemPrice"] = itemHtml
     context["total"] = total
 
-    return render(request, "pre_invoice.html", context)
+    return render(request, "invoice_template_preview.html", context)
 
-def invoice_preview(request, id):
+def invoice_preview(request, id, invoiceID):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context = {}    
     per = period.objects.filter(status__in=(1,2)).first()
@@ -1394,55 +1572,41 @@ def invoice_preview(request, id):
     context["order"] = wo
     context["emp"] = emp
 
-    daily = Daily.objects.filter(woID = wo).first()
-    context["payroll"] = daily
-
-    payItems = DailyItem.objects.filter(DailyID__woID = wo)
-    context["items"] = payItems
-
     context["estimate"] = False
 
     itemResume = []
 
-    try:
-        for data in payItems:
 
-            itemResult = next((i for i, item in enumerate(itemResume) if item["item"] == data.itemID.item.itemID), None)
-            amount = 0
-            amount = Decimal(str(data.quantity)) * Decimal(str(data.itemID.price))  
-            if itemResult != None:                  
-                itemResume[itemResult]['quantity'] += data.quantity
-                itemResume[itemResult]['amount'] += amount
-            else:            
-                itemResume.append({'item':data.itemID.item.itemID, 'name': data.itemID.item.name, 'quantity': data.quantity, 'price':data.itemID.price, 'amount':amount,'Encontrado':False})
-           
-        
-    except Exception as e:
-        print(str(e))   
+    authBilling = authorizedBilling.objects.filter(woID = wo, invoice = invoiceID)
+
+    for data in authBilling:
+        if data.quantity > 0:
+            itemResume.append({'item':data.itemID.item.itemID, 'name': data.itemID.item.name, 'quantity': data.quantity, 'price':data.itemID.price, 'amount':data.total,'Encontrado':False})
+
 
     itemHtml = ''
     total = 0 
     linea = 0
     
     try:
-        context["itemResume"] = itemResume
-        for data in itemResume:
+        itemResumeS = sorted(itemResume, key=lambda d: d['item']) 
+        for data in itemResumeS:
             linea = linea + 1
             amount = 0            
             amount = Decimal(str(data['quantity'])) * Decimal(str(data['price']))
             total = total + amount
-            itemHtml = itemHtml + ' <tr> '                  
-            itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px;" width="20%" align="center">' + str(data['item']) + '</td> '
-            itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px; padding-left: 2px;" width="43%" align="left">' + data['name'] + '</td> '
-            itemHtml = itemHtml +  ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px;" width="12%" align="center">' + str(data['quantity']) + '</td> '
-            itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px;" width="13%" align="center"> $' + '{0:,.2f}'.format(float(data['price'])) + '</td> '
-            itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px;" width="12%" align="center"> $'  + '{0:,.2f}'.format(data['amount']) + '</td>'
-            itemHtml = itemHtml + ' </tr> '            
+            itemHtml = itemHtml + " <tr>"
+            itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="20%" align="center"> ' + str(data['item']) + '</td> '
+            itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px; padding-left: 2px;" width="43%" align="left">    ' + data['name']  + '</td> '
+            itemHtml = itemHtml +  ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center">' + str(data['quantity']) + '</td> '
+            itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="13%" align="center"> $' + '{0:,.2f}'.format(float(data['price'])) + '</td> '
+            itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> $' + '{0:,.2f}'.format(data['amount']) + '</td> '
+            itemHtml = itemHtml + ' </tr> '                 
     except Exception as e:
         print(e)
 
     # obtengo las internal PO
-    internal = internalPO.objects.filter(woID = wo)
+    internal = internalPO.objects.filter(woID = wo, nonBillable = False, invoice = invoiceID)
     totaPO = 0
     for data in internal:
         linea = linea + 1
@@ -1450,37 +1614,38 @@ def invoice_preview(request, id):
         total = total + amount
         totaPO += amount
         itemHtml = itemHtml + ' <tr> '
-        itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px;" width="20%" align="center">'  + 'N/A'+ '</td> '
-        itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px; padding-left: 2px;" width="43%" align="left">' + data.product + '</td> '
-        itemHtml = itemHtml +  ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px;" width="12%" align="center">' + data.quantity + '</td> '
-        itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px;" width="13%" align="center">' +'N/A' + '</td> '
-        itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px;" width="12%" align="center"> $'  + '{0:,.2f}'.format(float(data.total)) + '</td>'
+        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="20%" align="center"> N/A </td> '
+        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px; padding-left: 2px;" width="43%" align="left">' + data.product + '</td> '
+        itemHtml = itemHtml +  ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center">' + data.quantity + '</td> '
+        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="13%" align="center"> N/A </td> '
+        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> $'  + '{0:,.2f}'.format(float(data.total)) + '</td>'
         itemHtml = itemHtml + ' </tr> '
 
     if totaPO > 0:
         totaPO = totaPO * Decimal(str(0.10))
         total = total + totaPO
         itemHtml = itemHtml + ' <tr> '
-        itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px;" width="20%" align="center"></td> '
-        itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px; padding-left: 2px;" width="43%" align="left">Markup</td> '
-        itemHtml = itemHtml +  ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px;" width="12%" align="center"></td> '
-        itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px;" width="13%" align="center"></td> '
-        itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px;" width="12%" align="center"> $'  + '{0:,.2f}'.format(float(totaPO)) + '</td>'
+        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="20%" align="center"> </td> '
+        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px; padding-left: 2px;" width="43%" align="left"> Markup </td> '
+        itemHtml = itemHtml +  ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"></td> '
+        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="13%" align="center"> </td> '
+        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> $'  + '{0:,.2f}'.format(float(totaPO)) + '</td>'
         itemHtml = itemHtml + ' </tr> '
 
     for i in range(21-linea):
-        itemHtml = itemHtml + ' <tr> '
-        itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px;" width="20%" align="center">'  + '&nbsp;'+ '</td> '
-        itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px; padding-left: 2px;" width="43%" align="left">' + '&nbsp;' + '</td> '
-        itemHtml = itemHtml +  ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px;" width="12%" align="center">' + '&nbsp;' + '</td> '
-        itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px;" width="13%" align="center">' +'&nbsp;' + '</td> '
-        itemHtml = itemHtml + ' <td style="border-left:1px solid #e9e9e9; border-right:1px solid #e9e9e9; padding-top: 3px;" width="12%" align="center">'  + '&nbsp;' + '</td>'
-        itemHtml = itemHtml + ' </tr> '
+        itemHtml = itemHtml + '<tr>'
+        itemHtml = itemHtml + '<td style="border-left:1px solid #444; border-right:1px solid #444;" width="20%" align="center">&nbsp;</td> '
+        itemHtml = itemHtml + '<td style="border-left:1px solid #444; border-right:1px solid #444;" width="43%" align="center">&nbsp;</td> '
+        itemHtml = itemHtml + '<td style="border-left:1px solid #444; border-right:1px solid #444;" width="12%" align="center">&nbsp;</td> '
+        itemHtml = itemHtml + '<td style="border-left:1px solid #444; border-right:1px solid #444;" width="13%" align="center">&nbsp;</td> '
+        itemHtml = itemHtml + '<td style="border-left:1px solid #444; border-right:1px solid #444;" width="12%" align="center">&nbsp;</td> '
+        itemHtml = itemHtml + '</tr> '
         
     context["itemPrice"] = itemHtml
     context["total"] = total
 
-    return render(request, "pre_invoice.html", context)
+    #return render(request, "pre_invoice.html", context)
+    return render(request, "invoice_template_preview.html", context)
 
 
 def pre_invoice2(request, id):
@@ -2823,13 +2988,19 @@ def get_order_list(request,estatus, loc):
 
         #woo = workOrder.objects.filter(id = item.id)
 
+        #External Production
+        extProduction = externalProduction.objects.filter(woID = item)
+        epTotal = 0 
+        for ep in extProduction:
+            epTotal += validate_decimals(ep.total_invoice)
+
         internalpo = internalPO.objects.filter(woID=item)
         poTotal = 0
         for po in internalpo:
             poTotal += validate_decimals(po.total)
 
-        balance = validate_decimals(item.POAmount) - validate_decimals(empTotal) - validate_decimals(poTotal)
-        totalExp = validate_decimals(empTotal) + validate_decimals(poTotal)
+        balance = validate_decimals(item.POAmount) - validate_decimals(empTotal) - validate_decimals(poTotal) -  validate_decimals(epTotal)
+        totalExp = validate_decimals(empTotal) + validate_decimals(poTotal) + validate_decimals(epTotal)
         if item.POAmount != None and validate_decimals(item.POAmount) > 0:
             balance_per = ((validate_decimals(totalExp)*100)/validate_decimals(item.POAmount))  
         else:
@@ -3537,7 +3708,8 @@ def payroll_detail(request, id):
 
     dailys = Daily.objects.filter(woID = obj)
     dailyDetail = []
-
+    
+    #Payroll Detail
     empTotal = 0
     for item in dailys:
         dailyEmp = DailyEmployee.objects.filter(DailyID = item)
@@ -3546,13 +3718,20 @@ def payroll_detail(request, id):
             empTotal += validate_decimals(empI.payout)
             dailyDetail.append({'empID': empI.EmployeeID.employeeID, 'empName':empI.EmployeeID, 'payout': empI.payout, 'day':empI.DailyID.day, 'period': empI.DailyID.Period.weekRange} )
 
+    #External Production
+    extProduction = externalProduction.objects.filter(woID = obj)
+    epTotal = 0 
+    for ep in extProduction:
+        epTotal += validate_decimals(ep.total_invoice)
+
+    #Internal PO Detail
     internalpo = internalPO.objects.filter(woID=obj)
     poTotal = 0
     for po in internalpo:
         poTotal += validate_decimals(po.total)
 
-    balance = validate_decimals(obj.POAmount) - validate_decimals(empTotal) - validate_decimals(poTotal)
-    totalExp = validate_decimals(empTotal) + validate_decimals(poTotal)
+    balance = validate_decimals(obj.POAmount) - validate_decimals(empTotal) - validate_decimals(poTotal)- validate_decimals(epTotal)
+    totalExp = validate_decimals(empTotal) + validate_decimals(poTotal) + validate_decimals(epTotal)
     if validate_decimals(obj.POAmount) > 0:
         balance_per = ((validate_decimals(totalExp)*100)/validate_decimals(obj.POAmount))
     else:    
@@ -3561,11 +3740,13 @@ def payroll_detail(request, id):
     context["payroll"] = dailyDetail
     context["payrollTotal"] = empTotal
     context["poTotal"] = poTotal
+    context["epTotal"] = epTotal
     context["totalExp"] = totalExp
     context["balance"] = balance
     context["balance_per"] = balance_per
     context["order"] = obj
     context["po"] = internalpo
+    context["extProduction"] = extProduction
     context["emp"] = emp
  
     return render(request, "payroll_detail.html", context)
@@ -3956,7 +4137,11 @@ def create_ext_prod_item(request, id):
     for i in dailyI:
        itemList.append(i.itemID.item.itemID) 
 
-    itemLocation = itemPrice.objects.filter(location__LocationID = dailyID.woID.Location.LocationID).exclude(item__itemID__in = itemList)
+    if dailyID.woID.Location != None:
+        itemLocation = itemPrice.objects.filter(location__LocationID = dailyID.woID.Location.LocationID).exclude(item__itemID__in = itemList)
+    else:
+        itemLocation = None
+
 
     form = extProdItemForm(request.POST or None, initial={'externalProdID': dailyID}, qs = itemLocation)
     if form.is_valid():    
@@ -4036,3 +4221,299 @@ def delete_ext_prod_item(request, id):
 
    
     return render(request, "delete_ext_prod_item.html", context)
+
+
+def authorized_billing_list(request, id):
+    context = {} 
+    emp = Employee.objects.filter(user__username__exact = request.user.username).first()
+    context["emp"] = emp
+
+    per = period.objects.filter(status__in=(1,2)).first()
+    context["per"] = per
+
+    wo = workOrder.objects.filter(id=id).first()
+    context["order"] = wo
+    
+
+    payItems = DailyItem.objects.filter(DailyID__woID = wo)
+    itemResume = []
+
+    try:
+        for data in payItems:
+
+            itemResult = next((i for i, item in enumerate(itemResume) if item["item"] == data.itemID.item.itemID), None)
+            amount = 0
+            amount = Decimal(str(data.quantity)) * Decimal(str(data.itemID.price))  
+            if itemResult != None:                  
+                itemResume[itemResult]['quantity'] += data.quantity
+                itemResume[itemResult]['amount'] += amount
+            else:            
+                itemResume.append({'item':data.itemID.item.itemID, 'name': data.itemID.item.name, 'quantity': data.quantity, 'price':data.itemID.price, 'amount':amount,'Encontrado':False})
+           
+        
+    except Exception as e:
+        print(str(e)) 
+
+    # Group External Production by Item
+    try:
+        extProduction = externalProdItem.objects.filter(externalProdID__woID = wo)
+
+        for data in extProduction:
+
+            itemResult = next((i for i, item in enumerate(itemResume) if item["item"] == data.itemID.item.itemID), None)
+            amount = 0
+            amount = Decimal(str(data.quantity)) * Decimal(str(data.itemID.price))  
+            if itemResult != None:                  
+                itemResume[itemResult]['quantity'] += data.quantity
+                itemResume[itemResult]['amount'] += amount
+            else:            
+                itemResume.append({'item':data.itemID.item.itemID, 'name': data.itemID.item.name, 'quantity': data.quantity, 'price':data.itemID.price, 'amount':amount,'Encontrado':False})
+           
+        
+    except Exception as e:
+        print(str(e)) 
+
+    itemFinal = []
+
+    countAuthItem = authorizedBilling.objects.filter(woID = wo).count()
+
+    #Insert Production in Authorized Items
+    if countAuthItem == 0:
+        for itemR in itemResume:
+
+            #Getting the Item Price
+
+            iPrice = itemPrice.objects.filter(item__itemID=itemR['item'], location__LocationID = wo.Location.LocationID).first()
+
+            authI = authorizedBilling(
+                        woID = wo,
+                        itemID = iPrice,
+                        quantity = itemR['quantity'],
+                        total = itemR['amount'],
+                        createdBy = request.user.username,
+                        created_date = datetime.datetime.now()
+                    )
+
+            authI.save()       
+            
+    authorizedItem = authorizedBilling.objects.filter(woID = wo)
+
+    for itemA in authorizedItem:
+        itemResult = next((i for i, item in enumerate(itemResume) if item["item"] == itemA.itemID.item.itemID), None)
+
+        if itemResult != None:          
+            itemFinal.append({'item':itemResume[itemResult]['item'], 'name': itemResume[itemResult]['name'], 'quantity': itemResume[itemResult]['quantity'], 'price': itemResume[itemResult]['price'], 'amount':itemResume[itemResult]['amount'], 'quantityA': itemA.quantity, 'priceA':itemA.itemID.price, 'amountA':itemA.total, 'idA': itemA.id})
+        else:
+            itemFinal.append({'item':itemA.itemID.item.itemID, 'name': itemA.itemID.item.name, 'quantity': None, 'price': None, 'amount':None, 'quantityA': itemA.quantity, 'priceA':itemA.itemID.price, 'amountA':itemA.total, 'idA': itemA.id})
+
+
+
+    context["itemResume"] = sorted(itemFinal, key=lambda d: d['item']) 
+  
+    return render(request, "authorized_billing_list.html", context)
+
+def create_authorized_prod_item(request, id):
+    emp = Employee.objects.filter(user__username__exact = request.user.username).first()
+    context ={}
+
+    per = period.objects.filter(status__in=(1,2)).first()
+    context["per"] = per
+
+    wo = workOrder.objects.filter(id = id).first()
+
+    authorizedItems = authorizedBilling.objects.filter(woID = wo)
+    itemList = []
+
+    for i in authorizedItems:
+       itemList.append(i.itemID.item.itemID) 
+
+    if wo.Location != None:
+        itemLocation = itemPrice.objects.filter(location__LocationID = wo.Location.LocationID).exclude(item__itemID__in = itemList)
+    else:
+        itemLocation = None
+
+
+    form = authorizedBillingForm(request.POST or None, initial={'woID': wo}, qs = itemLocation)
+    if form.is_valid():    
+        
+        itemid = request.POST.get('itemID')
+        
+        selectedItem = itemPrice.objects.filter(id = itemid).first()
+        form.instance.itemID = selectedItem
+
+        price = form.instance.itemID.price    
+        form.instance.total = form.instance.quantity * float(price)
+        form.instance.created_date = datetime.datetime.now()
+
+        form.save()      
+
+        return HttpResponseRedirect("/billing_list/" + str(wo.id))       
+         
+    context['form']= form
+    context["emp"] = emp
+    context["itemList"] = itemLocation
+    return render(request, "create_authorized_prod_item.html", context)
+
+def update_authorized_prod_item(request, id):
+    emp = Employee.objects.filter(user__username__exact = request.user.username).first()
+    context ={}
+
+    per = period.objects.filter(status__in=(1,2)).first()
+    context["per"] = per
+
+    obj = get_object_or_404(authorizedBilling, id = id)
+
+    itemLocation = itemPrice.objects.filter(location__LocationID = obj.woID.Location.LocationID)
+    
+    itemSelected = itemPrice.objects.filter(id = obj.itemID.id ).first()
+
+    form = authorizedBillingForm(request.POST or None, instance = obj, qs = itemLocation)
+ 
+    if form.is_valid():
+        price = form.instance.itemID.price    
+        form.instance.total = form.instance.quantity * float(price)
+        
+        itemid = request.POST.get('itemID')
+        
+        selectedItem = itemPrice.objects.filter(id = itemid).first()
+        form.instance.itemID = selectedItem
+
+        form.save()
+        context["emp"] = emp     
+
+        return HttpResponseRedirect("/billing_list/" + str(form.instance.woID.id)) 
+
+    context["form"] = form
+    context["emp"] = emp
+    context["itemSelected"] = itemSelected
+
+    return render(request, "update_authorized_prod_item.html", context)
+
+def delete_authorized_prod_item(request, id):
+    emp = Employee.objects.filter(user__username__exact = request.user.username).first()
+    context ={}
+
+    per = period.objects.filter(status__in=(1,2)).first()
+    context["per"] = per
+
+    obj = get_object_or_404(authorizedBilling, id = id)
+ 
+    context["form"] = obj
+    context["emp"] = emp
+ 
+    if request.method == 'POST':
+        obj.total = 0
+        obj.quantity = 0
+        obj.save()
+
+
+        return HttpResponseRedirect("/billing_list/" + str(obj.woID.id)) 
+
+   
+    return render(request, "delete_authorized_prod_item.html", context)
+
+
+def billing_list(request, id):
+    context = {} 
+    emp = Employee.objects.filter(user__username__exact = request.user.username).first()
+    context["emp"] = emp
+
+    per = period.objects.filter(status__in=(1,2)).first()
+    context["per"] = per
+
+    wo = workOrder.objects.filter(id=id).first()
+    context["order"] = wo
+    
+
+    payItems = DailyItem.objects.filter(DailyID__woID = wo, Status=1)
+    itemResume = []
+
+
+    #list estimate numbers
+    estimateList = woEstimate.objects.filter(woID = wo)
+    context["estimateList"] = estimateList
+
+    #list estimate numbers
+    estimateList = woInvoice.objects.filter(woID = wo)
+    context["invoiceList"] = estimateList
+
+    try:
+        for data in payItems:
+
+            itemResult = next((i for i, item in enumerate(itemResume) if item["item"] == data.itemID.item.itemID), None)
+            amount = 0
+            amount = Decimal(str(data.quantity)) * Decimal(str(data.itemID.price))  
+            if itemResult != None:                  
+                itemResume[itemResult]['quantity'] += data.quantity
+                itemResume[itemResult]['amount'] += amount
+            else:            
+                itemResume.append({'item':data.itemID.item.itemID, 'name': data.itemID.item.name, 'quantity': data.quantity, 'price':data.itemID.price, 'amount':amount,'Encontrado':False})
+           
+        
+    except Exception as e:
+        print(str(e)) 
+
+    # Group External Production by Item
+    try:
+        extProduction = externalProdItem.objects.filter(externalProdID__woID = wo, Status=1)
+
+        for data in extProduction:
+
+            itemResult = next((i for i, item in enumerate(itemResume) if item["item"] == data.itemID.item.itemID), None)
+            amount = 0
+            amount = Decimal(str(data.quantity)) * Decimal(str(data.itemID.price))  
+            if itemResult != None:                  
+                itemResume[itemResult]['quantity'] += data.quantity
+                itemResume[itemResult]['amount'] += amount
+            else:            
+                itemResume.append({'item':data.itemID.item.itemID, 'name': data.itemID.item.name, 'quantity': data.quantity, 'price':data.itemID.price, 'amount':amount,'Encontrado':False})
+           
+        
+    except Exception as e:
+        print(str(e)) 
+
+    itemFinal = []    
+
+    #Insert Production in Authorized Items
+    for itemR in itemResume:
+
+        #Validating if Item exists in Authorized Item
+        countItem = authorizedBilling.objects.filter(woID = wo, Status = 1, itemID__item__itemID = itemR['item']).count()
+
+        if countItem == 0:
+            #Getting the Item Price
+            iPrice = itemPrice.objects.filter(item__itemID=itemR['item'], location__LocationID = wo.Location.LocationID).first()
+
+            authI = authorizedBilling(
+                        woID = wo,
+                        itemID = iPrice,
+                        quantity = itemR['quantity'],
+                        total = itemR['amount'],
+                        createdBy = request.user.username,
+                        created_date = datetime.datetime.now()
+                    )
+
+            authI.save()       
+            
+    authorizedItem = authorizedBilling.objects.filter(woID = wo, Status = 1)
+
+    for itemA in authorizedItem:
+        itemResult = next((i for i, item in enumerate(itemResume) if item["item"] == itemA.itemID.item.itemID), None)
+
+        if itemResult != None:          
+            itemFinal.append({'item':itemResume[itemResult]['item'], 'name': itemResume[itemResult]['name'], 'quantity': itemResume[itemResult]['quantity'], 'price': itemResume[itemResult]['price'], 'amount':itemResume[itemResult]['amount'], 'quantityA': itemA.quantity, 'priceA':itemA.itemID.price, 'amountA':itemA.total, 'idA': itemA.id})
+        else:
+            itemFinal.append({'item':itemA.itemID.item.itemID, 'name': itemA.itemID.item.name, 'quantity': None, 'price': None, 'amount':None, 'quantityA': itemA.quantity, 'priceA':itemA.itemID.price, 'amountA':itemA.total, 'idA': itemA.id})
+
+
+    #Getting Partial Estimates
+    openEstimate = woEstimate.objects.filter(woID = wo, Status = 1).count()
+
+    
+    context["openEstimate"] = openEstimate > 0
+    
+
+    context["itemCount"] = len(itemFinal)
+    context["itemResume"] = sorted(itemFinal, key=lambda d: d['item']) 
+  
+    return render(request, "billing_list.html", context)

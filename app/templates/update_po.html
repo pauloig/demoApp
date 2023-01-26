@@ -39,8 +39,20 @@
                                 <div class="col-lg-6">  
                                     <div class="form-outline" style="align-items: center;">                                       
                                         <!-- <input type="submit" value="Save"> -->
-                                        <input class="btn btn-primary" type="submit" value="Update">
-                                        <a href="/po_list/{{po.woID.id}}" type="button" class="btn btn-danger">Close</a> 
+                                        {%if po.Status == 1%}
+                                            <input class="btn btn-primary" type="submit" value="Update">
+                                        {%endif%}
+                                        
+                                        {%if woID > 0 %}
+                                            <a href="/po_list/{{po.woID.id}}" type="button" class="btn btn-danger">Close</a> 
+                                        {%else%}
+                                            <a href="/internal_po_list/" type="button" class="btn btn-danger">Close</a> 
+                                        {%endif%}
+                                        {% if emp.is_superAdmin  or user.is_staff %}    
+                                            {%if po.Status == 1%}                                     
+                                                <a class="btn btn-warning" hx-get="/delete_po/{{po.id}}/{{woID}}" hx-target="#dialog">Remove</a>
+                                            {%endif%}                                            
+                                        {%endif%}
                                     </div>
                                 </div>
                             </div>                                    

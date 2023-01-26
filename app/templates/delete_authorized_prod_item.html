@@ -1,0 +1,29 @@
+{% extends 'base.html' %} 
+{%load static%}
+{% block title %} Order List {% endblock %} 
+{% load humanize %}
+{% block container %}
+{% load widget_tweaks%}
+
+<div class="container">
+    <form method='post' action="{{request.path}}" class="modal-content" id="daily_emp">
+        {% csrf_token %}
+
+        <div class="modal-header">
+            <h5>Remove Item from Billing</h5>           
+        </div>              
+       
+        <div class="modal-body">
+            <div class="row">        
+              <h5>Are you sure you want to remove <strong>{{form.itemID}}</strong> from Billing?</h5>
+            </div>          
+        </div>
+        
+        <div class="modal-footer">          
+            <button type="submit" class="btn btn-primary" form="daily_emp">Remove</button>
+            <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancel</button> 
+        </div>
+   
+    </form>
+</div>
+{% endblock %}

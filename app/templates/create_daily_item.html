@@ -29,7 +29,7 @@
                             <tr>
                                 <td style="width: 75%">{{item.item}}</td>                               
                                 <td style="width: 10%">{{item.price|floatformat:"2"}}</td>
-                                <td style="width: 10%">{{item.emp_payout}}</td>                               
+                                <td style="width: 10%">{{item.emp_payout|floatformat:"2"}}</td>                               
                                 <!--<td style="width: 5%"> <a href="/update_item_price/{{item.id}}"><i class="fa-solid fa-pen-to-square" style="color: green;"></i></a></td>-->
                                 <td> 
                                     {%if item.emp_payout != None%}

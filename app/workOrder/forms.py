@@ -1,7 +1,7 @@
 import re
 from types import CoroutineType
 from django import forms
-from .models import Locations, item, workOrder, workOrderDuplicate, Employee, itemPrice, internalPO, period, DailyEmployee, DailyItem, Daily, vendor, subcontractor, externalProduction, externalProdItem
+from .models import Locations, item, workOrder, workOrderDuplicate, Employee, itemPrice, internalPO, period, DailyEmployee, DailyItem, Daily, vendor, subcontractor, externalProduction, externalProdItem, authorizedBilling
 
 class LocationsForm(forms.ModelForm):
     LocationID = forms.CharField(max_length=10, widget=forms.TextInput(attrs={'class':'form-control'}))
@@ -155,7 +155,7 @@ class InternalPOForm(forms.ModelForm):
     product = forms.CharField(label="Product",max_length=200, widget=forms.TextInput(attrs={'class':'form-control'}), required=False)
     quantity = forms.CharField(label="Quantity",max_length=200, widget=forms.TextInput(attrs={'class':'form-control'}), required=False)
     total = forms.CharField(label="Total",max_length=200, widget=forms.TextInput(attrs={'class':'form-control'}), required=False)
-    
+    nonBillable = forms.BooleanField(label="Non-Billable",required=False)
 
     class Meta:
         model = internalPO
@@ -167,7 +167,8 @@ class InternalPOForm(forms.ModelForm):
             'product',
             'quantity',
             'total',
-            'subcontractor',            
+            'subcontractor', 
+            'nonBillable'           
         ]
 
 
@@ -364,4 +365,20 @@ class extProdItemForm(forms.ModelForm):
         qs = kwargs.pop('qs')
         super().__init__(*args, **kwargs)
         self.fields['externalProdID'].disabled = True
+        self.fields['itemID'].queryset = qs
+
+class authorizedBillingForm(forms.ModelForm):
+
+    class Meta:
+        model = authorizedBilling
+        fields = [
+            'woID',
+            'itemID',
+            'quantity',            
+        ]
+
+    def __init__(self, *args, **kwargs):
+        qs = kwargs.pop('qs')
+        super().__init__(*args, **kwargs)
+        self.fields['woID'].disabled = True
         self.fields['itemID'].queryset = qs

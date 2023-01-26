@@ -17,6 +17,17 @@ status_choice = (
     ('5', 'Invoiced'),
 )
 
+prodStatus_choice = (
+    (1, 'Open'),
+    (2, 'Estimated'),
+    (3, 'Invoiced'),
+)
+
+estimateStatus_choice = (
+    (1, 'Open'),
+    (2, 'Closed')
+)
+
 class Locations(models.Model):
     LocationID = models.IntegerField(primary_key=True, serialize=False, verbose_name='ID')
     name = models.CharField(max_length=200)
@@ -251,8 +262,11 @@ class DailyItem(models.Model):
     DailyID = models.ForeignKey(Daily, on_delete=models.CASCADE, db_column ='DailyID', null=False, blank=False)
     itemID = models.ForeignKey(itemPrice, on_delete=models.CASCADE, db_column ='itemID', null=False, blank=False )
     quantity = models.IntegerField(null=False, blank=False)
-    total = models.FloatField(null=True, blank=True)
-    created_date = models.DateTimeField(null=True, blank=True)
+    total = models.FloatField(null=True, blank=True)       
+    estimate = models.CharField(max_length=50, null=True, blank=True)
+    invoice = models.CharField(max_length=50, null=True, blank=True)
+    Status = models.IntegerField(default=1, choices = prodStatus_choice)
+    created_date = models.DateTimeField(null=True, blank=True) 
 
     def __str__(self):
         return str(self.DailyID) + " - " + str(self.itemID)
@@ -322,6 +336,10 @@ class internalPO(models.Model):
     quantity = models.CharField(max_length=20, blank=True, null=True)
     total = models.CharField(max_length=20, blank=True, null=True)
     subcontractor = models.BooleanField(default=False) 
+    nonBillable = models.BooleanField(default=False)
+    estimate = models.CharField(max_length=50, null=True, blank=True)
+    invoice = models.CharField(max_length=50, null=True, blank=True)
+    Status = models.IntegerField(default=1, choices = prodStatus_choice)
     receipt = models.FileField(null=True, upload_to="po")
 
     class Meta:
@@ -349,9 +367,48 @@ class externalProdItem(models.Model):
     itemID = models.ForeignKey(itemPrice, on_delete=models.CASCADE, db_column ='itemID', null=False, blank=False )
     quantity = models.IntegerField(null=False, blank=False) 
     total = models.FloatField(null=True, blank=True)
+    estimate = models.CharField(max_length=50, null=True, blank=True)
+    invoice = models.CharField(max_length=50, null=True, blank=True)
+    Status = models.IntegerField(default=1, choices = prodStatus_choice)
     created_date = models.DateTimeField(null=True, blank=True)
     createdBy = models.CharField(max_length=60, blank=True, null=True)
 
     def __str__(self):
         return str(self.externalProdID) + " - " + str(self.id)
+
+class authorizedBilling(models.Model):    
+    woID = models.ForeignKey(workOrder, on_delete=models.CASCADE, db_column ='woID')
+    itemID = models.ForeignKey(itemPrice, on_delete=models.CASCADE, db_column ='itemID', null=False, blank=False )
+    quantity = models.IntegerField(null=False, blank=False) 
+    total = models.FloatField(null=True, blank=True)
+    estimate = models.CharField(max_length=50, null=True, blank=True)
+    invoice = models.CharField(max_length=50, null=True, blank=True)
+    Status = models.IntegerField(default=1, choices = prodStatus_choice)
+    created_date = models.DateTimeField(null=True, blank=True)
+    createdBy = models.CharField(max_length=60, blank=True, null=True)
+
+    def __str__(self):
+        return str(self.woID) + " - " + str(self.id)
  
+class woEstimate(models.Model):
+    woID = models.ForeignKey(workOrder, on_delete=models.CASCADE, db_column ='woID')
+    estimateNumber = models.IntegerField()
+    total = models.FloatField(null=True, blank=True)
+    Status = models.IntegerField(default=1, choices = estimateStatus_choice)
+    is_partial = models.BooleanField(default=False)
+    created_date = models.DateTimeField(null=True, blank=True)
+    createdBy = models.CharField(max_length=60, blank=True, null=True)
+
+    def __str__(self):
+        return str(self.woID) + " - " + str(self.id)
+
+class woInvoice(models.Model):
+    woID = models.ForeignKey(workOrder, on_delete=models.CASCADE, db_column ='woID')
+    invoiceNumber = models.IntegerField()
+    total = models.FloatField(null=True, blank=True)
+    Status = models.IntegerField(default=1, choices = estimateStatus_choice)
+    created_date = models.DateTimeField(null=True, blank=True)
+    createdBy = models.CharField(max_length=60, blank=True, null=True)
+
+    def __str__(self):
+        return str(self.woID) + " - " + str(self.id)

@@ -308,9 +308,12 @@
                                                                         <td class="p-1">${{itemd.total|floatformat:2|intcomma}}</td>   
                                                                         <td class="p-1">
                                                                             {% if emp.is_superAdmin  or user.is_staff or period.status == 1 %}
-                                                                                <a hx-get="/update_daily_item/{{itemd.id}}/{{selectedLocation}}" hx-target="#dialog"><i class="fa-solid fa-pen-to-square" style="color: green;"></i></a>
-                                                                                <a hx-get="/delete_daily_item/{{itemd.id}}/{{selectedLocation}}" hx-target="#dialog"><i class="fa-solid fa-circle-minus" style="color: red;"></i></a>
-                                                                            {%endif%}
+                                                                                {%if itemd.Status == 1 %}
+                                                                                    <a hx-get="/update_daily_item/{{itemd.id}}/{{selectedLocation}}" hx-target="#dialog"><i class="fa-solid fa-pen-to-square" style="color: green;"></i></a>
+                                                                                    <a hx-get="/delete_daily_item/{{itemd.id}}/{{selectedLocation}}" hx-target="#dialog"><i class="fa-solid fa-circle-minus" style="color: red;"></i></a>
+                                                                            
+                                                                                {%endif%}
+                                                                            {%endif%}                                                                            
                                                                         </td> 
                                                                     </tr>
                                                                 {%endfor%}

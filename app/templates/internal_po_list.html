@@ -1,0 +1,64 @@
+{% extends 'index.html' %} 
+{%load static%}
+{% block title %} Duplicate Order List {% endblock %} 
+
+{% block container %}
+
+<div class="container">
+    <form method='post' enctype="multipart/form-data">
+        {% csrf_token %}
+        
+
+        <br />
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="card rounded">
+                    <h6 class="card-header card-header-wc" >Internal PO List</h6>
+                    <div class="card-body">                                           
+                            <div class="row">
+                                <div class="col-lg-6">  
+                                    <div class="form-outline" style="align-items: center;">                                                                               
+                                        <a href="/home/" type="button" class="btn btn-danger">Close</a> 
+                                    </div>
+                                </div>
+                            </div>   
+                            <br/>           
+                            <div class="row">
+                                <table id="orders" class="table table-sm table-bordered table-striped">
+                                    <thead class="table-primary">
+                                        <tr>
+                                            <th scope="col">PO</th>
+                                            <th scope="col">Vendor</th>
+                                            <th scope="col">Supervisor</th>
+                                            <th scope="col">Pick up Employee</th>
+                                            <th scope="col">Product</th>  
+                                            <th scope="col">Non-Billable</th>
+                                            <th scope="col">Quantity</th>
+                                            <th scope="col">Total</th>
+                                            <th scope="col" style="width: 3%"></th>
+                                        </tr>              
+                                    </thead>
+                                    <tbody>                                       
+                                        {% for po in po %}
+                                            <tr>
+                                                <td>{{po.id}}</td>
+                                                <td>{{po.vendor}}</td>
+                                                <td>{{po.supervisor}}</td>
+                                                <td>{{po.pickupEmployee}}</td>
+                                                <td>{{po.product}}</td>
+                                                <td>{{po.nonBillable}}</td>
+                                                <td>{{po.quantity}}</td>
+                                                <td>{{po.total}}</td>                                                
+                                                <td> <a href="/update_po/{{po.id}}/0"><i class="fa-solid fa-circle-arrow-right" style="color: green;"></i></a></td>                                 
+                                            </tr>                                             
+                                        {% endfor %}
+                                    </tbody>                              
+                                </table>
+                            </div>                    
+                    </div>
+                </div>                 
+            </div>
+        </div>      
+    </form>
+</div>
+{% endblock %}

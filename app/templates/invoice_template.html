@@ -17,10 +17,7 @@
   </head>
   
   <body>
-    <table width="100%" border="0" cellspacing="0" cellpadding="0">
-        <tr>
-            <td colspan="2"><img src="logo.png" width="150"  /></td>
-        </tr>
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" >
         <tr>
             <td colspan="2">&nbsp;</td>
         </tr>
@@ -31,9 +28,7 @@
                         <table width="100%" border="0" cellspacing="0" cellpadding="0">
                             <tr>
                                 <td>
-                                    <img src="http://134.122.27.250/static/media/WC_logo_pdf_4gDtYVC.png">
-                                    <!-- <img src="/static/media/WC_logo.png"  height="15%">
-                                    <img src="WC_logo.png"  height="15%"> -->
+                                    <img src="http://134.122.27.250/static/media/WC_logo_pdf_4gDtYVC.png">                                  
                                 </td>
                             </tr>
                             <tr>
@@ -85,9 +80,9 @@
                         <tr>
                             <td style="font-family:Verdana, Geneva, sans-serif; font-weight:350; font-size:12px; border-bottom:1px solid #444; border-left:1px solid #444; border-right:1px solid #444; padding: 3px;"  align="center">{% now "m/d/Y" %}</td>   
                             {% if estimate %}               
-                                <td style="font-family:Verdana, Geneva, sans-serif; font-weight:350; font-size:12px; border-bottom:1px solid #444; border-right:1px solid #444; padding: 3px;"  align="center"> {{order.pre_invoice}} </td>
+                                <td style="font-family:Verdana, Geneva, sans-serif; font-weight:350; font-size:12px; border-bottom:1px solid #444; border-right:1px solid #444; padding: 3px;"  align="center"> {{estimateID}} </td>
                             {% else %}
-                                <td style="font-family:Verdana, Geneva, sans-serif; font-weight:350; font-size:12px; border-bottom:1px solid #444; border-right:1px solid #444; padding: 3px;"  align="center"> {{order.invoice}}</td>
+                                <td style="font-family:Verdana, Geneva, sans-serif; font-weight:350; font-size:12px; border-bottom:1px solid #444; border-right:1px solid #444; padding: 3px;"  align="center"> {{invoiceID}}</td>
                             {% endif %}
                         </tr>
                     </table>
