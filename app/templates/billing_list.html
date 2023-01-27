@@ -245,7 +245,7 @@
                                                                 <td class="p-1" style="color:darkgreen; font-weight: 600;">${{itemd.amountA|floatformat:2|intcomma}}</td> 
                                                             {%endif%}
                                                             <td class="p-1">  
-                                                                {%if order.Status == 2%}                                                                          
+                                                                {%if order.Status == "2"%}                                                                          
                                                                     <a hx-get="/update_authorized_prod_item/{{itemd.idA}}" hx-target="#dialog"><i class="fa-solid fa-pen-to-square" style="color: green;"></i></a>
                                                                     {%if  itemd.quantityA > 0 %}
                                                                         <a hx-get="/delete_authorized_prod_item/{{itemd.idA}}" hx-target="#dialog"><i class="fa-solid fa-circle-minus" style="color: red;"></i></a>
