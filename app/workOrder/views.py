@@ -1875,23 +1875,23 @@ def location_period_list(request, id):
 
             for i in dailyemp:
                 if production <= 0:
-                    regular_time += i.regular_hours
-                    over_time += i.ot_hour
-                    double_time += i.double_time
-                    total_time += i.total_hours
-                    if i.EmployeeID.hourly_rate != None:
-                        rt += (i.regular_hours * float(i.EmployeeID.hourly_rate))
-                        ot += ((i.ot_hour * (float(i.EmployeeID.hourly_rate)*1.5)))
-                        dt += ((i.double_time * (float(i.EmployeeID.hourly_rate)*2)))
+                    regular_time += validate_decimals(i.regular_hours)
+                    over_time += validate_decimals(i.ot_hour)
+                    double_time += validate_decimals(i.double_time)
+                    total_time += validate_decimals(i.total_hours)
+                    if validate_decimals(i.EmployeeID.hourly_rate) != None:
+                        rt += (validate_decimals(i.regular_hours) * float(validate_decimals(i.EmployeeID.hourly_rate)))
+                        ot += ((validate_decimals(i.ot_hour) * (float(validate_decimals(i.EmployeeID.hourly_rate))*1.5)))
+                        dt += ((validate_decimals(i.double_time) * (float(validate_decimals(i.EmployeeID.hourly_rate))*2)))
 
-                if i.bonus != None:
-                    bonus += i.bonus
+                if validate_decimals(i.bonus) != None:
+                    bonus += validate_decimals(i.bonus)
                     
-                if i.on_call != None:
-                    on_call += i.on_call
+                if validate_decimals(i.on_call) != None:
+                    on_call += validate_decimals(i.on_call)
 
-                if i.payout != None:
-                    payroll += i.payout
+                if validate_decimals(i.payout) != None:
+                    payroll += validate_decimals(i.payout)
 
             
             dailyprod =  DailyItem.objects.filter(DailyID=dailyItem)
@@ -1899,24 +1899,27 @@ def location_period_list(request, id):
             
             ov = 0
             for j in dailyprod:                
-                total += j.total
-                if j.itemID.price != None:
-                    invoice += (j.quantity * float(j.itemID.price))
-                else:
-                    invoice += (j.quantity * 0)
-                
-                if j.itemID.emp_payout != None:
-                    payroll2 += (j.quantity * float(j.itemID.emp_payout))
-                else:
-                    payroll2 += (j.quantity * 0)
+                total += validate_decimals(j.total)
+                if validate_decimals(j.itemID.price) != None:
+                    invoice += (validate_decimals(j.quantity) * float(validate_decimals(j.itemID.price)) )
+                if validate_decimals(j.itemID.emp_payout) != None:    
+                    payroll2 += (validate_decimals(j.quantity) * float(validate_decimals(j.itemID.emp_payout)) )
 
-            if dailyItem.own_vehicle != None:
-                ov = ((total * dailyItem.own_vehicle) / 100)
-                ownvehicle += ov
-            prod += (total)
+            dailyempleado = DailyEmployee.objects.filter(DailyID=dailyItem)
+            ptpEmp = 0
+            for h in dailyempleado:
+                ptpEmp += validate_decimals(h.per_to_pay)
 
-        if invoice > 0:                    
-            perc = (payroll * 100) / invoice
+            total = validate_decimals((total * ptpEmp) / 100)
+
+            if validate_decimals(dailyItem.own_vehicle) != None:
+                ov = validate_decimals(((validate_decimals(total) * validate_decimals(dailyItem.own_vehicle)) / 100))
+                ownvehicle += validate_decimals(ov)
+            prod += validate_decimals(total)
+
+        if validate_decimals(invoice) > 0:                    
+                perc = validate_decimals((validate_decimals(payroll) * 100) / validate_decimals(invoice))
+
 
         locationSummary.append({ 'LocationID': locItem.LocationID, 'name': locItem.name, 
                                 'regular_time':regular_time, 'over_time':over_time, 
@@ -2109,13 +2112,13 @@ def create_daily(request, pID, dID, LocID):
             if int(dID) == int(day):
                  selectedDate = fullDate
 
-        crewNumber = Daily.objects.filter( Period = per, day = selectedDate, Location = loc).count()
+        crewNumber = Daily.objects.filter( Period = per, day = selectedDate, Location = loc).last()
 
         crew  = Daily(
             Period = per,
             Location = loc,
             day = selectedDate,
-            crew = int(crewNumber) + 1,
+            crew = int(crewNumber.crew) + 1,
             created_date = datetime.datetime.now()
         )
 
