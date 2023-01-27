@@ -40,7 +40,8 @@ class EmployeesForm(forms.ModelForm):
              "is_active",
              "is_supervisor",
              "is_admin",
-             "is_superAdmin"
+             "is_superAdmin",
+             "accounts_payable"
         ]
 
     def __init__(self, *args, **kwargs):

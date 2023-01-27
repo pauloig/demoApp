@@ -184,12 +184,24 @@
                                         <div class="col-sm-12">
                                             <table  class="table table-sm table-bordered table-striped">
                                                 <thead>
+                                                    
                                                     <tr class="table-primary" style="border: none;">                                                    
                                                         
                                                         <td width="42%" colspan="2" class="p-1" style="background-color: white; border: none;">                                                           
                                                         </td>
                                                         <td width="7%" colspan="3" class="p-1" style="text-align: center; font-size: medium; font-weight: 600;" ><strong>Production</strong> </td>                                                              
                                                         <td width="7%" colspan="4" class="p-1" style="text-align: center; font-size: medium; font-weight: 600;"><strong>Authorized Billing</strong></td>
+                                                                                                       
+                                                    </tr>
+                                                    <tr class="table-primary" >                                                    
+                                                        
+                                                        <td width="42%" colspan="2" class="p-1" style="background-color: white; border: none;"></td>
+                                                        <td width="7%" class="p-1" style="color:darkblue; font-weight: 600;">{{totals.qtyP}}</td>
+                                                        <td width="7%" class="p-1"></td>
+                                                        <td width="10%" class="p-1" style="color:darkblue; font-weight: 600;">${{totals.totalP|floatformat:2|intcomma}}</td>  
+                                                        <td width="7%" class="p-1" style="color:orangered; font-weight: 600;">{{totals.qtyA}}</td>
+                                                        <td width="7%" class="p-1"></td>
+                                                        <td width="10%" class="p-1" colspan="2" style="color:orangered; font-weight: 600;">${{totals.totalA|floatformat:2|intcomma}}</td>
                                                                                                        
                                                     </tr>
                                                     <tr class="table-primary">                                                    
@@ -232,10 +244,12 @@
                                                                 <td class="p-1" style="color:darkgreen; font-weight: 600;">${{itemd.priceA|floatformat:2|intcomma}}</td>
                                                                 <td class="p-1" style="color:darkgreen; font-weight: 600;">${{itemd.amountA|floatformat:2|intcomma}}</td> 
                                                             {%endif%}
-                                                            <td class="p-1">                                                                            
-                                                                <a hx-get="/update_authorized_prod_item/{{itemd.idA}}" hx-target="#dialog"><i class="fa-solid fa-pen-to-square" style="color: green;"></i></a>
-                                                                {%if  itemd.quantityA > 0 %}
-                                                                    <a hx-get="/delete_authorized_prod_item/{{itemd.idA}}" hx-target="#dialog"><i class="fa-solid fa-circle-minus" style="color: red;"></i></a>
+                                                            <td class="p-1">  
+                                                                {%if order.Status == 2%}                                                                          
+                                                                    <a hx-get="/update_authorized_prod_item/{{itemd.idA}}" hx-target="#dialog"><i class="fa-solid fa-pen-to-square" style="color: green;"></i></a>
+                                                                    {%if  itemd.quantityA > 0 %}
+                                                                        <a hx-get="/delete_authorized_prod_item/{{itemd.idA}}" hx-target="#dialog"><i class="fa-solid fa-circle-minus" style="color: red;"></i></a>
+                                                                    {%endif%}
                                                                 {%endif%}
                                                             </td> 
                                                         </tr>

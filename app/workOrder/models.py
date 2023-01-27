@@ -53,6 +53,7 @@ class Employee(models.Model):
     is_supervisor = models.BooleanField(default=False)
     is_admin = models.BooleanField(default=False)
     is_superAdmin = models.BooleanField(default=False)
+    accounts_payable = models.BooleanField(default=False)
 
     def __str__(self):
         return self.first_name + ", " + self.last_name

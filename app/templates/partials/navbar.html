@@ -21,8 +21,12 @@
     <a aria-current="page" class="d-block text-light p-2" href="/item_list/"><i class="icon ion-md-pricetags mr-2 lead" lead></i> Items</a>
     <a aria-current="page" class="d-block text-light p-2" href="/vendor_list/"><i class="icon ion-md-barcode"></i> Vendors</a>
     <a aria-current="page" class="d-block text-light p-2" href="/subcontractor_list/"><i class="icon ion-md-barcode"></i> Subcontractor</a>
-    <a aria-current="page" class="d-block text-light p-2" href="/internal_po_list/"><i class="icon ion-md-barcode"></i> Internal PO</a>
+    
 {% endif %}
+
+{% if emp.is_superAdmin  or emp.is_admin or emp.accounts_payable or user.is_staff %}
+  <a aria-current="page" class="d-block text-light p-2" href="/internal_po_list/"><i class="icon ion-md-barcode"></i> Internal PO</a>
+{%endif%}
 
 {% if emp.is_superAdmin  or emp.is_admin or user.is_staff %} 
   <a aria-current="page" class="d-block text-light p-2" href="/period_list/"><i class="icon ion-md-calendar" lead></i> Periods</a>

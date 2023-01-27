@@ -2391,7 +2391,7 @@ def calculate_hours(startTime, endTime, lunch_startTime, lunch_endTime):
         if startTime > endTime:
             total = 0
         else:
-            total = int(str(endTime)) - int(str(startTime))            
+            total = int(str(endTime)) - int(str(startTime))      
     else:
         total = 0            
     
@@ -2403,7 +2403,7 @@ def calculate_hours(startTime, endTime, lunch_startTime, lunch_endTime):
         else:
             total_lunch = int(str(lunch_endTime)) - int(str(lunch_startTime))
 
-            if total_lunch < 100:
+            if total_lunch < 100 and total %1 > 0:
                 total_lunch = total_lunch + 40
 
     else:
@@ -4499,24 +4499,32 @@ def billing_list(request, id):
             authI.save()       
             
     authorizedItem = authorizedBilling.objects.filter(woID = wo, Status = 1)
+    qtyP = 0
+    totalP = 0
+    qtyA = 0
+    totalA = 0
 
     for itemA in authorizedItem:
         itemResult = next((i for i, item in enumerate(itemResume) if item["item"] == itemA.itemID.item.itemID), None)
 
         if itemResult != None:          
             itemFinal.append({'item':itemResume[itemResult]['item'], 'name': itemResume[itemResult]['name'], 'quantity': itemResume[itemResult]['quantity'], 'price': itemResume[itemResult]['price'], 'amount':itemResume[itemResult]['amount'], 'quantityA': itemA.quantity, 'priceA':itemA.itemID.price, 'amountA':itemA.total, 'idA': itemA.id})
+            qtyP += validate_decimals(itemResume[itemResult]['quantity'])
+            totalP += validate_decimals(itemResume[itemResult]['amount'])
+            qtyA += validate_decimals(itemA.quantity)
+            totalA += validate_decimals(itemA.total)
         else:
             itemFinal.append({'item':itemA.itemID.item.itemID, 'name': itemA.itemID.item.name, 'quantity': None, 'price': None, 'amount':None, 'quantityA': itemA.quantity, 'priceA':itemA.itemID.price, 'amountA':itemA.total, 'idA': itemA.id})
-
+            qtyA += validate_decimals(itemA.quantity)
+            totalA += validate_decimals(itemA.total)
 
     #Getting Partial Estimates
     openEstimate = woEstimate.objects.filter(woID = wo, Status = 1).count()
 
     
     context["openEstimate"] = openEstimate > 0
-    
-
     context["itemCount"] = len(itemFinal)
     context["itemResume"] = sorted(itemFinal, key=lambda d: d['item']) 
+    context["totals"] = {'qtyP':qtyP, 'totalP':totalP,'qtyA':qtyA,'totalA':totalA  }
   
     return render(request, "billing_list.html", context)
