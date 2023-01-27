@@ -2113,12 +2113,16 @@ def create_daily(request, pID, dID, LocID):
                  selectedDate = fullDate
 
         crewNumber = Daily.objects.filter( Period = per, day = selectedDate, Location = loc).last()
+        if crewNumber:
+            crewNo = crewNumber.crew
+        else:
+            crewNo = 0
 
         crew  = Daily(
             Period = per,
             Location = loc,
             day = selectedDate,
-            crew = int(crewNumber.crew) + 1,
+            crew = int(crewNo) + 1,
             created_date = datetime.datetime.now()
         )
 
