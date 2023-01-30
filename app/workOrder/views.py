@@ -985,9 +985,13 @@ def update_po(request, id, woID):
 
     context["po"] = internalPO.objects.filter(id = id).first()
 
+    
+
     obj = get_object_or_404(internalPO, id = id )
- 
-    form = InternalPOForm(request.POST or None, instance = obj)
+
+    vendorList = vendor.objects.filter(is_active = True)
+
+    form = InternalPOForm(request.POST or None, instance = obj )
  
     if form.is_valid():
         try:
@@ -1036,6 +1040,8 @@ def create_po(request, id):
     context ={}
     per = period.objects.filter(status__in=(1,2)).first()
     context["per"] = per
+
+    vendorList = vendor.objects.filter(is_active=True)
 
     wo = workOrder.objects.filter(id=id).first()
     form = InternalPOForm(request.POST or None, initial={'woID': wo})
@@ -1104,10 +1110,10 @@ def estimate(request, id, estimateID):
         total = total + amount
         totaPO += amount
         itemHtml = itemHtml + ' <tr> '
-        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="20%" align="center"> N/A </td> '
+        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="20%" align="center"> </td> '
         itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px; padding-left: 2px;" width="43%" align="left">' + data.product + '</td> '
         itemHtml = itemHtml +  ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center">' + data.quantity + '</td> '
-        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="13%" align="center"> N/A </td> '
+        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="13%" align="center">  </td> '
         itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> $'  + '{0:,.2f}'.format(float(data.total)) + '</td>'
         itemHtml = itemHtml + ' </tr> '
     
@@ -1396,10 +1402,10 @@ def invoice(request, id, invoiceID):
         total = total + amount
         totaPO += amount
         itemHtml = itemHtml + ' <tr> '
-        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="20%" align="center"> N/A </td> '
+        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="20%" align="center"> </td> '
         itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px; padding-left: 2px;" width="43%" align="left">' + data.product + '</td> '
         itemHtml = itemHtml +  ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center">' + data.quantity + '</td> '
-        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="13%" align="center"> N/A </td> '
+        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="13%" align="center"> </td> '
         itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> $'  + '{0:,.2f}'.format(float(data.total)) + '</td>'
         itemHtml = itemHtml + ' </tr> '
 
@@ -1529,10 +1535,10 @@ def estimate_preview(request, id, estimateID):
         total = total + amount
         totaPO += amount
         itemHtml = itemHtml + ' <tr> '
-        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="20%" align="center"> N/A </td> '
+        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="20%" align="center">  </td> '
         itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px; padding-left: 2px;" width="43%" align="left">' + data.product + '</td> '
         itemHtml = itemHtml +  ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center">' + data.quantity + '</td> '
-        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="13%" align="center"> N/A </td> '
+        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="13%" align="center">  </td> '
         itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> $'  + '{0:,.2f}'.format(float(data.total)) + '</td>'
         itemHtml = itemHtml + ' </tr> '
 
@@ -1555,7 +1561,8 @@ def estimate_preview(request, id, estimateID):
         itemHtml = itemHtml + '<td style="border-left:1px solid #444; border-right:1px solid #444;" width="13%" align="center">&nbsp;</td> '
         itemHtml = itemHtml + '<td style="border-left:1px solid #444; border-right:1px solid #444;" width="12%" align="center">&nbsp;</td> '
         itemHtml = itemHtml + '</tr> '
-        
+
+    context["estimateID"] = estimateID    
     context["itemPrice"] = itemHtml
     context["total"] = total
 
@@ -1614,10 +1621,10 @@ def invoice_preview(request, id, invoiceID):
         total = total + amount
         totaPO += amount
         itemHtml = itemHtml + ' <tr> '
-        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="20%" align="center"> N/A </td> '
+        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="20%" align="center">  </td> '
         itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px; padding-left: 2px;" width="43%" align="left">' + data.product + '</td> '
         itemHtml = itemHtml +  ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center">' + data.quantity + '</td> '
-        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="13%" align="center"> N/A </td> '
+        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="13%" align="center">  </td> '
         itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> $'  + '{0:,.2f}'.format(float(data.total)) + '</td>'
         itemHtml = itemHtml + ' </tr> '
 
@@ -1643,6 +1650,7 @@ def invoice_preview(request, id, invoiceID):
         
     context["itemPrice"] = itemHtml
     context["total"] = total
+    context["invoiceID"] = invoiceID
 
     #return render(request, "pre_invoice.html", context)
     return render(request, "invoice_template_preview.html", context)

@@ -57,8 +57,8 @@
             <table id="orders" class="table table-sm table-bordered table-striped">
                 <thead class="table-primary">
                     <tr>
-                        <th scope="col" style="width: 27%">Item</th>
-                        <th scope="col" style="width: 28%">Location</th>
+                        <th scope="col" style="width: 37%">Item</th>
+                        <th scope="col" style="width: 18%">Location</th>
                         <th scope="col" style="width: 10%">Pay %</th>
                         <th scope="col" style="width: 10%">Price</th>
                         <th scope="col" style="width: 10%">Emp. Payout</th>
@@ -71,10 +71,10 @@
                         <tr>
                             <td>{{item.item}}</td>
                             <td>{{item.location}}</td>
-                            <td>{{item.pay_perc}}</td>
+                            <td>{{item.pay_perc|floatformat:"2"}}</td>
                             <td>{{item.price|floatformat:"2"}}</td>
-                            <td>{{item.emp_payout}}</td>
-                            <td>{{item.rate}}</td>
+                            <td>{{item.emp_payout|floatformat:"2"}}</td>
+                            <td>{{item.rate|floatformat:"2"}}</td>
                             <td> <a href="/update_item_price/{{item.id}}"><i class="fa-solid fa-pen-to-square" style="color: green;"></i></a></td>
                            
                         </tr>                                             

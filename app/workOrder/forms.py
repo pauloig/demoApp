@@ -8,6 +8,7 @@ class LocationsForm(forms.ModelForm):
     name = forms.CharField(max_length=50, widget=forms.TextInput(attrs={'class':'form-control'}))
     description = forms.CharField(max_length=150, widget=forms.Textarea(attrs={'class':'form-control'}))
     city= forms.CharField(max_length=50, widget=forms.TextInput(attrs={'class':'form-control'}))
+    is_active= forms.BooleanField(required=False)
 
     class Meta:
         model = Locations
@@ -16,6 +17,8 @@ class LocationsForm(forms.ModelForm):
             "name",           
             "description",
              "city",
+             'is_active'
+             
         ]
 
 class EmployeesForm(forms.ModelForm):   

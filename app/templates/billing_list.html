@@ -48,7 +48,12 @@
                                         </div>
                                     </div>
                                 </div>                                              
-                                    
+                                    <div class="row">
+                                        <div class="col-sm-11"></div>
+                                        <div class="col-sm-1">
+                                            <a href="/order_list/" type="button" class="btn btn-danger">Close</a>
+                                        </div>
+                                    </div>
                                 
                             </div>
                         </div>
@@ -161,7 +166,7 @@
                             <h6 class="card-header card-header-wc">Production Available for Billing</h6>
                                 <div class="card-body"> 
                                     <div class="row">
-                                        <div class="col-sm-12">
+                                        <div class="col-sm-11">
                                             {%if order.Status == "2"%}
                                                 {%if itemCount > 0%}
                                                     <a class="btn btn-success" hx-get="/estimate_preview/{{order.id}}/0" hx-target="#dialog">Estimate Preview</a>
@@ -178,6 +183,7 @@
                                                 
                                             {%endif%}
                                         </div>
+                                        
                                     </div>  
                                     <br/>                                               
                                     <div class="row">
@@ -214,7 +220,7 @@
                                                         <td width="7%" class="p-1">Rate</td>
                                                         <td width="10%" class="p-1">Total</td>
                                                         <td width="5%" class="p-1">          
-                                                            {%if order.Status == "2" %}                                      
+                                                            {%if order.Status == "2" or order.Status == "4" %}                                      
                                                                 <a hx-get="/create_authorized_prod_item/{{order.id}}" hx-target="#dialog"><i class="fa-solid fa-circle-plus"></i></a>
                                                             {%endif%}
                                                         </td>                                                 
@@ -226,8 +232,7 @@
                                                             <td class="p-1">{{itemd.item}}</td>
                                                             <td class="p-1">{{itemd.name}}</td>
                                                             {% if itemd.quantity == None %}
-                                                                <td class="p-1" colspan="3" style="text-align: center; font-weight: 600; color: orangered;"> Not Included in Production</td>
-                                                                
+                                                                <td class="p-1" colspan="3" style="text-align: center; font-weight: 600; color: orangered;"> Not Included in Production</td>             
                                                             {%else%}
                                                                 <td class="p-1" style="color:darkblue; font-weight: 600;">{{itemd.quantity}}</td>
                                                                 <td class="p-1" style="color:darkblue; font-weight: 600;">${{itemd.price|floatformat:2|intcomma}}</td>
@@ -245,7 +250,7 @@
                                                                 <td class="p-1" style="color:darkgreen; font-weight: 600;">${{itemd.amountA|floatformat:2|intcomma}}</td> 
                                                             {%endif%}
                                                             <td class="p-1">  
-                                                                {%if order.Status == "2"%}                                                                          
+                                                                {%if order.Status == "2" or order.Status == "4"%}                                                                          
                                                                     <a hx-get="/update_authorized_prod_item/{{itemd.idA}}" hx-target="#dialog"><i class="fa-solid fa-pen-to-square" style="color: green;"></i></a>
                                                                     {%if  itemd.quantityA > 0 %}
                                                                         <a hx-get="/delete_authorized_prod_item/{{itemd.idA}}" hx-target="#dialog"><i class="fa-solid fa-circle-minus" style="color: red;"></i></a>

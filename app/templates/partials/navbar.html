@@ -35,9 +35,10 @@
 
 <!-- <a aria-current="page" class="d-block text-light p-2" href="/order_list_location/{{user.username}}">
   <i class="icon ion-md-business mr-2 lead" lead></i> WOs by Location</a> -->
-
-  <a aria-current="page" class="d-block text-light p-2" href="/order_list_sup/"> <i class="icon ion-md-business mr-2 lead" lead></i> WOs by Sup</a>
-
+  {%if emp.is_supervisor%}
+    <a aria-current="page" class="d-block text-light p-2" href="/order_list_sup/"> <i class="icon ion-md-business mr-2 lead" lead></i> WOs by Sup</a>
+  {%endif%}
+  
   <a aria-current="page" class="d-block text-light p-2" href="/payroll/0/0/0/0"><i class="icon ion-md-today mr-2 lead" lead></i>  Payroll</a>
   
 <!--<a style="color: white;"><hr></a>
