@@ -111,8 +111,8 @@
                                             <th scope="col" class="p-1">Job Name</th>
                                             <th scope="col" class="p-1">Job Address</th>                                
                                             <th scope="col" class="p-1" style="width: 3%">Manage</th>
-                                            <th scope="col" class="p-1" style="width: 3%">Expenses</th>
-                                            <th scope="col" class="p-1" style="width: 5%">Billing</th>
+                                            <!--<th scope="col" class="p-1" style="width: 3%">Expenses</th>
+                                            <th scope="col" class="p-1" style="width: 5%">Billing</th>-->
                                         </tr>              
                                     </thead>
                                     <tbody>                                       
@@ -145,40 +145,10 @@
                                                 <td class="p-1">{{order.JobName}}</td>
                                                 <td class="p-1">{{order.JobAddress}}</td>
                                                 <td class="p-1">
-                                                {% if order.Status != "5" %}                                                     
-                                                    <a data-bs-toggle="tooltip" data-bs-placement="top" title="Edit Order" href="/order/{{order.id}}"><i class="fa-solid fa-pen-to-square" style="color: green;"></i></a>
-                                                    {% if order.uploaded and order.linkedOrder is null %}                                                    
-                                                        <a data-bs-toggle="tooltip" data-bs-placement="top" title="Link Order" href="/link_order_list/{{order.id}}"><i class="fa-solid fa-link" style="color: green;"></i></a>                
-                                                    {% endif %}
-                                                    <a data-bs-toggle="tooltip" data-bs-placement="top" title="Status Log" href="/status_log/{{order.id}}"><i class="fa-solid fa-clock-rotate-left" style="color: green;"></i></a> 
-                                                    
-                                                    
-                                                {% endif %} 
-                                                </td>
-                                                <td class="p-1">
-                                                    {%if order.Status >= "2" and order.Status < "5"%} 
-                                                        <a data-bs-toggle="tooltip" data-bs-placement="top" title="Internal PO" href="/po_list/{{order.id}}"><i class="fa-solid fa-cart-shopping" style="color: green;"></i></a> 
-                                                        <a data-bs-toggle="tooltip" data-bs-placement="top" title="External Production" href="/external_prod_list/{{order.id}}"><i class="fa-solid fa-circle-plus" style="color: green;"></i></a>  
-                                                    {%endif%}
-                                                    {%if order.Status >= "2" %}                                                    
-                                                        <a data-bs-toggle="tooltip" data-bs-placement="top" title="Payroll Detail" href="/payroll_detail/{{order.id}}"><i class="fa-solid fa-file" style="color: green;"></i></a>                                                                                                                 
-                                                    {%endif%}
-
-                                                </td>
-                                                <td class="p-1">
-                                                    {%if order.Status >= "2" and order.Status <= "5"%}    
-                                                        <a data-bs-toggle="tooltip" data-bs-placement="top" title="Billing Detail" href="/billing_list/{{order.id}}"><i class="fa-solid fa-calculator" style="color: green;"></i></a>                                                
-                                                        <!--<a data-bs-toggle="tooltip" data-bs-placement="top" title="Authorized Billing" href="/authorized_billing_list/{{order.id}}"><i class="fa-solid fa-money-check-dollar" style="color: green;"></i></a> -->                                                                                                                
-                                                    {%endif%}
-                                                    <!--{% if order.Status >= "4" %}                                                    
-                                                        <a href="/invoice_preview/{{order.id}}"><i class="fa-sharp fa-solid fa-file-invoice-dollar" style="color: green;"></i></a>                                                    
-                                                    {% endif %}
-                                                    {% if order.Status >= "2" %}                                                   
-                                                        <a href="/estimate_preview/{{order.id}}"><i class="fa-sharp fa-solid fa-file-invoice-dollar" style="color: green;"></i></a>                                                   
-                                                    {% endif %}-->
-
-                                                </td>                                                
-                                               
+                                                    <div class="d-flex justify-content-center align-items-center">
+                                                        <a data-bs-toggle="tooltip" data-bs-placement="top" title="Order Details" href="/order_detail/{{order.id}}"><i class="fa-solid fa-circle-right" style="color: green;"></i></a>
+                                                    </div>                                                    
+                                                </td>                                                                                          
                                             </tr>                                             
                                         {% endfor %}
                                     </tbody>                              

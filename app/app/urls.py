@@ -13,6 +13,7 @@ urlpatterns = [
     path('upload/',views.simple_upload),
     path('upload_payroll/',views.upload_payroll),
     path('order_list/',views.listOrders),
+    path('order_detail/<id>',views.order_detail ),
     path('order_list_location/<str:userID>',views.order_list_location),
     path('order_list_sup/',views.order_list_sup),
     path('create_order/',views.create_order),

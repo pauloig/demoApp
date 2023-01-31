@@ -11,7 +11,7 @@
         <div class="row">      
             <div class="col-sm-11 my-3"></div>  
             <div class="col-sm-1 my-3">                
-                <a href="/order_list/" type="button" class="btn btn-danger">Close</a> 
+                <a href="/order_detail/{{order.id}}" type="button" class="btn btn-danger">Close</a> 
             </div>
                
         </div>
@@ -28,26 +28,26 @@
                     </div>                 
                     <div class="card-body">
                         <div class="row">                   
-                            <div class="col-sm-6">
+                            <div class="col-sm-4">
                                 <div class="mb-3">
                                     <label for="orderID" class="form-label">Order</label>                                    
                                     <input type="text" name="orderID" id="orderID" class="form-control" value="{{order}}" disabled>                                                                       
                                 </div>
                             </div>
-                            <div class="col-sm-6">
+                            <div class="col-sm-4">
                                 <div class="mb-3">
                                     <label for="address" class="form-label">Address</label>                                    
                                     <input type="text" name="address" id="address" class="form-control" value="{{order.JobAddress}}" disabled>                                                                                                                                               
                                 </div>
                             </div>
-                        </div>
-                        <div class="row">                                             
                             <div class="col-sm-4">
                                 <div class="mb-3">
                                     <label for="supervisor" class="form-label">Supervisor</label>                                    
                                     <input type="text" name="supervisor" id="supervisor" class="form-control" value="{{order.WCSup}}" disabled>                                                                                                                                               
                                 </div>
                             </div>
+                        </div>                                <div class="row">                                             
+                        <div class="row">
                             <div class="col-sm-4">
                                 <div class="mb-3">
                                     <label for="location" class="form-label">Location</label>                                    
@@ -56,8 +56,24 @@
                             </div>
                             <div class="col-sm-4">
                                 <div class="mb-3">
-                                    <label for="updatedDate" class="form-label">Updated Date</label>                                    
+                                    <label for="updatedDate" class="form-label">Updated Date</label>                                                                             
                                     <input type="text" name="updatedDate" id="updatedDate" class="form-control" value="{{order.UploadDate}}" disabled>                                                                       
+                                </div>
+                            </div>
+                            <div class="col-sm-4">
+                                <div class="mb-3">
+                                    <label for="Status" class="form-label">Status</label>                                    
+                                    {% if order.Status == "1"%}
+                                        <input type="text" name="Status" id="Status" class="form-control" value="Not Started" disabled>                                                                       
+                                    {%elif order.Status == "2"%}
+                                        <input type="text" name="Status" id="Status" class="form-control" value="Work in Progress" disabled>
+                                    {%elif order.Status == "3"%}
+                                        <input type="text" name="Status" id="Status" class="form-control" value="Pending Docs" disabled>
+                                    {%elif order.Status == "4"%}
+                                        <input type="text" name="Status" id="Status" class="form-control" value="Pending Revised WO" disabled>
+                                    {%elif order.Status == "5"%}
+                                        <input type="text" name="Status" id="Status" class="form-control" value="Invoiced" disabled>
+                                    {%endif%}                                                                                                                                            
                                 </div>
                             </div>
                         </div>

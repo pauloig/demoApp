@@ -520,8 +520,10 @@ def duplicatelistOrders(request):
 
 def checkOrder(request, pID):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
-    orders = workOrder.objects.filter(prismID=pID).first()
-    duplicateOrder = workOrderDuplicate.objects.filter(prismID=pID).first()
+    duplicateOrder = workOrderDuplicate.objects.filter(id=pID).first()
+
+    orders = workOrder.objects.filter(prismID=duplicateOrder.prismID).first()
+
     per = period.objects.filter(status__in=(1,2)).first()
     return render(request,'checkOrder.html',{'order': orders, 'dupOrder': duplicateOrder, 'emp':emp, 'per':per})
 
@@ -548,7 +550,7 @@ def order(request, orderID):
                             )
             log.save()
         form.save()       
-        return HttpResponseRedirect('/order_list/')
+        return HttpResponseRedirect('/order_detail/' + str(form.instance.id))
  
     context["form"] = form
     context["emp"] = emp
@@ -581,43 +583,70 @@ def updateDupOrder(request,pID, dupID):
     try:
         dupOrder = workOrderDuplicate.objects.filter(id=dupID).first()
 
-        order = workOrder(  id = pID,
-                            prismID = dupOrder.prismID,
-                            workOrderId = dupOrder.workOrderId,
-                            PO = dupOrder.PO,
-                            POAmount = dupOrder.POAmount,
-                            ConstType = dupOrder.ConstType,
-                            ConstCoordinator = dupOrder.ConstCoordinator,
-                            WorkOrderDate = dupOrder.WorkOrderDate,
-                            EstCompletion = dupOrder.EstCompletion,
-                            IssuedBy = dupOrder.IssuedBy,
-                            JobName = dupOrder.JobName,
-                            JobAddress = dupOrder.JobAddress,
-                            SiteContactName = dupOrder.SiteContactName,
-                            SitePhoneNumber = dupOrder.SitePhoneNumber,
-                            Comments = dupOrder.Comments,
-                            Status = '1',
-                            CloseDate = dupOrder.CloseDate,
-                            UploadDate = datetime.datetime.now(),
-                            UserName = dupOrder.UserName,
-                            uploaded = True,
-                            createdBy = request.user.username,
-                            created_date = datetime.datetime.now() )        
-        order.save()        
-        dupOrder.delete()
+        primaryOrder = workOrder.objects.filter(id = pID).first()
 
+        if int(primaryOrder.Status) >= 2 and int(primaryOrder.Status) < 5:
+            order = workOrder.objects.filter(id = pID).first()
+            primaryOrder.prismID = dupOrder.prismID
+            primaryOrder.workOrderId = dupOrder.workOrderId
+            primaryOrder.PO = dupOrder.PO
+            primaryOrder.POAmount = dupOrder.POAmount
+            primaryOrder.ConstType = dupOrder.ConstType
+            primaryOrder.ConstCoordinator = dupOrder.ConstCoordinator
+            primaryOrder.WorkOrderDate = dupOrder.WorkOrderDate
+            primaryOrder.EstCompletion = dupOrder.EstCompletion
+            primaryOrder.IssuedBy = dupOrder.IssuedBy
+            primaryOrder.JobName = dupOrder.JobName
+            primaryOrder.JobAddress = dupOrder.JobAddress
+            primaryOrder.SiteContactName = dupOrder.SiteContactName
+            primaryOrder.SitePhoneNumber = dupOrder.SitePhoneNumber
+            primaryOrder.Comments = "Original: " + order.prismID + "-" + order.workOrderId + "-" + order.PO + ". " + str(dupOrder.Comments)                   
+            primaryOrder.CloseDate = dupOrder.CloseDate
+            primaryOrder.UploadDate = datetime.datetime.now()
+            primaryOrder.UserName = dupOrder.UserName
+            primaryOrder.uploaded = True
+            primaryOrder.createdBy = request.user.username
+            primaryOrder.created_date = datetime.datetime.now()      
+            primaryOrder.save()        
+            dupOrder.delete()
 
-        log = woStatusLog( 
-                            woID = order,
-                            nextStatus = 1,
-                            createdBy = request.user.username,
-                            created_date = datetime.datetime.now()
-                            )
-        log.save()
+        else:
+            order = workOrder(  id = pID,
+                                prismID = dupOrder.prismID,
+                                workOrderId = dupOrder.workOrderId,
+                                PO = dupOrder.PO,
+                                POAmount = dupOrder.POAmount,
+                                ConstType = dupOrder.ConstType,
+                                ConstCoordinator = dupOrder.ConstCoordinator,
+                                WorkOrderDate = dupOrder.WorkOrderDate,
+                                EstCompletion = dupOrder.EstCompletion,
+                                IssuedBy = dupOrder.IssuedBy,
+                                JobName = dupOrder.JobName,
+                                JobAddress = dupOrder.JobAddress,
+                                SiteContactName = dupOrder.SiteContactName,
+                                SitePhoneNumber = dupOrder.SitePhoneNumber,
+                                Comments = dupOrder.Comments,
+                                Status = '1',
+                                CloseDate = dupOrder.CloseDate,
+                                UploadDate = datetime.datetime.now(),
+                                UserName = dupOrder.UserName,
+                                uploaded = True,
+                                createdBy = request.user.username,
+                                created_date = datetime.datetime.now() )        
+            order.save()        
+            dupOrder.delete()
+
+            log = woStatusLog( 
+                                woID = order,
+                                nextStatus = 1,
+                                createdBy = request.user.username,
+                                created_date = datetime.datetime.now()
+                                )
+            log.save()
 
         return render(request,'landing.html',{'message':'Order Updated Successfully', 'alertType':'success', 'emp':emp, 'per': per})
     except Exception as e:
-        return render(request,'landing.html',{'message':'Somenthing went Wrong!', 'alertType':'danger', 'emp':emp, 'per':per})
+        return render(request,'landing.html',{'message':'Somenthing went Wrong! ' + str(e), 'alertType':'danger', 'emp':emp, 'per':per})
 
 def insertDupOrder(request, dupID):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
@@ -1109,23 +1138,23 @@ def estimate(request, id, estimateID):
         amount = Decimal(str(data.total)) 
         total = total + amount
         totaPO += amount
-        itemHtml = itemHtml + ' <tr> '
-        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="20%" align="center"> </td> '
+        """itemHtml = itemHtml + ' <tr> '
+        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="20%" align="center">  </td> '
         itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px; padding-left: 2px;" width="43%" align="left">' + data.product + '</td> '
         itemHtml = itemHtml +  ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center">' + data.quantity + '</td> '
         itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="13%" align="center">  </td> '
         itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> $'  + '{0:,.2f}'.format(float(data.total)) + '</td>'
-        itemHtml = itemHtml + ' </tr> '
-    
+        itemHtml = itemHtml + ' </tr> '"""
+
     if totaPO > 0:
-        totaPO = totaPO * Decimal(str(0.10))
+        totaPO2 = totaPO + (totaPO * Decimal(str(0.10)))
         total = total + totaPO
         itemHtml = itemHtml + ' <tr> '
-        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="20%" align="center"> </td> '
-        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px; padding-left: 2px;" width="43%" align="left"> Markup </td> '
-        itemHtml = itemHtml +  ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"></td> '
-        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="13%" align="center"> </td> '
-        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> $'  + '{0:,.2f}'.format(float(totaPO)) + '</td>'
+        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="20%" align="center">NS005 </td> '
+        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px; padding-left: 2px;" width="43%" align="left"> Materials and Fees Pass-through </td> '
+        itemHtml = itemHtml +  ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center">'  + '{0:,.2f}'.format(float(totaPO)) + '</td>'
+        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="13%" align="center">$1.10 </td> '
+        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> $'  + '{0:,.2f}'.format(float(totaPO2)) + '</td>'
         itemHtml = itemHtml + ' </tr> '
 
     for i in range(21-linea):
@@ -1534,23 +1563,23 @@ def estimate_preview(request, id, estimateID):
         amount = Decimal(str(data.total)) 
         total = total + amount
         totaPO += amount
-        itemHtml = itemHtml + ' <tr> '
+        """itemHtml = itemHtml + ' <tr> '
         itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="20%" align="center">  </td> '
         itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px; padding-left: 2px;" width="43%" align="left">' + data.product + '</td> '
         itemHtml = itemHtml +  ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center">' + data.quantity + '</td> '
         itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="13%" align="center">  </td> '
         itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> $'  + '{0:,.2f}'.format(float(data.total)) + '</td>'
-        itemHtml = itemHtml + ' </tr> '
+        itemHtml = itemHtml + ' </tr> '"""
 
     if totaPO > 0:
-        totaPO = totaPO * Decimal(str(0.10))
+        totaPO2 = totaPO + (totaPO * Decimal(str(0.10)))
         total = total + totaPO
         itemHtml = itemHtml + ' <tr> '
-        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="20%" align="center"> </td> '
-        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px; padding-left: 2px;" width="43%" align="left"> Markup </td> '
-        itemHtml = itemHtml +  ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"></td> '
-        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="13%" align="center"> </td> '
-        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> $'  + '{0:,.2f}'.format(float(totaPO)) + '</td>'
+        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="20%" align="center">NS005 </td> '
+        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px; padding-left: 2px;" width="43%" align="left"> Materials and Fees Pass-through </td> '
+        itemHtml = itemHtml +  ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center">'  + '{0:,.2f}'.format(float(totaPO)) + '</td>'
+        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="13%" align="center">$1.10 </td> '
+        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> $'  + '{0:,.2f}'.format(float(totaPO2)) + '</td>'
         itemHtml = itemHtml + ' </tr> '
    
     for i in range(21-linea):     
@@ -2475,7 +2504,7 @@ def create_daily_emp(request, id, LocID):
     for i in dailyE:
        empList.append(i.EmployeeID.employeeID) 
 
-    EmpLocation = Employee.objects.filter().exclude(employeeID__in = empList)
+    EmpLocation = Employee.objects.filter(is_active = True, is_supervisor = False).exclude(employeeID__in = empList)
 
 
     form = DailyEmpForm(request.POST or None, initial={'DailyID': dailyID}, qs = EmpLocation)
@@ -3663,6 +3692,7 @@ def status_log(request, id):
 
     wo_log = woStatusLog.objects.filter(woID = wo).order_by('created_date')
     context["log"] = wo_log
+    context["id"] = wo.id
 
     return render(request, "order_status_log.html", context)
 
@@ -4540,3 +4570,16 @@ def billing_list(request, id):
     context["totals"] = {'qtyP':qtyP, 'totalP':totalP,'qtyA':qtyA,'totalA':totalA  }
   
     return render(request, "billing_list.html", context)
+
+def order_detail(request, id):
+    context = {} 
+    emp = Employee.objects.filter(user__username__exact = request.user.username).first()
+    context["emp"] = emp
+
+    per = period.objects.filter(status__in=(1,2)).first()
+    context["per"] = per
+
+    wo = workOrder.objects.filter(id=id).first()
+    context["order"] = wo
+  
+    return render(request, "order_detail.html", context)

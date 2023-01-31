@@ -1,19 +1,16 @@
 {% extends 'index.html' %} 
 {%load static%}
-{% block title %} Duplicate Order List {% endblock %} 
-
+{%load humanize%}
 {% block container %}
 
 <div class="container">
     <form method='post' enctype="multipart/form-data">
         {% csrf_token %}
-        
 
-        <br />
         <div class="row">
             <div class="col-lg-12">
                 <div class="card rounded">
-                    <h6 class="card-header card-header-wc" >Internal PO</h6>
+                    <h6 class="card-header card-header-wc" >Order Details</h6>
                     <div class="card-body">                    
                         <div class="row">                   
                             <div class="col-sm-4">
@@ -64,53 +61,69 @@
                                 </div>
                             </div>
                         </div>                                                                                                       
-                       
-                            <br/>
-                            <div class="row">
-                                <div class="col-lg-6">  
-                                    <div class="form-outline" style="align-items: center;">                                                                               
-                                        <a class="btn btn-success" href="/create_po/{{order.id}}" role="button">Add PO</a>
-                                        <a href="/order_detail/{{order.id}}" type="button" class="btn btn-danger">Close</a> 
-                                    </div>
-                                </div>
-                            </div>   
-                            <br/>           
-                            <div class="row">
-                                <table id="orders" class="table table-sm table-bordered table-striped">
-                                    <thead class="table-primary">
-                                        <tr>
-                                            <th scope="col">PO</th>
-                                            <th scope="col">Vendor</th>
-                                            <th scope="col">Supervisor</th>
-                                            <th scope="col">Pick up Employee</th>
-                                            <th scope="col">Product</th>  
-                                            <th scope="col">Non-Billable</th>
-                                            <th scope="col">Quantity</th>
-                                            <th scope="col">Total</th>
-                                            <th scope="col" style="width: 3%"></th>
-                                        </tr>              
-                                    </thead>
-                                    <tbody>                                       
-                                        {% for po in po %}
-                                            <tr>
-                                                <td>{{po.id}}</td>
-                                                <td>{{po.vendor}}</td>
-                                                <td>{{po.supervisor}}</td>
-                                                <td>{{po.pickupEmployee}}</td>
-                                                <td>{{po.product}}</td>
-                                                <td>{{po.nonBillable}}</td>
-                                                <td>{{po.quantity}}</td>
-                                                <td>{{po.total}}</td>                                                
-                                                <td> <a href="/update_po/{{po.id}}/{{order.id}}"><i class="fa-solid fa-circle-arrow-right" style="color: green;"></i></a></td>                                 
-                                            </tr>                                             
-                                        {% endfor %}
-                                    </tbody>                              
-                                </table>
-                            </div>                    
+                        <div class="row">
+                            <div class="col-sm-11"></div>
+                            <div class="col-sm-1">
+                                <a href="/order_list/" type="button" class="btn btn-danger">Close</a>
+                            </div>
+                        </div>
+                                
+                          
                     </div>
-                </div>                 
+                    
+                
+                </div>  
+            </div> 
+        </div>  
+        <br>
+        <div class="row">
+            <div class="col-lg-4">
+                <div class="card rounded">
+                    <h6 class="card-header card-header-wc" >Manage</h6>
+                    <div class="card-body">   
+                        <div class="row">
+                            <div class="col-lg-12">
+                                {% if order.Status != "5" %}                                                     
+                                    <a class="btn btn-success" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit Order" href="/order/{{order.id}}"><i class="fa-solid fa-pen-to-square fa-2x m-2" style="color: white;"></i></br> Edit</a>
+                                    {% if order.uploaded and order.linkedOrder is null %}                                                    
+                                        <a class="btn btn-success" data-bs-toggle="tooltip" data-bs-placement="top" title="Link Order" href="/link_order_list/{{order.id}}"><i class="fa-solid fa-link fa-2x m-2" style="color: white;"></i></br> Link Order</a>                
+                                    {% endif %}
+                                    <a class="btn btn-success" data-bs-toggle="tooltip" data-bs-placement="top" title="Status Log" href="/status_log/{{order.id}}"><i class="fa-solid fa-clock-rotate-left fa-2x m-2" style="color: white;"></i></br>Status Log</a> 
+                                    
+                                    
+                                {% endif %} 
+                            </div>
+                        </div>     
+
+                    </div>
+                </div>
             </div>
-        </div>      
+            <div class="col-lg-5">
+                <div class="card rounded">
+                    <h6 class="card-header card-header-wc" >Expenses</h6>
+                    <div class="card-body">        
+                        {%if order.Status >= "2" and order.Status < "5"%} 
+                            <a class="btn btn-info" data-bs-toggle="tooltip" data-bs-placement="top" title="Internal PO" href="/po_list/{{order.id}}"><i class="fa-solid fa-cart-shopping fa-2x m-2" style="color: white;"></i></br>Internal PO</a> 
+                            <a class="btn btn-info" data-bs-toggle="tooltip" data-bs-placement="top" title="External Production" href="/external_prod_list/{{order.id}}"><i class="fa-solid fa-circle-plus fa-2x m-2" style="color: white;"></i></br>Ext. Production</a>  
+                        {%endif%}
+                        {%if order.Status >= "2" %}                                                    
+                            <a class="btn btn-info" data-bs-toggle="tooltip" data-bs-placement="top" title="Payroll Detail" href="/payroll_detail/{{order.id}}"><i class="fa-solid fa-file fa-2x m-2" style="color: white;"></i></br>Payroll Detail</a>                                                                                                                 
+                        {%endif%}
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3">
+                <div class="card rounded">
+                    <h6 class="card-header card-header-wc" >Billing</h6>
+                    <div class="card-body">        
+                        {%if order.Status >= "2" and order.Status <= "5"%}    
+                            <a class="btn btn-primary" data-bs-toggle="tooltip" data-bs-placement="top" title="Billing Detail" href="/billing_list/{{order.id}}"><i class="fa-solid fa-calculator fa-2x m-2" style="color: white;"></i></br>Billing</a>                                                
+                            <!--<a data-bs-toggle="tooltip" data-bs-placement="top" title="Authorized Billing" href="/authorized_billing_list/{{order.id}}"><i class="fa-solid fa-money-check-dollar" style="color: green;"></i></a> -->                                                                                                                
+                        {%endif%}
+                    </div>
+                </div>
+            </div>
+        </div>
     </form>
 </div>
 {% endblock %}
