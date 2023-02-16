@@ -113,7 +113,7 @@ def simple_upload(request):
                         UserName = data[18],
                         uploaded = True,
                         createdBy = request.user.username,
-                        created_date = datetime.datetime.now()
+                        created_date = datetime.now()
                     )
                     value.save()
 
@@ -121,7 +121,7 @@ def simple_upload(request):
                                         woID = value,
                                         nextStatus = 1,
                                         createdBy = request.user.username,
-                                        created_date = datetime.datetime.now()
+                                        created_date = datetime.now()
                                      )
                     log.save()
 
@@ -544,13 +544,13 @@ def order(request, orderID):
         anterior = workOrder.objects.filter(id = orderID).first()    
          
         if form.instance.Status != anterior.Status:
-            form.instance.UploadDate = datetime.datetime.now()
+            form.instance.UploadDate = datetime.now()
             log = woStatusLog( 
                             woID = anterior,
                             currentStatus = anterior.Status,
                             nextStatus = form.instance.Status,
                             createdBy = request.user.username,
-                            created_date = datetime.datetime.now()
+                            created_date = datetime.now()
                             )
             log.save()
         form.save()       
@@ -606,11 +606,11 @@ def updateDupOrder(request,pID, dupID):
             primaryOrder.SitePhoneNumber = dupOrder.SitePhoneNumber
             primaryOrder.Comments = "Original: " + order.prismID + "-" + order.workOrderId + "-" + order.PO + ". " + str(dupOrder.Comments)                   
             primaryOrder.CloseDate = dupOrder.CloseDate
-            primaryOrder.UploadDate = datetime.datetime.now()
+            primaryOrder.UploadDate = datetime.now()
             primaryOrder.UserName = dupOrder.UserName
             primaryOrder.uploaded = True
             primaryOrder.createdBy = request.user.username
-            primaryOrder.created_date = datetime.datetime.now()      
+            primaryOrder.created_date = datetime.now()      
             primaryOrder.save()        
             dupOrder.delete()
 
@@ -632,11 +632,11 @@ def updateDupOrder(request,pID, dupID):
                                 Comments = dupOrder.Comments,
                                 Status = '1',
                                 CloseDate = dupOrder.CloseDate,
-                                UploadDate = datetime.datetime.now(),
+                                UploadDate = datetime.now(),
                                 UserName = dupOrder.UserName,
                                 uploaded = True,
                                 createdBy = request.user.username,
-                                created_date = datetime.datetime.now() )        
+                                created_date = datetime.now() )        
             order.save()        
             dupOrder.delete()
 
@@ -644,7 +644,7 @@ def updateDupOrder(request,pID, dupID):
                                 woID = order,
                                 nextStatus = 1,
                                 createdBy = request.user.username,
-                                created_date = datetime.datetime.now()
+                                created_date = datetime.now()
                                 )
             log.save()
 
@@ -679,7 +679,7 @@ def insertDupOrder(request, dupID):
                             UserName = dupOrder.UserName,
                             uploaded = True,
                             createdBy = request.user.username,
-                            created_date = datetime.datetime.now() )
+                            created_date = datetime.now() )
         order.save()
         dupOrder.delete()
 
@@ -687,7 +687,7 @@ def insertDupOrder(request, dupID):
                             woID = order,
                             nextStatus = 1,
                             createdBy = request.user.username,
-                            created_date = datetime.datetime.now()
+                            created_date = datetime.now()
                             )
         log.save()
 
@@ -725,7 +725,7 @@ def create_order(request):
         form.instance.PO = woID
         form.instance.Status = 1
         form.instance.createdBy = request.user.username
-        form.instance.created_date = datetime.datetime.now()
+        form.instance.created_date = datetime.now()
         form.save()
 
 
@@ -733,7 +733,7 @@ def create_order(request):
                             woID = form.instance,
                             nextStatus = 1,
                             createdBy = request.user.username,
-                            created_date = datetime.datetime.now()
+                            created_date = datetime.now()
                             )
         log.save()
 
@@ -906,7 +906,7 @@ def create_item(request):
     form = ItemForm(request.POST or None)
     if form.is_valid():
         form.instance.createdBy = request.user.username
-        form.instance.created_date = datetime.datetime.now()
+        form.instance.created_date = datetime.now()
         form.save()               
         return HttpResponseRedirect("/item_list/")
          
@@ -1259,7 +1259,7 @@ def partial_estimate(request, id, isPartial, Status):
             estimateNumber = estimateID,
             Status = 1,
             is_partial = isPartial,
-            created_date = datetime.datetime.now(),
+            created_date = datetime.now(),
             createdBy = request.user.username
         )
 
@@ -1273,12 +1273,12 @@ def partial_estimate(request, id, isPartial, Status):
                                 currentStatus = wo.Status,
                                 nextStatus = 4,
                                 createdBy = request.user.username,
-                                created_date = datetime.datetime.now()
+                                created_date = datetime.now()
                                 )
             log.save()        
         
             wo.Status=4        
-            wo.UploadDate = datetime.datetime.now()
+            wo.UploadDate = datetime.now()
             wo.save()   
 
     elif openEstimate > 0 and int(Status) == 1: 
@@ -1291,12 +1291,12 @@ def partial_estimate(request, id, isPartial, Status):
                                 currentStatus = wo.Status,
                                 nextStatus = 4,
                                 createdBy = request.user.username,
-                                created_date = datetime.datetime.now()
+                                created_date = datetime.now()
                                 )
             log.save()        
         
             wo.Status=4        
-            wo.UploadDate = datetime.datetime.now()
+            wo.UploadDate = datetime.now()
             wo.save()    
 
     elif int(Status) == 2:
@@ -1313,12 +1313,12 @@ def partial_estimate(request, id, isPartial, Status):
                                 currentStatus = 4,
                                 nextStatus = 5,
                                 createdBy = request.user.username,
-                                created_date = datetime.datetime.now()
+                                created_date = datetime.now()
                                 )
             log.save()        
         
             wo.Status=5        
-            wo.UploadDate = datetime.datetime.now()
+            wo.UploadDate = datetime.now()
             wo.save()    
 
             
@@ -1328,7 +1328,7 @@ def partial_estimate(request, id, isPartial, Status):
             invoiceNumber = invoiceID,
             Status = 1,
             is_partial = est.is_partial,
-            created_date = datetime.datetime.now(),
+            created_date = datetime.now(),
             createdBy = request.user.username
         )
 
@@ -1542,14 +1542,14 @@ def invoice(request, id, invoiceID):
                             currentStatus = wo.Status,
                             nextStatus = 5,
                             createdBy = request.user.username,
-                            created_date = datetime.datetime.now()
+                            created_date = datetime.now()
                             )
         log.save()
 
         pre = Sequence("invoice")
         wo.invoice = str(pre.get_next_value())
         wo.Status=5
-        wo.UploadDate = datetime.datetime.now()
+        wo.UploadDate = datetime.now()
         wo.save()
     """
     wo2 = workOrder.objects.filter(id=id).first()
@@ -1833,7 +1833,7 @@ def upload_item(request):
                     name = data[1],
                     description =  data[2],
                     is_active = True ,
-                    created_date = datetime.datetime.now()                   
+                    created_date = datetime.now()                   
                 )
                 value.save()
 
@@ -2192,7 +2192,7 @@ def update_order_daily(request, woID, dailyID, LocID):
                             currentStatus = anterior.Status,
                             nextStatus = 1,
                             createdBy = request.user.username,
-                            created_date = datetime.datetime.now()
+                            created_date = datetime.now()
                             )
                 log.save()
 
@@ -2201,7 +2201,7 @@ def update_order_daily(request, woID, dailyID, LocID):
                 anterior.UploadDate = None
                 anterior.UserName = None
                 anterior.WCSup = None
-                anterior.UploadDate = datetime.datetime.now()
+                anterior.UploadDate = datetime.now()
                 anterior.save()
 
 
@@ -2214,13 +2214,13 @@ def update_order_daily(request, woID, dailyID, LocID):
                                 currentStatus = wo.Status,
                                 nextStatus = 2,
                                 createdBy = request.user.username,
-                                created_date = datetime.datetime.now()
+                                created_date = datetime.now()
                                 )
             log.save()
 
         wo.Status = 2
         wo.Location = crew.Location
-        wo.UploadDate = datetime.datetime.now()
+        wo.UploadDate = datetime.now()
         wo.UserName = request.user.username
         if crew.supervisor != None:
             sup = Employee.objects.filter(employeeID = crew.supervisor ).first()
@@ -2273,7 +2273,7 @@ def create_daily(request, pID, dID, LocID):
             Location = loc,
             day = selectedDate,
             crew = int(crewNo) + 1,
-            created_date = datetime.datetime.now()
+            created_date = datetime.now()
         )
 
         crew.save()
@@ -2628,7 +2628,7 @@ def create_daily_emp(request, id, LocID):
         lunch_endTime = form.instance.end_lunch_time
 
         form.instance.total_hours, form.instance.regular_hours,form.instance.ot_hour, form.instance.double_time = calculate_hours(startTime, endTime, lunch_startTime, lunch_endTime)
-        form.instance.created_date = datetime.datetime.now()
+        form.instance.created_date = datetime.now()
 
         empid = request.POST.get('EmployeeID')
         
@@ -2738,7 +2738,7 @@ def create_daily_item(request, id, LocID):
 
         price = form.instance.itemID.emp_payout    
         form.instance.total = form.instance.quantity * float(price)
-        form.instance.created_date = datetime.datetime.now()
+        form.instance.created_date = datetime.now()
 
         form.save()      
 
@@ -3014,7 +3014,7 @@ def send_recap(request, perID):
                     email.attach_file(item.recap.path)                    
                     email.send()
 
-                    item.mailingDate = datetime.datetime.now()
+                    item.mailingDate = datetime.now()
                     item.save()
 
     return HttpResponseRedirect('/location_period_list/' + perID) 
@@ -3038,7 +3038,7 @@ def send_recap_emp(request, perID, empID):
                 email.attach_file(item.recap.path)                
                 email.send()
 
-                item.mailingDate = datetime.datetime.now()
+                item.mailingDate = datetime.now()
                 item.save()
 
     return HttpResponseRedirect('/location_period_list/' + perID) 
@@ -3772,7 +3772,7 @@ def delete_daily(request, id, LocID):
                             currentStatus = wo.Status,
                             nextStatus = 1,
                             createdBy = request.user.username,
-                            created_date = datetime.datetime.now()
+                            created_date = datetime.now()
                             )
                 log.save()
 
@@ -3781,7 +3781,7 @@ def delete_daily(request, id, LocID):
                 wo.UploadDate = None
                 wo.UserName = None
                 wo.WCSup = None
-                wo.UploadDate = datetime.datetime.now()
+                wo.UploadDate = datetime.now()
                 wo.save()
 
         
@@ -3824,7 +3824,7 @@ def supervisor_appoval(request, id):
     if request.method == 'POST':
         obj.status = 2
         obj.approvedBy = request.user.username
-        obj.approved_date = datetime.datetime.now()
+        obj.approved_date = datetime.now()
         obj.save()        
 
         return HttpResponseRedirect('/location_period_list/' + str(id)) 
@@ -3847,7 +3847,7 @@ def close_payroll(request, id):
     if request.method == 'POST':
         obj.status = 3
         obj.closedBy = request.user.username
-        obj.closed_date = datetime.datetime.now()
+        obj.closed_date = datetime.now()
         obj.save()        
         create_period(request, id)
         return HttpResponseRedirect('/period_list/') 
@@ -4092,7 +4092,7 @@ def create_vendor(request):
     form = vendorForm(request.POST or None)
     if form.is_valid():
         form.instance.createdBy = request.user.username
-        form.instance.created_date = datetime.datetime.now()
+        form.instance.created_date = datetime.now()
         form.save()               
         return HttpResponseRedirect("/vendor_list/")
          
@@ -4139,7 +4139,7 @@ def create_subcontractor(request):
     form = subcontractorForm(request.POST or None)
     if form.is_valid():
         form.instance.createdBy = request.user.username
-        form.instance.created_date = datetime.datetime.now()
+        form.instance.created_date = datetime.now()
         form.save()               
         return HttpResponseRedirect("/subcontractor_list/")
          
@@ -4192,7 +4192,7 @@ def create_external_prod(request, woID):
 
     if form.is_valid():
         form.instance.createdBy = request.user.username
-        form.instance.created_date = datetime.datetime.now()
+        form.instance.created_date = datetime.now()
         form.save()  
         context["id"] = form.instance.id  
 
@@ -4314,7 +4314,7 @@ def create_ext_prod_item(request, id):
 
         price = form.instance.itemID.price    
         form.instance.total = form.instance.quantity * float(price)
-        form.instance.created_date = datetime.datetime.now()
+        form.instance.created_date = datetime.now()
 
         form.save()      
 
@@ -4452,7 +4452,7 @@ def authorized_billing_list(request, id):
                         quantity = itemR['quantity'],
                         total = itemR['amount'],
                         createdBy = request.user.username,
-                        created_date = datetime.datetime.now()
+                        created_date = datetime.now()
                     )
 
             authI.save()       
@@ -4504,7 +4504,7 @@ def create_authorized_prod_item(request, id):
 
         price = form.instance.itemID.price    
         form.instance.total = form.instance.quantity * float(price)
-        form.instance.created_date = datetime.datetime.now()
+        form.instance.created_date = datetime.now()
 
         form.save()      
 
@@ -4651,7 +4651,7 @@ def billing_list(request, id):
                         quantity = itemR['quantity'],
                         total = itemR['amount'],
                         createdBy = request.user.username,
-                        created_date = datetime.datetime.now()
+                        created_date = datetime.now()
                     )
 
             authI.save()       
@@ -4740,7 +4740,7 @@ def date_difference(orders):
         else:
             days_overdue = 0
 
-        day_diff.append({'id':i.id, 'days': days_overdue})
+        day_diff.append({'id':i.id, 'days': days_overdue })
     
     return day_diff
 
