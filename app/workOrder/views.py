@@ -5,7 +5,7 @@ from django.core.files.base import ContentFile
 from io import BytesIO
 from contextlib import nullcontext, redirect_stderr
 from ctypes.wintypes import WORD
-from datetime import datetime
+from datetime import datetime, timedelta
 from multiprocessing import context
 from os import WIFCONTINUED, dup
 import re
@@ -2122,9 +2122,9 @@ def create_period(request, perID):
     if lastPeriod:
         try:
 
-            fromD = lastPeriod.toDate + datetime.timedelta(days=1)
-            toD = fromD + datetime.timedelta(days=periodRange)
-            payD = toD + datetime.timedelta(days=payRange)
+            fromD = lastPeriod.toDate + timedelta(days=1)
+            toD = fromD + timedelta(days=periodRange)
+            payD = toD + timedelta(days=payRange)
             newYear = int(payD.year)
             perId = 0
             weekR = 'W' + str(fromD.isocalendar()[1]) + '-' + str(toD.isocalendar()[1])
@@ -2257,7 +2257,7 @@ def create_daily(request, pID, dID, LocID):
         selectedDate = per.fromDate
         numDays = 14
         for x in range(0,numDays):            
-            fullDate = startDate + datetime.timedelta(days = x)            
+            fullDate = startDate + timedelta(days = x)            
             day = fullDate.strftime("%d")
             if int(dID) == int(day):
                  selectedDate = fullDate
@@ -2409,7 +2409,7 @@ def payroll(request, perID, dID, crewID, LocID):
     week1 = []
     for x in range(0,numDays):
         selectedDay = False
-        fullDate = startDate + datetime.timedelta(days = x)
+        fullDate = startDate + timedelta(days = x)
         shortDate = fullDate.strftime("%a") + ' ' + fullDate.strftime("%d")
         longDate = fullDate.strftime("%A") + ' ' + fullDate.strftime("%d")
         day = fullDate.strftime("%d")
@@ -2430,11 +2430,11 @@ def payroll(request, perID, dID, crewID, LocID):
 
         week1.append({'day':day, 'shortDate': shortDate, 'longDate': longDate, 'fullDate': fullDate, 'Total': totalItems, 'selected': selectedDay })
 
-    startDate += datetime.timedelta(days = numDays)
+    startDate += timedelta(days = numDays)
     week2 = []
     for x in range(0,numDays):
         selectedDay = False
-        fullDate = startDate + datetime.timedelta(days = x)
+        fullDate = startDate + timedelta(days = x)
         shortDate = fullDate.strftime("%a") + ' ' + fullDate.strftime("%d")
         longDate = fullDate.strftime("%A") + ' ' + fullDate.strftime("%d")
         day = fullDate.strftime("%d")
