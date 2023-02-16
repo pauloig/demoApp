@@ -93,7 +93,7 @@
                 <div class="card">
                     <h6 class="card-header card-header-wc" >Orders List</h6>
                     <div class="card-body">
-                        <div class="row">                   
+                        <div class="row">                                          
                             <div class="col-lg-12"> 
                                 <table id="orders" class="table table-sm table-bordered table-striped">
                                     <thead class="table-primary">
@@ -107,6 +107,7 @@
                                             <th scope="col" class="p-1">Sup.</th>
                                             <th scope="col" class="p-1">created Date</th>
                                             <th scope="col" class="p-1">last Update</th>
+                                            <th scope="col" class="p-1">days</th>
                                             <th scope="col" class="p-1">Issue By</th>
                                             <th scope="col" class="p-1">Job Name</th>
                                             <th scope="col" class="p-1">Job Address</th>                                
@@ -117,7 +118,15 @@
                                     </thead>
                                     <tbody>                                       
                                         {% for order in orders %}
-                                            <tr>
+                                            <tr 
+                                            {%for i in day_diff%}
+                                                {%if i.id == order.id %}
+                                                    {%if i.days > 8%}
+                                                        style = "background: yellow; color: red;"
+                                                    {%endif%}
+                                                {%endif%}
+                                            {%endfor%}
+                                            >
                                                 <td class="p-1">{{order.prismID}} - {{order.workOrderId}} - {{order.PO}} </td>
                                                 <!--<td class="p-1"></td>
                                                 <td class="p-1"></td>-->
@@ -140,7 +149,14 @@
                                                 <td class="p-1">{{order.Location}}</td>
                                                 <td class="p-1">{{order.WCSup}}</td>
                                                 <td class="p-1">{{order.created_date|date:'Y-m-d H:i'}}</td> 
-                                                <td class="p-1">{{order.UploadDate}}</td>                   
+                                                <td class="p-1">{{order.UploadDate}}</td>      
+                                                <td class="p-1">
+                                                    {%for i in day_diff%}
+                                                        {%if i.id == order.id %}
+                                                            {{i.days}}
+                                                        {%endif%}
+                                                    {%endfor%}
+                                                </td>              
                                                 <td class="p-1">{{order.IssuedBy}}</td>
                                                 <td class="p-1">{{order.JobName}}</td>
                                                 <td class="p-1">{{order.JobAddress}}</td>

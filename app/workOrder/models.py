@@ -312,7 +312,7 @@ class vendor(models.Model):
     createdBy = models.CharField(max_length=60, blank=True, null=True)
 
     def __str__(self):
-        return str(self.id) + " - " + str(self.name)
+        return "V" + str(self.id) + " - " + str(self.name)
 
 class subcontractor(models.Model):
     name = models.CharField(max_length=200, blank=True, null=True)
@@ -327,17 +327,17 @@ class subcontractor(models.Model):
     createdBy = models.CharField(max_length=60, blank=True, null=True)
 
     def __str__(self):
-        return str(self.id) + " - " + str(self.name)
+        return "S" +  str(self.id) + " - " + str(self.name)
 
 class internalPO(models.Model):
     woID = models.ForeignKey(workOrder, on_delete=models.CASCADE, db_column ='woID')
-    vendor = models.ForeignKey(vendor, on_delete=models.SET_NULL, null=True, blank=True, db_column='vendor')
+    #vendor = models.ForeignKey(vendor, on_delete=models.SET_NULL, null=True, blank=True, db_column='vendor')
+    vendor = models.CharField(max_length=50, null=True, blank=True)
     supervisor = models.ForeignKey(Employee, on_delete=models.SET_NULL, null=True, blank=True, db_column='supervisor', related_name='supervisor')
     pickupEmployee = models.ForeignKey(Employee, on_delete=models.SET_NULL, null=True, blank=True, db_column='pickupEmployee', related_name='pickupEmployee')
     product = models.CharField(max_length=600, blank=True, null=True)
     quantity = models.CharField(max_length=20, blank=True, null=True)
     total = models.CharField(max_length=20, blank=True, null=True)
-    subcontractor = models.BooleanField(default=False) 
     nonBillable = models.BooleanField(default=False)
     estimate = models.CharField(max_length=50, null=True, blank=True)
     invoice = models.CharField(max_length=50, null=True, blank=True)
@@ -409,6 +409,7 @@ class woInvoice(models.Model):
     invoiceNumber = models.IntegerField()
     total = models.FloatField(null=True, blank=True)
     Status = models.IntegerField(default=1, choices = estimateStatus_choice)
+    is_partial = models.BooleanField(default=False)
     created_date = models.DateTimeField(null=True, blank=True)
     createdBy = models.CharField(max_length=60, blank=True, null=True)
 

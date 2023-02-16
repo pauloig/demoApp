@@ -12,7 +12,25 @@
             <div class="col-lg-12">
                 <div class="card rounded">
                     <h6 class="card-header card-header-wc" >Update PO</h6>
-                    <div class="card-body">                    
+                    <div class="card-body">  
+                            <div class="row"> 
+                                <div class="col-lg-12">
+                                    <div class="mb-3">
+                                        <label for="vendor" class="form-label">Vendor - Subcontractor</label>                                    
+                                        <select class="form-select" name="vendor" id="vendor"> 
+                                            <option value ="0" > ---</option>
+                                            {% for i in vendorList%}                                                
+                                                {% if i.id == po.vendor %} 
+                                                    <option value ="{{i.id}}" selected> {{i.id}} - {{i.name}}</option>
+                                                {%else%}
+                                                    <option value ="{{i.id}}" > {{i.id}} - {{i.name}}</option>
+                                                {%endif%}
+
+                                            {%endfor%}
+                                        </select>  
+                                    </div>                                  
+                                </div>                                                                                
+                            </div>                    
                             <div class="row">
                                   <!-- Using the formset -->
                                 {{ form.as_p }}

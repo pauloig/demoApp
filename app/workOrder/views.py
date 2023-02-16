@@ -24,7 +24,6 @@ from .forms import EmployeesForm, InternalPOForm, ItemForm, ItemPriceForm, Locat
 from sequences import get_next_value, Sequence
 from datetime import date
 from django.utils.dateparse import parse_date
-import datetime
 import logging 
 import io
 from reportlab.pdfgen import canvas
@@ -420,6 +419,7 @@ def listOrders(request):
                     else:
                         orders = workOrder.objects.filter(Location = locationObject).exclude(linkedOrder__isnull = False, uploaded = False ) 
             context["orders"]=orders
+            context["day_diff"]=date_difference(orders)
             return render(request,'order_list.html',context)
         
         if emp.is_admin:  
@@ -438,6 +438,7 @@ def listOrders(request):
             else:
                 orders = None
             context["orders"]=orders
+            context["day_diff"]=date_difference(orders)
             return render(request,'order_list.html',context)
 
     if request.user.is_staff:        
@@ -452,6 +453,9 @@ def listOrders(request):
                 else:
                     orders = workOrder.objects.filter(Location = locationObject).exclude(linkedOrder__isnull = False, uploaded = False )  
         context["orders"]=orders
+
+        context["day_diff"]=date_difference(orders)
+
         return render(request,'order_list.html',context)
 
      
@@ -991,6 +995,11 @@ def po_list(request, id):
     context["order"] = wo
     context["po"] = internalPO.objects.filter(woID = wo)
     context["emp"] = emp
+
+    vendorList = vendorSubcontrator(request) 
+    context["vendorList"] = vendorList
+
+
     return render(request, "po_order_list.html", context)
 
 def internal_po_list(request):
@@ -1001,6 +1010,10 @@ def internal_po_list(request):
 
     context["po"] = internalPO.objects.all().order_by('-id')
     context["emp"] = emp
+
+    vendorList = vendorSubcontrator(request) 
+    context["vendorList"] = vendorList
+
     return render(request, "internal_po_list.html", context)
 
 
@@ -1014,18 +1027,26 @@ def update_po(request, id, woID):
 
     context["po"] = internalPO.objects.filter(id = id).first()
 
-    
+    vendorList = vendorSubcontrator(request)
+
+    context['vendorList']= vendorList
 
     obj = get_object_or_404(internalPO, id = id )
-
-    vendorList = vendor.objects.filter(is_active = True)
 
     form = InternalPOForm(request.POST or None, instance = obj )
  
     if form.is_valid():
-        try:
+        vendor = request.POST.get('vendor') 
+        
+        if vendor == "0":
+            form.instance.vendor = None
+        else:
+            form.instance.vendor = vendor
+
+        try:         
             newFile = request.FILES['myfile']
             form.instance.receipt = newFile
+
         except Exception as e:
             None
         form.save()
@@ -1070,11 +1091,19 @@ def create_po(request, id):
     per = period.objects.filter(status__in=(1,2)).first()
     context["per"] = per
 
-    vendorList = vendor.objects.filter(is_active=True)
+    vendorList = vendorSubcontrator(request)
 
+    context['vendorList']= vendorList
     wo = workOrder.objects.filter(id=id).first()
     form = InternalPOForm(request.POST or None, initial={'woID': wo})
     if form.is_valid():
+        vendor = request.POST.get('vendor') 
+        
+        if vendor == "0":
+            form.instance.vendor = None
+        else:
+            form.instance.vendor = vendor
+
         form.save()               
         return HttpResponseRedirect("/po_list/" + str(id))
          
@@ -1095,11 +1124,17 @@ def estimate(request, id, estimateID):
     context["emp"] = emp
 
     context["estimate"] = True
+    isPartial = ""
 
     itemResume = []
 
     
     authBilling = authorizedBilling.objects.filter(woID = wo, estimate = estimateID)
+    woEst = woEstimate.objects.filter(woID = wo, estimateNumber = estimateID).first()
+    if woEst.is_partial:
+        isPartial = "*****  PARTIAL *****"
+    else:
+        isPartial = "***** FINAL *****"
 
     for data in authBilling:
         if data.quantity > 0:
@@ -1135,8 +1170,11 @@ def estimate(request, id, estimateID):
 
     for data in internal:        
         linea = linea + 1
-        amount = Decimal(str(data.total)) 
-        total = total + amount
+        if data.total != None and data.total != "":
+            amount = int(round(float(str(data.total))))  
+        else:
+            amount = 0
+        #total = total + amount
         totaPO += amount
         """itemHtml = itemHtml + ' <tr> '
         itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="20%" align="center">  </td> '
@@ -1148,14 +1186,23 @@ def estimate(request, id, estimateID):
 
     if totaPO > 0:
         totaPO2 = totaPO + (totaPO * Decimal(str(0.10)))
-        total = total + totaPO
+        total = total + int(round(float(totaPO2)))
         itemHtml = itemHtml + ' <tr> '
         itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="20%" align="center">NS005 </td> '
         itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px; padding-left: 2px;" width="43%" align="left"> Materials and Fees Pass-through </td> '
-        itemHtml = itemHtml +  ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center">'  + '{0:,.2f}'.format(float(totaPO)) + '</td>'
+        itemHtml = itemHtml +  ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center">'  +  str(int(round(float(totaPO)))) + '</td>'
         itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="13%" align="center">$1.10 </td> '
-        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> $'  + '{0:,.2f}'.format(float(totaPO2)) + '</td>'
+        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> $'  + str(int(round(float(totaPO2)))) + '</td>'
         itemHtml = itemHtml + ' </tr> '
+
+    #Add Partial or final Text
+    itemHtml = itemHtml + ' <tr> '
+    itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="20%" align="center"> </td> '
+    itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px; padding-left: 2px;" width="43%" align="left"> ' + isPartial + ' </td> '
+    itemHtml = itemHtml +  ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> </td>'
+    itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="13%" align="center"> </td> '
+    itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> </td>'
+    itemHtml = itemHtml + ' </tr> '
 
     for i in range(21-linea):
         itemHtml = itemHtml + '<tr>'
@@ -1275,11 +1322,12 @@ def partial_estimate(request, id, isPartial, Status):
             wo.save()    
 
             
-        #creating the estimate
+        #creating the Invoice
         invoiceObject = woInvoice(
             woID = wo,
             invoiceNumber = invoiceID,
             Status = 1,
+            is_partial = est.is_partial,
             created_date = datetime.datetime.now(),
             createdBy = request.user.username
         )
@@ -1391,10 +1439,16 @@ def invoice(request, id, invoiceID):
     context["emp"] = emp
 
     context["estimate"] = False
-
+    isPartial = ""
     itemResume = []
 
     authBilling = authorizedBilling.objects.filter(woID = wo, invoice = invoiceID)
+
+    woInv = woInvoice.objects.filter(woID = wo, invoiceNumber = invoiceID).first()
+    if woInv.is_partial:
+        isPartial = "*****  PARTIAL *****"
+    else:
+        isPartial = "***** FINAL *****"
 
     for data in authBilling:
         if data.quantity > 0:
@@ -1427,27 +1481,43 @@ def invoice(request, id, invoiceID):
     totaPO = 0
     for data in internal:
         linea = linea + 1
-        amount = Decimal(str(data.total)) 
+        if data.total != None and data.total != "":
+            amount = int(round(float(str(data.total)))) 
+        else:
+            amount = 0
+
         total = total + amount
         totaPO += amount
-        itemHtml = itemHtml + ' <tr> '
-        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="20%" align="center"> </td> '
-        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px; padding-left: 2px;" width="43%" align="left">' + data.product + '</td> '
-        itemHtml = itemHtml +  ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center">' + data.quantity + '</td> '
-        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="13%" align="center"> </td> '
-        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> $'  + '{0:,.2f}'.format(float(data.total)) + '</td>'
-        itemHtml = itemHtml + ' </tr> '
+        if data.total != None and data.total != "":
+            itemHtml = itemHtml + ' <tr> '
+            itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="20%" align="center"> </td> '
+            itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px; padding-left: 2px;" width="43%" align="left">' + str(data.product) + '</td> '
+            itemHtml = itemHtml +  ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center">' + str(data.quantity) + '</td> '
+            itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="13%" align="center"> </td> '
+            #itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> $'  + '{0:,.2f}'.format(float(data.total)) + '</td>'
+            itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> $'  + str(int(round(float(str(data.total))))) + '</td>'
+            itemHtml = itemHtml + ' </tr> '
 
     if totaPO > 0:
         totaPO = totaPO * Decimal(str(0.10))
-        total = total + totaPO
+        total = total + int(round(float(totaPO)))
         itemHtml = itemHtml + ' <tr> '
         itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="20%" align="center"> </td> '
         itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px; padding-left: 2px;" width="43%" align="left"> Markup </td> '
         itemHtml = itemHtml +  ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"></td> '
         itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="13%" align="center"> </td> '
-        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> $'  + '{0:,.2f}'.format(float(totaPO)) + '</td>'
+        #itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> $'  + '{0:,.2f}'.format(float(totaPO)) + '</td>'
+        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> $'  + str(int(round(float(totaPO)))) + '</td>'
         itemHtml = itemHtml + ' </tr> '
+
+    #Add Partial or final Text
+    itemHtml = itemHtml + ' <tr> '
+    itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="20%" align="center"> </td> '
+    itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px; padding-left: 2px;" width="43%" align="left"> ' + isPartial + ' </td> '
+    itemHtml = itemHtml +  ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> </td>'
+    itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="13%" align="center"> </td> '
+    itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> </td>'
+    itemHtml = itemHtml + ' </tr> '
 
     for i in range(20-linea):
         itemHtml = itemHtml + '<tr>'
@@ -1515,13 +1585,20 @@ def estimate_preview(request, id, estimateID):
     context["emp"] = emp
 
     context["estimate"] = True
+    isPartial = ""
 
     itemResume = []
 
     if int(str(estimateID)) == 0:
         authBilling = authorizedBilling.objects.filter(woID = wo, Status = 1)
+        isPartial = ""
     else:
         authBilling = authorizedBilling.objects.filter(woID = wo, estimate = estimateID)
+        woEst = woEstimate.objects.filter(woID = wo, estimateNumber = estimateID).first()
+        if woEst.is_partial:
+            isPartial = "*****  PARTIAL *****"
+        else:
+            isPartial = "***** FINAL *****"
 
     for data in authBilling:
         if data.quantity > 0:
@@ -1560,8 +1637,12 @@ def estimate_preview(request, id, estimateID):
     totaPO = 0
     for data in internal:
         linea = linea + 1
-        amount = Decimal(str(data.total)) 
-        total = total + amount
+        if data.total != None and data.total != "":
+            amount = int(round(float(str(data.total))))  
+        else:
+            amount = 0
+
+        #total = total + amount
         totaPO += amount
         """itemHtml = itemHtml + ' <tr> '
         itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="20%" align="center">  </td> '
@@ -1573,14 +1654,23 @@ def estimate_preview(request, id, estimateID):
 
     if totaPO > 0:
         totaPO2 = totaPO + (totaPO * Decimal(str(0.10)))
-        total = total + totaPO
+        total = total + int(round(float(totaPO2)))
         itemHtml = itemHtml + ' <tr> '
         itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="20%" align="center">NS005 </td> '
         itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px; padding-left: 2px;" width="43%" align="left"> Materials and Fees Pass-through </td> '
-        itemHtml = itemHtml +  ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center">'  + '{0:,.2f}'.format(float(totaPO)) + '</td>'
+        itemHtml = itemHtml +  ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center">'  + str(int(round(float(totaPO)))) + '</td>'
         itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="13%" align="center">$1.10 </td> '
-        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> $'  + '{0:,.2f}'.format(float(totaPO2)) + '</td>'
+        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> $'  + str(int(round(float(totaPO2)))) + '</td>'
         itemHtml = itemHtml + ' </tr> '
+
+    #Add Partial or final Text
+    itemHtml = itemHtml + ' <tr> '
+    itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="20%" align="center"> </td> '
+    itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px; padding-left: 2px;" width="43%" align="left"> ' + isPartial + ' </td> '
+    itemHtml = itemHtml +  ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> </td>'
+    itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="13%" align="center"> </td> '
+    itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> </td>'
+    itemHtml = itemHtml + ' </tr> '
    
     for i in range(21-linea):     
         itemHtml = itemHtml + '<tr>'
@@ -1609,11 +1699,17 @@ def invoice_preview(request, id, invoiceID):
     context["emp"] = emp
 
     context["estimate"] = False
-
+    isPartial = ""
     itemResume = []
 
 
     authBilling = authorizedBilling.objects.filter(woID = wo, invoice = invoiceID)
+
+    woInv = woInvoice.objects.filter(woID = wo, invoiceNumber = invoiceID).first()
+    if woInv.is_partial:
+        isPartial = "*****  PARTIAL *****"
+    else:
+        isPartial = "***** FINAL *****"
 
     for data in authBilling:
         if data.quantity > 0:
@@ -1646,27 +1742,44 @@ def invoice_preview(request, id, invoiceID):
     totaPO = 0
     for data in internal:
         linea = linea + 1
-        amount = Decimal(str(data.total)) 
+        if data.total != None and data.total != "":
+            amount = int(round(float(str(data.total)))) 
+        else:
+            amount = 0
+
         total = total + amount
         totaPO += amount
-        itemHtml = itemHtml + ' <tr> '
-        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="20%" align="center">  </td> '
-        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px; padding-left: 2px;" width="43%" align="left">' + data.product + '</td> '
-        itemHtml = itemHtml +  ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center">' + data.quantity + '</td> '
-        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="13%" align="center">  </td> '
-        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> $'  + '{0:,.2f}'.format(float(data.total)) + '</td>'
-        itemHtml = itemHtml + ' </tr> '
+        if data.total != None and data.total != "":
+            itemHtml = itemHtml + ' <tr> '
+            itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="20%" align="center">  </td> '
+            itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px; padding-left: 2px;" width="43%" align="left">' + str(data.product) + '</td> '
+            itemHtml = itemHtml +  ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center">' + str(data.quantity) + '</td> '
+            itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="13%" align="center">  </td> '
+            #itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> $'  + '{0:,.0f}'.format(float(data.total)) + '</td>'
+            itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> $'  + str(int(round(float(str(data.total))))) + '</td>'
+            itemHtml = itemHtml + ' </tr> '
 
     if totaPO > 0:
         totaPO = totaPO * Decimal(str(0.10))
-        total = total + totaPO
+        total = total + int(round(float(totaPO)))
         itemHtml = itemHtml + ' <tr> '
         itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="20%" align="center"> </td> '
         itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px; padding-left: 2px;" width="43%" align="left"> Markup </td> '
         itemHtml = itemHtml +  ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"></td> '
         itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="13%" align="center"> </td> '
-        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> $'  + '{0:,.2f}'.format(float(totaPO)) + '</td>'
+        #itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> $'  + '{0:,.0f}'.format(float(totaPO)) + '</td>'
+        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> $'  + str(int(round(float(totaPO)))) + '</td>'
         itemHtml = itemHtml + ' </tr> '
+
+
+    #Add Partial or final Text
+    itemHtml = itemHtml + ' <tr> '
+    itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="20%" align="center"> </td> '
+    itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px; padding-left: 2px;" width="43%" align="left"> ' + isPartial + ' </td> '
+    itemHtml = itemHtml +  ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> </td>'
+    itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="13%" align="center"> </td> '
+    itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> </td>'
+    itemHtml = itemHtml + ' </tr> '
 
     for i in range(21-linea):
         itemHtml = itemHtml + '<tr>'
@@ -3793,6 +3906,9 @@ def payroll_detail(request, id):
     context["po"] = internalpo
     context["extProduction"] = extProduction
     context["emp"] = emp
+
+    vendorList = vendorSubcontrator(request) 
+    context["vendorList"] = vendorList
  
     return render(request, "payroll_detail.html", context)
 
@@ -4583,3 +4699,49 @@ def order_detail(request, id):
     context["order"] = wo
   
     return render(request, "order_detail.html", context)
+
+
+
+
+### General Functions
+def vendorSubcontrator(request):
+    vendorList = vendor.objects.filter(is_active = True).only("id", "name")
+    subCList = subcontractor.objects.filter(is_active = True).only("id", "name")
+    
+
+    vcList = []
+
+
+    for v in vendorList:
+        vcList.append({'id': "V" + str(v.id), 'name': v.name} )
+
+    
+    for s in subCList:
+       vcList.append({'id': "S" + str(s.id), 'name': s.name} )
+
+
+    return vcList
+
+
+
+def date_difference(orders):
+    day_diff = []
+    for i in orders:
+        if int(i.Status) >= 2 and int(i.Status) <=4:   
+            try:
+                date_format = "%Y-%m-%d"
+                a = datetime.strptime(str(datetime.now().date()), date_format)
+                #a = datetime.now().date()
+                b = datetime.strptime(i.UploadDate[0:10], date_format)
+                delta = a - b
+                days_overdue = delta.days
+            except Exception as e:
+                days_overdue = 0
+        else:
+            days_overdue = 0
+
+        day_diff.append({'id':i.id, 'days': days_overdue})
+    
+    return day_diff
+
+        

@@ -94,7 +94,14 @@
                                         {% for po in po %}
                                             <tr>
                                                 <td>{{po.id}}</td>
-                                                <td>{{po.vendor}}</td>
+                                                <td>{{po.vendor}} - 
+                                                    {%for i in vendorList%}
+                                                        {%if po.vendor == i.id%}
+                                                            {{i.name}}                                                    
+                                                        {%endif%}
+                                                    {%endfor%}
+                                                </td>
+                                               
                                                 <td>{{po.supervisor}}</td>
                                                 <td>{{po.pickupEmployee}}</td>
                                                 <td>{{po.product}}</td>

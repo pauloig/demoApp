@@ -152,8 +152,7 @@ class ItemPriceForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields['item'].disabled = True
 
-class InternalPOForm(forms.ModelForm):    
-    vendor = forms.ModelChoiceField(queryset=vendor.objects.filter(is_active=True), widget=forms.Select(attrs={'class': 'form-control'}), required=False)
+class InternalPOForm(forms.ModelForm):   
     supervisor = forms.ModelChoiceField(queryset=Employee.objects.filter(is_active=True, is_supervisor = True), widget=forms.Select(attrs={'class': 'form-control'}), required=False)
     pickupEmployee = forms.ModelChoiceField(queryset=Employee.objects.filter(is_active=True), widget=forms.Select(attrs={'class': 'form-control'}), required=False)
     product = forms.CharField(label="Product",max_length=200, widget=forms.TextInput(attrs={'class':'form-control'}), required=False)
@@ -165,20 +164,21 @@ class InternalPOForm(forms.ModelForm):
         model = internalPO
         fields = [
             'woID',
-            'vendor',
             'supervisor',
             'pickupEmployee',
             'product',
             'quantity',
             'total',
-            'subcontractor', 
             'nonBillable'           
         ]
 
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs):      
         super().__init__(*args, **kwargs)
         self.fields['woID'].disabled = True
+ 
+        
+
 
 class periodForm(forms.ModelForm):
 

@@ -1,7 +1,7 @@
 {% extends 'index.html' %} 
 {%load static%}
 {% block title %} CREATE ITEMS {% endblock %} 
-
+{% load widget_tweaks%}
 {% block container %}
 
 <div class="container">
@@ -14,7 +14,21 @@
             <div class="col-lg-12">
                 <div class="card rounded">
                     <h6 class="card-header card-header-wc" >Create PO</h6>
-                    <div class="card-body">                    
+                    <div class="card-body">
+                            <div class="row"> 
+                                <div class="col-lg-12">
+
+                                    <div class="mb-3">
+                                        <label for="vendor" class="form-label">Vendor - Subcontractor</label>
+                                        <select class="form-select" name="vendor" id="vendor"> 
+                                            <option value ="0" > ---</option>
+                                            {% for i in vendorList%}
+                                                <option value ="{{i.id}}" > {{i.id}} - {{i.name}}</option>
+                                            {%endfor%}
+                                        </select>  
+                                    </div>                                  
+                                </div>                                                                                
+                            </div>                    
                             <div class="row">
                                   <!-- Using the formset -->
                                 {{ form.as_p }}
