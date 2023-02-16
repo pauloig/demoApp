@@ -40,32 +40,94 @@ from django.db.models import Sum
 
 
 def simple_upload(request):
-    try:
-        emp = Employee.objects.filter(user__username__exact = request.user.username).first()
-        per = period.objects.filter(status__in=(1,2)).first()
-        
+    
+    emp = Employee.objects.filter(user__username__exact = request.user.username).first()
+    per = period.objects.filter(status__in=(1,2)).first()
+    
 
-        countInserted = 0
-        countRejected = 0
-        duplicateRejected = 0
-        if request.method == 'POST':
-            #workOrder.objects.all().delete()
-            workOrder_resource = workOrderResource()
-            dataset = Dataset()
-            new_workOrder = request.FILES['myfile']
+    countInserted = 0
+    countRejected = 0
+    duplicateRejected = 0
+    if request.method == 'POST':
+        #workOrder.objects.all().delete()
+        workOrder_resource = workOrderResource()
+        dataset = Dataset()
+        new_workOrder = request.FILES['myfile']
 
-            if not new_workOrder.name.endswith('xlsx'):
-                messages.info(request, 'wrong format')
-                return render(request,'upload.html', {'countInserted':countInserted, 'countRejected':countRejected})
+        if not new_workOrder.name.endswith('xlsx'):
+            messages.info(request, 'wrong format')
+            return render(request,'upload.html', {'countInserted':countInserted, 'countRejected':countRejected})
 
-            imported_data = dataset.load(new_workOrder.read(),format='xlsx')
-        
-            # return render(request,'upload.html',
-            # {'imported_data':imported_data})
+        imported_data = dataset.load(new_workOrder.read(),format='xlsx', read_only = False)
+    
+        # return render(request,'upload.html',
+        # {'imported_data':imported_data})
 
-            for data in imported_data:  
-                rowExist = workOrder.objects.filter(prismID=data[0]).first()
-                if rowExist:
+        for data in imported_data:  
+            rowExist = workOrder.objects.filter(prismID=data[0]).first()
+            if rowExist:
+                countRejected = countRejected + 1
+                try:
+                    valueDuplicate = workOrderDuplicate(prismID = data[0],
+                        workOrderId = data[1],
+                        PO = data[2],
+                        POAmount = data[3],
+                        ConstType = data[4],
+                        ConstCoordinator = data[5],
+                        WorkOrderDate = data[6],
+                        EstCompletion = data[7],
+                        IssuedBy = data[8],
+                        JobName = data[9],
+                        JobAddress = data[10],
+                        SiteContactName = data[11],
+                        SitePhoneNumber = data[12],
+                        Comments = data[13],
+                        Status = data[14],
+                        CloseDate = data[15],
+                        WCSup = data[16],
+                        UploadDate = data[17],
+                        UserName = data[18]) 
+                    valueDuplicate.save()
+                except Exception as e:
+                    duplicateRejected = duplicateRejected + 1
+            else:
+                try:         
+                    value = workOrder(
+                        prismID = data[0],
+                        workOrderId = data[1],
+                        PO = data[2],
+                        POAmount = data[3],
+                        ConstType = data[4],
+                        ConstCoordinator = data[5],
+                        WorkOrderDate = data[6],
+                        EstCompletion = data[7],
+                        IssuedBy = data[8],
+                        JobName = data[9],
+                        JobAddress = data[10],
+                        SiteContactName = data[11],
+                        SitePhoneNumber = data[12],
+                        Comments = data[13],
+                        Status = '1',
+                        CloseDate = data[15],
+                        UploadDate = data[17],
+                        UserName = data[18],
+                        uploaded = True,
+                        createdBy = request.user.username,
+                        created_date = datetime.now()
+                    )
+                    value.save()
+
+                    log = woStatusLog( 
+                                        woID = value,
+                                        nextStatus = 1,
+                                        createdBy = request.user.username,
+                                        created_date = datetime.now()
+                                    )
+                    log.save()
+
+
+                    countInserted = countInserted + 1
+                except Exception as e:
                     countRejected = countRejected + 1
                     try:
                         valueDuplicate = workOrderDuplicate(prismID = data[0],
@@ -89,72 +151,9 @@ def simple_upload(request):
                             UserName = data[18]) 
                         valueDuplicate.save()
                     except Exception as e:
-                        duplicateRejected = duplicateRejected + 1
-                else:
-                    try:         
-                        value = workOrder(
-                            prismID = data[0],
-                            workOrderId = data[1],
-                            PO = data[2],
-                            POAmount = data[3],
-                            ConstType = data[4],
-                            ConstCoordinator = data[5],
-                            WorkOrderDate = data[6],
-                            EstCompletion = data[7],
-                            IssuedBy = data[8],
-                            JobName = data[9],
-                            JobAddress = data[10],
-                            SiteContactName = data[11],
-                            SitePhoneNumber = data[12],
-                            Comments = data[13],
-                            Status = '1',
-                            CloseDate = data[15],
-                            UploadDate = data[17],
-                            UserName = data[18],
-                            uploaded = True,
-                            createdBy = request.user.username,
-                            created_date = datetime.now()
-                        )
-                        value.save()
-
-                        log = woStatusLog( 
-                                            woID = value,
-                                            nextStatus = 1,
-                                            createdBy = request.user.username,
-                                            created_date = datetime.now()
-                                        )
-                        log.save()
-
-
-                        countInserted = countInserted + 1
-                    except Exception as e:
-                        countRejected = countRejected + 1
-                        try:
-                            valueDuplicate = workOrderDuplicate(prismID = data[0],
-                                workOrderId = data[1],
-                                PO = data[2],
-                                POAmount = data[3],
-                                ConstType = data[4],
-                                ConstCoordinator = data[5],
-                                WorkOrderDate = data[6],
-                                EstCompletion = data[7],
-                                IssuedBy = data[8],
-                                JobName = data[9],
-                                JobAddress = data[10],
-                                SiteContactName = data[11],
-                                SitePhoneNumber = data[12],
-                                Comments = data[13],
-                                Status = data[14],
-                                CloseDate = data[15],
-                                WCSup = data[16],
-                                UploadDate = data[17],
-                                UserName = data[18]) 
-                            valueDuplicate.save()
-                        except Exception as e:
-                            duplicateRejected = duplicateRejected + 1            
-        return render(request,'upload.html', {'countInserted':countInserted, 'countRejected':countRejected,'duplicateRejected':duplicateRejected, 'emp': emp, 'per':per})
-    except Exception as e:
-        return render(request,'landing.html',{'message':'Somenthing went Wrong! ' + str(e), 'alertType':'danger', 'emp':emp, 'per':per})
+                        duplicateRejected = duplicateRejected + 1            
+    return render(request,'upload.html', {'countInserted':countInserted, 'countRejected':countRejected,'duplicateRejected':duplicateRejected, 'emp': emp, 'per':per})
+    
 
 
 def upload_payroll(request):
@@ -4742,7 +4741,7 @@ def date_difference(orders):
         else:
             days_overdue = 0
 
-        day_diff.append({'id':i.id, 'days': days_overdue })
+        day_diff.append({'id':i.id, 'days': days_overdue, 'prismID': i.prismID, 'workOrderId': i.workOrderId, 'PO': i.PO, 'POAmount':i.POAmount, 'Status': i.Status,  'Location':i.Location, 'WCSup': i.WCSup, 'created_date': i.created_date, 'UploadDate':i.UploadDate, 'IssuedBy':i.IssuedBy, 'JobName': i.JobName, 'JobAddress': i.JobAddress })
     
     return day_diff
 

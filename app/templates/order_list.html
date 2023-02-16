@@ -117,15 +117,11 @@
                                         </tr>              
                                     </thead>
                                     <tbody>                                       
-                                        {% for order in orders %}
-                                            <tr 
-                                            {%for i in day_diff%}
-                                                {%if i.id == order.id %}
-                                                    {%if i.days > 8%}
-                                                        style = "background: yellow; color: red;"
-                                                    {%endif%}
+                                        {% for order in day_diff %}
+                                            <tr                                                                                         
+                                                {%if order.days > 2%}
+                                                    style = "background: yellow; color: red;"
                                                 {%endif%}
-                                            {%endfor%}
                                             >
                                                 <td class="p-1">{{order.prismID}} - {{order.workOrderId}} - {{order.PO}} </td>
                                                 <!--<td class="p-1"></td>
@@ -151,11 +147,7 @@
                                                 <td class="p-1">{{order.created_date|date:'Y-m-d H:i'}}</td> 
                                                 <td class="p-1">{{order.UploadDate}}</td>      
                                                 <td class="p-1">
-                                                    {%for i in day_diff%}
-                                                        {%if i.id == order.id %}
-                                                            {{i.days}}
-                                                        {%endif%}
-                                                    {%endfor%}
+                                                            {{order.days}}
                                                 </td>              
                                                 <td class="p-1">{{order.IssuedBy}}</td>
                                                 <td class="p-1">{{order.JobName}}</td>
