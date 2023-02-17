@@ -72,7 +72,7 @@
                                             <th scope="col">Location</th>
                                             <th scope="col">Created Date</th>
                                             <th scope="col">Created By</th>                                           
-                                            <th scope="col" style="width: 7%"><a hx-get="/create_employee_location/{{empSelected.employeeID}}/0" hx-target="#dialog"><i class="fa-solid fa-circle-plus"></i></a></th>
+                                            <th scope="col" style="width: 7%"><a hx-get="/create_employee_location/{{empSelected.employeeID}}" hx-target="#dialog"><i class="fa-solid fa-circle-plus"></i></a></th>
                                         </tr>              
                                     </thead>
                                     <tbody>                                       
@@ -84,8 +84,8 @@
                                                 <td>{{empl.createdBy}}</td>
                                                                                   
                                                 <td> 
-                                                    <a hx-get="/update_authorized_prod_item/{{itemd.idA}}/0" hx-target="#dialog"><i class="fa-solid fa-pen-to-square" style="color: green;"></i></a>
-                                                    <a hx-get="/delete_authorized_prod_item/{{itemd.idA}}/0" hx-target="#dialog"><i class="fa-solid fa-circle-minus" style="color: red;"></i></a>
+                                                    
+                                                    <a hx-get="/delete_employee_location/{{empl.id}}" hx-target="#dialog"><i class="fa-solid fa-circle-minus" style="color: red;"></i></a>
                                                 </td>                                 
                                             </tr>                                             
                                         {% endfor %}

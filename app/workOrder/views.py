@@ -20,7 +20,7 @@ from django.contrib import messages
 from tablib import Dataset
 from django.http import HttpResponse, FileResponse, HttpRequest
 from django.db import IntegrityError
-from .forms import EmployeesForm, InternalPOForm, ItemForm, ItemPriceForm, LocationsForm, workOrderForm, DailyEmpForm, DailyItemForm, dailydForm, dailySupForm, vendorForm, subcontractorForm, extProdForm, extProdItemForm, authorizedBillingForm  
+from .forms import EmployeesForm, InternalPOForm, ItemForm, ItemPriceForm, LocationsForm, workOrderForm, DailyEmpForm, DailyItemForm, dailydForm, dailySupForm, vendorForm, subcontractorForm, extProdForm, extProdItemForm, authorizedBillingForm, EmployeeLocationForm
 from sequences import get_next_value, Sequence
 from datetime import date
 from django.utils.dateparse import parse_date
@@ -4902,21 +4902,51 @@ def create_employee_location(request, empID):
     context ={}
     per = period.objects.filter(status__in=(1,2)).first()
     context["per"] = per
+    
+    
+    empSelected = Employee.objects.filter(employeeID = empID).first()
+    empLoca = employeeLocation.objects.filter(employeeID = empSelected )
+        
+    itemList = []
 
-    form = EmployeesForm(request.POST or None)
+    for i in empLoca:
+        itemList.append(i.LocationID.LocationID) 
 
-    if form.is_valid():
-        empSeq = Sequence("emp", initial_value=1500) 
-        empID = str(empSeq.get_next_value())       
-        form.instance.employeeID = empID
+    itemLocation = Locations.objects.all().exclude(LocationID__in = itemList)
+   
+    form = EmployeeLocationForm(request.POST or None,  initial={'employeeID': empSelected}, qs = itemLocation)
+
+    if form.is_valid(): 
+        form.instance.createdBy = request.user.username
+        form.instance.created_date = datetime.now()       
         form.save()
         # Return to Locations List
-        return HttpResponseRedirect('/employee_location_list/')
+        return HttpResponseRedirect('/employee_location_list/' + str(empID))
 
          
     context['form']= form
     context["emp"] = emp
-    return render(request, "create_employee.html", context)
+    return render(request, "create_employee_location.html", context)
+
+def delete_employee_location(request, empID):
+    emp = Employee.objects.filter(user__username__exact = request.user.username).first()
+    context ={}
+
+    per = period.objects.filter(status__in=(1,2)).first()
+    context["per"] = per
+
+    obj = get_object_or_404(employeeLocation, id = empID)
+ 
+    context["form"] = obj
+    context["emp"] = emp
+ 
+    if request.method == 'POST':
+        obj.delete()
+
+        return HttpResponseRedirect('/employee_location_list/' + str(obj.employeeID.employeeID))
+
+   
+    return render(request, "delete_employee_location.html", context)
 
 ### General Functions
 def vendorSubcontrator(request):

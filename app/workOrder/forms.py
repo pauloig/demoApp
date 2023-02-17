@@ -1,7 +1,7 @@
 import re
 from types import CoroutineType
 from django import forms
-from .models import Locations, item, workOrder, workOrderDuplicate, Employee, itemPrice, internalPO, period, DailyEmployee, DailyItem, Daily, vendor, subcontractor, externalProduction, externalProdItem, authorizedBilling
+from .models import Locations, item, workOrder, workOrderDuplicate, Employee, itemPrice, internalPO, period, DailyEmployee, DailyItem, Daily, vendor, subcontractor, externalProduction, externalProdItem, authorizedBilling, employeeLocation
 
 class LocationsForm(forms.ModelForm):
     LocationID = forms.CharField(max_length=10, widget=forms.TextInput(attrs={'class':'form-control'}))
@@ -387,3 +387,19 @@ class authorizedBillingForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields['woID'].disabled = True
         self.fields['itemID'].queryset = qs
+        
+
+class EmployeeLocationForm(forms.ModelForm):
+
+    class Meta:
+        model = employeeLocation
+        fields = [
+            'employeeID',
+            'LocationID'         
+        ]
+
+    def __init__(self, *args, **kwargs):
+        qs = kwargs.pop('qs')
+        super().__init__(*args, **kwargs)
+        self.fields['employeeID'].disabled = True
+        self.fields['LocationID'].queryset = qs
