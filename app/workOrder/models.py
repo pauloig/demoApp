@@ -25,7 +25,8 @@ prodStatus_choice = (
 
 estimateStatus_choice = (
     (1, 'Open'),
-    (2, 'Closed')
+    (2, 'Closed'),
+    (3, 'Updated')
 )
 
 class Locations(models.Model):
@@ -58,6 +59,19 @@ class Employee(models.Model):
 
     def __str__(self):
         return self.first_name + ", " + self.last_name
+
+
+class employeeLocation(models.Model):
+    employeeID = models.ForeignKey(Employee, on_delete=models.SET_NULL, null=True, blank=True, db_column='employeeID')
+    LocationID = models.ForeignKey(Locations, on_delete=models.SET_NULL, null=True, blank=True, db_column='LocationID')
+    created_date = models.DateTimeField(blank=True, null=True)
+    createdBy = models.CharField(max_length=60, blank=True, null=True)
+    
+    class Meta:
+        unique_together = ('employeeID', 'LocationID')
+
+    def __str__(self):
+        return self.employeeID.first_name + "  " + self.employeeID.last_name + " - "
 
 class workOrder(models.Model):
     prismID = models.CharField(max_length=200)
@@ -386,8 +400,12 @@ class authorizedBilling(models.Model):
     estimate = models.CharField(max_length=50, null=True, blank=True)
     invoice = models.CharField(max_length=50, null=True, blank=True)
     Status = models.IntegerField(default=1, choices = prodStatus_choice)
+    comment = models.TextField(max_length=500, null=True, blank=True)
     created_date = models.DateTimeField(null=True, blank=True)
     createdBy = models.CharField(max_length=60, blank=True, null=True)
+    updated_date = models.DateTimeField(null=True, blank=True)
+    updatedBy = models.CharField(max_length=60, blank=True, null=True)
+
 
     def __str__(self):
         return str(self.woID) + " - " + str(self.id)

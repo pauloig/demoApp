@@ -1,0 +1,101 @@
+{% extends 'index.html' %} 
+{%load static%}
+{% block title %} Duplicate Order List {% endblock %} 
+
+{% block container %}
+
+<div class="container">
+    <form method='post' enctype="multipart/form-data">
+        {% csrf_token %}
+        
+
+        <br />
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="card rounded">
+                    <h6 class="card-header card-header-wc" >Employee</h6>
+                    <div class="card-body">                    
+                        <div class="row">                   
+                            <div class="col-sm-4">
+                                <div class="mb-3">
+                                    <label for="orderID" class="form-label">First Name</label>                                    
+                                    <input type="text" name="orderID" id="orderID" class="form-control" value="{{empSelected.first_name}}" disabled>                                                                       
+                                </div>
+                            </div>
+                            <div class="col-sm-4">
+                                <div class="mb-3">
+                                    <label for="address" class="form-label">Last Name</label>                                    
+                                    <input type="text" name="address" id="address" class="form-control" value="{{empSelected.last_name}}" disabled>                                                                                                                                               
+                                </div>
+                            </div>
+                            <div class="col-sm-4">
+                                <div class="mb-3">
+                                    <label for="supervisor" class="form-label">Supervisor</label>                                    
+                                    <input type="text" name="supervisor" id="supervisor" class="form-control" value="{{empSelected.supervisor_name}}" disabled>                                                                                                                                               
+                                </div>
+                            </div>
+                        </div>    
+                                                                                   
+                        <div class="row">
+                            <div class="col-sm-4">
+                                <div class="mb-3">
+                                    <label for="location" class="form-label">Email</label>                                    
+                                    <input type="text" name="location" id="location" class="form-control" value="{{empSelected.email}}" disabled>                                                                       
+                                </div>
+                            </div>
+                            <div class="col-sm-4">
+                                <div class="mb-3">
+                                    <label for="updatedDate" class="form-label">User</label>                                                                             
+                                    <input type="text" name="updatedDate" id="updatedDate" class="form-control" value="{{empSelected.user}}" disabled>                                                                       
+                                </div>
+                            </div>
+                            <div class="col-sm-4">
+                                
+                            </div>
+                        </div>  
+                        
+                             
+                       
+                            <br/>
+                            <div class="row">
+                                <div class="col-lg-6">  
+                                    <div class="form-outline" style="align-items: center;">                                                                                                            
+                                        <a href="/employee_list/" type="button" class="btn btn-danger">Close</a> 
+                                    </div>
+                                </div>
+                            </div>   
+                            <br/>           
+                            <div class="row">
+                                <table id="orders" class="table table-sm table-bordered table-striped">
+                                    <thead class="table-primary">
+                                        <tr>
+                                            <th scope="col">Location</th>
+                                            <th scope="col">Created Date</th>
+                                            <th scope="col">Created By</th>                                           
+                                            <th scope="col" style="width: 7%"><a hx-get="/create_employee_location/{{empSelected.employeeID}}/0" hx-target="#dialog"><i class="fa-solid fa-circle-plus"></i></a></th>
+                                        </tr>              
+                                    </thead>
+                                    <tbody>                                       
+                                        {% for empl in empLocation %}
+                                            <tr>
+                                                <td>{{empl.LocationID}}</td>
+                                                <td>{{empl.created_date}}</td>
+                                               
+                                                <td>{{empl.createdBy}}</td>
+                                                                                  
+                                                <td> 
+                                                    <a hx-get="/update_authorized_prod_item/{{itemd.idA}}/0" hx-target="#dialog"><i class="fa-solid fa-pen-to-square" style="color: green;"></i></a>
+                                                    <a hx-get="/delete_authorized_prod_item/{{itemd.idA}}/0" hx-target="#dialog"><i class="fa-solid fa-circle-minus" style="color: red;"></i></a>
+                                                </td>                                 
+                                            </tr>                                             
+                                        {% endfor %}
+                                    </tbody>                              
+                                </table>
+                            </div>                    
+                    </div>
+                </div>                 
+            </div>
+        </div>      
+    </form>
+</div>
+{% endblock %}

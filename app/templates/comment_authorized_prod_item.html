@@ -1,0 +1,53 @@
+{% extends 'base.html' %} 
+{%load static%}
+{% block title %} Order List {% endblock %} 
+{% load humanize %}
+{% block container %}
+{% load widget_tweaks%}
+
+<div class="container">
+    <form method='post' action="{{request.path}}" class="modal-content" id="daily_emp">
+        {% csrf_token %}
+
+        <div class="modal-header">
+            <h5>Comment Item from Billing</h5>           
+        </div>              
+       
+        <div class="modal-body">            
+            <div class="row">        
+              <h5> <strong>{{form.itemID}}</strong></h5>
+            </div>   
+            <div class="row">
+                <div class="col-sm-12">
+                    <div class="mb-3">
+                        <label for="comment" class="form-label">Comments</label>
+                        <textarea name="comment" id="comment" rows="5" cols="20" disabled class="form-control">{{form.comment}}</textarea>
+                    </div>
+                </div> 
+            </div>  
+            <div class="row">
+                <div class="col-sm-6">
+                    <div class="mb-3">
+                        <label for="updated_date" class="form-label">Updated Date</label>
+                        <input name="updated_date" id="updated_date" disabled class="form-control" value="{{form.updated_date}}"></input>
+                    </div>
+                </div> 
+                <div class="col-sm-6">
+                    <div class="mb-3">
+                        <label for="updated_by" class="form-label">Updated By</label>
+                        <input name="updated_by" id="updated_by" disabled class="form-control" value ="{{form.updatedBy}}"></input>
+                    </div>
+                </div>     
+            </div> 
+               
+        </div>
+
+        
+        
+        <div class="modal-footer">          
+            <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancel</button> 
+        </div>
+   
+    </form>
+</div>
+{% endblock %}

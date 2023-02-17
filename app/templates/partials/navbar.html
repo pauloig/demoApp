@@ -3,14 +3,14 @@
 
 <div class="menu">
   <!-- {{ menu | safe }}     -->
-  {% if emp.is_superAdmin  or user.is_staff %}
+  {% if emp.is_superAdmin or emp.is_admin or user.is_staff %}
     <a aria-current="page" class="d-block text-light p-2" href="/upload/"><i class="icon ion-md-cloud"></i> upload Orders</a>
     <!--<a aria-current="page" class="d-block text-light p-2" href="/upload_payroll/"><i class="icon ion-md-cloud"></i> upload payroll</a>-->
-    {% endif %}
+   {% endif %}
   {% if emp.is_superAdmin  or emp.is_admin or user.is_staff %} 
     <a aria-current="page" class="d-block text-light p-2" href="/order_list/"><i class="icon ion-md-clipboard"></i> Orders</a>
   {% endif %}
-  {% if emp.is_superAdmin  or user.is_staff %}
+  {% if emp.is_superAdmin  or emp.is_admin or user.is_staff %}
     <a aria-current="page" class="d-block text-light p-2" href="/duplicate_order_list/"><i class="icon ion-md-clipboard"></i> Duplicate Orders</a>
     <a style="color: white;"><hr></a>
   {% endif %} 

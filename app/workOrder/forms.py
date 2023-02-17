@@ -378,7 +378,8 @@ class authorizedBillingForm(forms.ModelForm):
         fields = [
             'woID',
             'itemID',
-            'quantity',            
+            'quantity', 
+            'comment'           
         ]
 
     def __init__(self, *args, **kwargs):

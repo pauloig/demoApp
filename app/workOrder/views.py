@@ -14,7 +14,7 @@ from telnetlib import WONT
 from unittest import TextTestResult
 from urllib import response
 from django.shortcuts import render, get_object_or_404, HttpResponseRedirect, redirect
-from .models import Employee, payrollDetail, workOrder, workOrderDuplicate, Locations, item, itemPrice, payroll, internalPO, period, Daily, DailyEmployee, DailyItem, employeeRecap, woStatusLog, vendor, subcontractor, externalProduction, externalProdItem, authorizedBilling, woEstimate, woInvoice
+from .models import Employee, payrollDetail, workOrder, workOrderDuplicate, Locations, item, itemPrice, payroll, internalPO, period, Daily, DailyEmployee, DailyItem, employeeRecap, woStatusLog, vendor, subcontractor, externalProduction, externalProdItem, authorizedBilling, woEstimate, woInvoice, employeeLocation
 from .resources import workOrderResource
 from django.contrib import messages
 from tablib import Dataset
@@ -439,7 +439,11 @@ def listOrders(request):
             else:
                 orders = None
             context["orders"]=orders
-            context["day_diff"]=date_difference(orders)
+            if orders != None:
+                context["day_diff"]=date_difference(orders)
+            else:
+                context["day_diff"] = None
+
             return render(request,'order_list.html',context)
 
     if request.user.is_staff:        
@@ -1533,7 +1537,12 @@ def invoice(request, id, invoiceID):
     context["total"] = total
 
     template_path = 'invoice_template.html'
-    context["invoiceID"] = invoiceID
+    
+    if woInv.Status == 3:
+        context["invoiceID"] = str(invoiceID) + "R"
+    else:
+        context["invoiceID"] = str(invoiceID)
+        
     template= get_template(template_path)
 
     """if (wo.invoice != 0 and wo.invoice != " " and wo.invoice is None):  
@@ -1793,7 +1802,11 @@ def invoice_preview(request, id, invoiceID):
         
     context["itemPrice"] = itemHtml
     context["total"] = total
-    context["invoiceID"] = invoiceID
+    
+    if woInv.Status == 3:
+        context["invoiceID"] = str(invoiceID) + "R"
+    else:
+        context["invoiceID"] = str(invoiceID)
 
     #return render(request, "pre_invoice.html", context)
     return render(request, "invoice_template_preview.html", context)
@@ -1993,7 +2006,16 @@ def location_period_list(request, id):
             if emp.is_superAdmin:
                 loca = Locations.objects.all().order_by("LocationID")
             elif emp.Location != None:
-                loca = Locations.objects.filter(LocationID = emp.Location.LocationID)
+                
+                locaList = employeeLocation.objects.filter(employeeID = emp)
+                
+                locationList = []
+                locationList.append(emp.Location.LocationID)
+                
+                for i in locaList:
+                    locationList.append(i.LocationID.LocationID)
+                
+                loca = Locations.objects.filter(LocationID__in =locationList)
             else:
                 loca = Locations.objects.filter(LocationID = -1)
 
@@ -4474,7 +4496,7 @@ def authorized_billing_list(request, id):
   
     return render(request, "authorized_billing_list.html", context)
 
-def create_authorized_prod_item(request, id):
+def create_authorized_prod_item(request, id, invoiceID):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context ={}
 
@@ -4483,7 +4505,11 @@ def create_authorized_prod_item(request, id):
 
     wo = workOrder.objects.filter(id = id).first()
 
-    authorizedItems = authorizedBilling.objects.filter(woID = wo)
+    if int(invoiceID) == 0:
+        authorizedItems = authorizedBilling.objects.filter(woID = wo)
+    else:
+        authorizedItems = authorizedBilling.objects.filter(woID = wo, invoice = invoiceID )
+        
     itemList = []
 
     for i in authorizedItems:
@@ -4502,21 +4528,34 @@ def create_authorized_prod_item(request, id):
         
         selectedItem = itemPrice.objects.filter(id = itemid).first()
         form.instance.itemID = selectedItem
-
+        
+        if int(invoiceID) != 0:
+            form.instance.invoice = invoiceID
+            form.instance.estimate = wo.pre_invoice
+            form.instance.Status = 3
+            
+            invoiceO = woInvoice.objects.filter(woID = wo, invoiceNumber = int(invoiceID)).first()  
+            invoiceO.Status = 3
+            invoiceO.save()
+        
         price = form.instance.itemID.price    
         form.instance.total = form.instance.quantity * float(price)
         form.instance.created_date = datetime.now()
-
+        form.instance.updated_date = datetime.now()
+        form.instance.updatedBy = request.user.username
         form.save()      
 
-        return HttpResponseRedirect("/billing_list/" + str(wo.id))       
+        if int(invoiceID) == 0:
+            return HttpResponseRedirect("/billing_list/" + str(wo.id))    
+        else: 
+            return HttpResponseRedirect("/update_invoice/" + str(wo.id) + "/"  + invoiceID)   
          
     context['form']= form
     context["emp"] = emp
     context["itemList"] = itemLocation
     return render(request, "create_authorized_prod_item.html", context)
 
-def update_authorized_prod_item(request, id):
+def update_authorized_prod_item(request, id, invoiceID):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context ={}
 
@@ -4539,11 +4578,21 @@ def update_authorized_prod_item(request, id):
         
         selectedItem = itemPrice.objects.filter(id = itemid).first()
         form.instance.itemID = selectedItem
-
+        form.instance.updated_date = datetime.now()
+        form.instance.updatedBy = request.user.username
         form.save()
-        context["emp"] = emp     
+        context["emp"] = emp    
 
-        return HttpResponseRedirect("/billing_list/" + str(form.instance.woID.id)) 
+        if int(invoiceID) == 0:
+            return HttpResponseRedirect("/billing_list/" + str(form.instance.woID.id)) 
+        else:
+           
+            
+            invoiceO = woInvoice.objects.filter(woID = obj.woID, invoiceNumber = int(invoiceID)).first()  
+            invoiceO.Status = 3
+            invoiceO.save() 
+            
+            return HttpResponseRedirect("/update_invoice/" + str(obj.woID.id) + "/"  + invoiceID)  
 
     context["form"] = form
     context["emp"] = emp
@@ -4551,7 +4600,7 @@ def update_authorized_prod_item(request, id):
 
     return render(request, "update_authorized_prod_item.html", context)
 
-def delete_authorized_prod_item(request, id):
+def delete_authorized_prod_item(request, id, invoiceID):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context ={}
 
@@ -4564,6 +4613,45 @@ def delete_authorized_prod_item(request, id):
     context["emp"] = emp
  
     if request.method == 'POST':
+        aComment = request.POST.get('comment')
+        obj.comment = aComment
+        obj.total = 0
+        obj.quantity = 0
+        obj.updated_date = datetime.now()
+        obj.updatedBy = request.user.username
+        obj.save()
+
+
+        if int(invoiceID) == 0:
+            return HttpResponseRedirect("/billing_list/" + str(obj.woID.id)) 
+        else:           
+            
+            invoiceO = woInvoice.objects.filter(woID = obj.woID, invoiceNumber = int(invoiceID)).first()  
+            invoiceO.Status = 3
+            invoiceO.save() 
+            
+            return HttpResponseRedirect("/update_invoice/" + str(obj.woID.id) + "/"  + invoiceID)  
+         
+
+   
+    return render(request, "delete_authorized_prod_item.html", context)
+
+def comment_authorized_prod_item(request, id):
+
+    emp = Employee.objects.filter(user__username__exact = request.user.username).first()
+    context ={}
+
+    per = period.objects.filter(status__in=(1,2)).first()
+    context["per"] = per
+
+    obj = get_object_or_404(authorizedBilling, id = id)
+ 
+    context["form"] = obj
+    context["emp"] = emp
+ 
+    if request.method == 'POST':
+        aComment = request.POST.get('comment')
+        obj.comment = aComment
         obj.total = 0
         obj.quantity = 0
         obj.save()
@@ -4572,7 +4660,7 @@ def delete_authorized_prod_item(request, id):
         return HttpResponseRedirect("/billing_list/" + str(obj.woID.id)) 
 
    
-    return render(request, "delete_authorized_prod_item.html", context)
+    return render(request, "comment_authorized_prod_item.html", context)
 
 
 def billing_list(request, id):
@@ -4688,6 +4776,94 @@ def billing_list(request, id):
   
     return render(request, "billing_list.html", context)
 
+
+def update_invoice(request, id, invoiceID):
+    
+    context = {} 
+    emp = Employee.objects.filter(user__username__exact = request.user.username).first()
+    context["emp"] = emp
+
+    per = period.objects.filter(status__in=(1,2)).first()
+    context["per"] = per
+
+    wo = workOrder.objects.filter(id=id).first()
+    context["order"] = wo
+    
+
+    payItems = DailyItem.objects.filter(DailyID__woID = wo, invoice = invoiceID)
+    itemResume = []
+
+    try:
+        for data in payItems:
+
+            itemResult = next((i for i, item in enumerate(itemResume) if item["item"] == data.itemID.item.itemID), None)
+            amount = 0
+            amount = Decimal(str(data.quantity)) * Decimal(str(data.itemID.price))  
+            if itemResult != None:                  
+                itemResume[itemResult]['quantity'] += data.quantity
+                itemResume[itemResult]['amount'] += amount
+            else:            
+                itemResume.append({'item':data.itemID.item.itemID, 'name': data.itemID.item.name, 'quantity': data.quantity, 'price':data.itemID.price, 'amount':amount,'Encontrado':False})
+           
+        
+    except Exception as e:
+        print(str(e)) 
+
+    # Group External Production by Item
+    try:
+        extProduction = externalProdItem.objects.filter(externalProdID__woID = wo, invoice = invoiceID)
+
+        for data in extProduction:
+
+            itemResult = next((i for i, item in enumerate(itemResume) if item["item"] == data.itemID.item.itemID), None)
+            amount = 0
+            amount = Decimal(str(data.quantity)) * Decimal(str(data.itemID.price))  
+            if itemResult != None:                  
+                itemResume[itemResult]['quantity'] += data.quantity
+                itemResume[itemResult]['amount'] += amount
+            else:            
+                itemResume.append({'item':data.itemID.item.itemID, 'name': data.itemID.item.name, 'quantity': data.quantity, 'price':data.itemID.price, 'amount':amount,'Encontrado':False})
+           
+        
+    except Exception as e:
+        print(str(e)) 
+
+    itemFinal = []    
+            
+    authorizedItem = authorizedBilling.objects.filter(woID = wo, invoice = invoiceID)
+    qtyP = 0
+    totalP = 0
+    qtyA = 0
+    totalA = 0
+
+    for itemA in authorizedItem:
+        itemResult = next((i for i, item in enumerate(itemResume) if item["item"] == itemA.itemID.item.itemID), None)
+
+        if itemResult != None:          
+            itemFinal.append({'item':itemResume[itemResult]['item'], 'name': itemResume[itemResult]['name'], 'quantity': itemResume[itemResult]['quantity'], 'price': itemResume[itemResult]['price'], 'amount':itemResume[itemResult]['amount'], 'quantityA': itemA.quantity, 'priceA':itemA.itemID.price, 'amountA':itemA.total, 'idA': itemA.id})
+            qtyP += validate_decimals(itemResume[itemResult]['quantity'])
+            totalP += validate_decimals(itemResume[itemResult]['amount'])
+            qtyA += validate_decimals(itemA.quantity)
+            totalA += validate_decimals(itemA.total)
+        else:
+            itemFinal.append({'item':itemA.itemID.item.itemID, 'name': itemA.itemID.item.name, 'quantity': None, 'price': None, 'amount':None, 'quantityA': itemA.quantity, 'priceA':itemA.itemID.price, 'amountA':itemA.total, 'idA': itemA.id})
+            qtyA += validate_decimals(itemA.quantity)
+            totalA += validate_decimals(itemA.total)
+
+    #Getting Partial Estimates
+    openEstimate = woEstimate.objects.filter(woID = wo, Status = 1).count()
+
+    
+    context["openEstimate"] = openEstimate > 0
+    context["itemCount"] = len(itemFinal)
+    context["itemResume"] = sorted(itemFinal, key=lambda d: d['item']) 
+    context["totals"] = {'qtyP':qtyP, 'totalP':totalP,'qtyA':qtyA,'totalA':totalA  }
+    context["invoiceID"] = invoiceID
+    
+    
+    return render(request, "update_invoice.html", context)
+
+
 def order_detail(request, id):
     context = {} 
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
@@ -4702,7 +4878,45 @@ def order_detail(request, id):
     return render(request, "order_detail.html", context)
 
 
+def employee_location_list(request, empID):
+    
+    context = {} 
+    emp = Employee.objects.filter(user__username__exact = request.user.username).first()
+    context["emp"] = emp
 
+    per = period.objects.filter(status__in=(1,2)).first()
+    context["per"] = per
+
+
+    empSelected = Employee.objects.filter(employeeID = empID).first()
+    context["empSelected"] = empSelected
+    empLocation = employeeLocation.objects.filter(employeeID=empSelected)
+    context["empLocation"] = empLocation
+  
+    return render(request, "employee_location_list.html", context)
+
+
+def create_employee_location(request, empID):
+    emp = Employee.objects.filter(user__username__exact = request.user.username).first()
+
+    context ={}
+    per = period.objects.filter(status__in=(1,2)).first()
+    context["per"] = per
+
+    form = EmployeesForm(request.POST or None)
+
+    if form.is_valid():
+        empSeq = Sequence("emp", initial_value=1500) 
+        empID = str(empSeq.get_next_value())       
+        form.instance.employeeID = empID
+        form.save()
+        # Return to Locations List
+        return HttpResponseRedirect('/employee_location_list/')
+
+         
+    context['form']= form
+    context["emp"] = emp
+    return render(request, "create_employee.html", context)
 
 ### General Functions
 def vendorSubcontrator(request):
