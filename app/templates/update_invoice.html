@@ -129,7 +129,7 @@
                                                         <td width="7%" class="p-1">Rate</td>
                                                         <td width="10%" class="p-1">Total</td>
                                                         <td width="5%" class="p-1">          
-                                                            {%if order.Status == "2" or order.Status == "4" %}
+                                                            {%if order.Status == "2" or order.Status == "3" or order.Status == "4" or order.Status == "5"%}
                                                                 {% if emp.is_superAdmin  or user.is_staff %}                                     
                                                                     <a hx-get="/create_authorized_prod_item/{{order.id}}/{{invoiceID}}" hx-target="#dialog"><i class="fa-solid fa-circle-plus"></i></a>
                                                                 {%endif%}
@@ -162,7 +162,7 @@
                                                             {%endif%}
                                                             <td class="p-1">  
                                                                 
-                                                                {%if order.Status == "2" or order.Status == "4"%}     
+                                                                {%if order.Status == "2" or order.Status == "3" or order.Status == "4" or order.Status == "5"%}     
                                                                     {% if emp.is_superAdmin  or user.is_staff %}                                                                     
                                                                         <a hx-get="/update_authorized_prod_item/{{itemd.idA}}/{{invoiceID}}" hx-target="#dialog"><i class="fa-solid fa-pen-to-square" style="color: green;"></i></a>
                                                                         {%if  itemd.quantityA > 0 %}

@@ -424,18 +424,27 @@ def listOrders(request):
             return render(request,'order_list.html',context)
         
         if emp.is_admin:  
-            context["perfil"]="Admin"          
+            context["perfil"]="Admin"  
+            
+            locaList = employeeLocation.objects.filter(employeeID = emp)
+                
+            locationList = []
+            locationList.append(emp.Location.LocationID)
+            
+            for i in locaList:
+                locationList.append(i.LocationID.LocationID)
+                    
             if emp.Location!= None:
                 if estatus == "0" and loc == "0":                     
-                    orders = workOrder.objects.filter(Location = emp.Location).exclude(linkedOrder__isnull = False, uploaded = False) 
+                    orders = workOrder.objects.filter(Location__LocationID__in = locationList).exclude(linkedOrder__isnull = False, uploaded = False) 
                 else:
                     if estatus != "0" and loc != "0":                          
                         orders = workOrder.objects.filter(Status = estatus, Location = emp.Location).exclude(linkedOrder__isnull = False, uploaded = False )     
                     else:
                         if estatus != "0":                              
-                            orders = workOrder.objects.filter(Status = estatus, Location = emp.Location).exclude(linkedOrder__isnull = False, uploaded = False ) 
+                            orders = workOrder.objects.filter(Status = estatus, Location__LocationID__in = locationList).exclude(linkedOrder__isnull = False, uploaded = False ) 
                         else:                             
-                            orders = workOrder.objects.filter(Location = emp.Location).exclude(linkedOrder__isnull = False, uploaded = False ) 
+                            orders = workOrder.objects.filter(Location__LocationID__in = locationList).exclude(linkedOrder__isnull = False, uploaded = False ) 
             else:
                 orders = None
             context["orders"]=orders
@@ -1484,6 +1493,9 @@ def invoice(request, id, invoiceID):
     # obtengo las internal PO
     internal = internalPO.objects.filter(woID = wo, nonBillable = False, invoice = invoiceID)
     totaPO = 0
+    
+    vendorList = vendorSubcontrator(request)
+    
     for data in internal:
         linea = linea + 1
         if data.total != None and data.total != "":
@@ -1493,14 +1505,17 @@ def invoice(request, id, invoiceID):
 
         total = total + amount
         totaPO += amount
+        
+        vendorSel = next((i for i, item in enumerate(vendorList) if item["id"] == data.vendor), None)
+                
         if data.total != None and data.total != "":
             itemHtml = itemHtml + ' <tr> '
             itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="20%" align="center"> </td> '
-            itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px; padding-left: 2px;" width="43%" align="left">' + str(data.product) + '</td> '
+            itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px; padding-left: 2px;" width="43%" align="left">' + str(vendorList[vendorSel]["name"]) + '</td> '
             itemHtml = itemHtml +  ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center">' + str(data.quantity) + '</td> '
             itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="13%" align="center"> </td> '
-            #itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> $'  + '{0:,.2f}'.format(float(data.total)) + '</td>'
-            itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> $'  + str(int(round(float(str(data.total))))) + '</td>'
+            itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> $'  + '{0:,.2f}'.format(int(round(float(str(data.total)))))  + '</td>'
+            #itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> $'  + str(int(round(float(str(data.total))))) + '</td>'
             itemHtml = itemHtml + ' </tr> '
 
     if totaPO > 0:
@@ -1511,8 +1526,8 @@ def invoice(request, id, invoiceID):
         itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px; padding-left: 2px;" width="43%" align="left"> Markup </td> '
         itemHtml = itemHtml +  ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"></td> '
         itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="13%" align="center"> </td> '
-        #itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> $'  + '{0:,.2f}'.format(float(totaPO)) + '</td>'
-        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> $'  + str(int(round(float(totaPO)))) + '</td>'
+        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> $'  + '{0:,.2f}'.format(int(round(float(totaPO)))) + '</td>'
+        #itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> $'  + str(int(round(float(totaPO)))) + '</td>'
         itemHtml = itemHtml + ' </tr> '
 
     #Add Partial or final Text
@@ -1750,6 +1765,9 @@ def invoice_preview(request, id, invoiceID):
     # obtengo las internal PO
     internal = internalPO.objects.filter(woID = wo, nonBillable = False, invoice = invoiceID)
     totaPO = 0
+    
+    vendorList = vendorSubcontrator(request)
+    
     for data in internal:
         linea = linea + 1
         if data.total != None and data.total != "":
@@ -1759,14 +1777,18 @@ def invoice_preview(request, id, invoiceID):
 
         total = total + amount
         totaPO += amount
+        
+        vendorSel = next((i for i, item in enumerate(vendorList) if item["id"] == data.vendor), None)
+        #Aqui estoy modificando ahora
+        
         if data.total != None and data.total != "":
             itemHtml = itemHtml + ' <tr> '
             itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="20%" align="center">  </td> '
-            itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px; padding-left: 2px;" width="43%" align="left">' + str(data.product) + '</td> '
+            itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px; padding-left: 2px;" width="43%" align="left">' + str(vendorList[vendorSel]["name"]) + '</td> '
             itemHtml = itemHtml +  ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center">' + str(data.quantity) + '</td> '
             itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="13%" align="center">  </td> '
-            #itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> $'  + '{0:,.0f}'.format(float(data.total)) + '</td>'
-            itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> $'  + str(int(round(float(str(data.total))))) + '</td>'
+            itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> $'  + '{0:,.2f}'.format(int(round(float(str(data.total))))) + '</td>'
+            #itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> $'  + str(int(round(float(str(data.total))))) + '</td>'
             itemHtml = itemHtml + ' </tr> '
 
     if totaPO > 0:
@@ -1777,8 +1799,8 @@ def invoice_preview(request, id, invoiceID):
         itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px; padding-left: 2px;" width="43%" align="left"> Markup </td> '
         itemHtml = itemHtml +  ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"></td> '
         itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="13%" align="center"> </td> '
-        #itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> $'  + '{0:,.0f}'.format(float(totaPO)) + '</td>'
-        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> $'  + str(int(round(float(totaPO)))) + '</td>'
+        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> $'  + '{0:,.2f}'.format(int(round(float(totaPO)))) + '</td>'
+        #itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> $'  + str(int(round(float(totaPO)))) + '</td>'
         itemHtml = itemHtml + ' </tr> '
 
 
@@ -4909,6 +4931,8 @@ def create_employee_location(request, empID):
         
     itemList = []
 
+    itemList.append(empSelected.Location.LocationID) 
+    
     for i in empLoca:
         itemList.append(i.LocationID.LocationID) 
 
