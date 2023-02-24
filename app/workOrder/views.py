@@ -894,10 +894,39 @@ def updateLinkOrder(request, id, manualid):
         manOrder = workOrder.objects.filter(id=manualid).first()
         manOrder.linkedOrder = id
         manOrder.save()
+        
+        #Se traslada produccion si la hay a la nueva orden
+        
+        prod = Daily.objects.filter(woID = manOrder)
+        
+        for p in prod:
+            temProd = Daily.objects.filter(id = p.id).first()
+            temProd.woID = order
+            temProd.save()
+        
+        #Se traslada internal PO
+        
+        internal = internalPO.objects.filter(woID = manOrder)
+        
+        for i in internal:
+            temInternal = internalPO.objects.filter(id = i.id).first()
+            temInternal.woID = order
+            temInternal.save()
+            
+        #Se traslada external Production
+        
+        external = externalProduction.objects.filter(woID = manOrder)
+        
+        for e in external:
+            temExternal = externalProduction.objects.filter(id = e.id).first()
+            temExternal.woID = order
+            temExternal.save()
+        
+        
 
         return render(request,'landing.html',{'message':'Order Linked Successfully', 'alertType':'success','emp':emp, 'per':per})
     except Exception as e:
-        return render(request,'landing.html',{'message':'Somenthing went Wrong!', 'alertType':'danger','emp':emp, 'per': per})
+        return render(request,'landing.html',{'message':'Somenthing went Wrong!' + str(e), 'alertType':'danger','emp':emp, 'per': per})
 
 
 def item_list(request):

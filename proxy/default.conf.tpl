@@ -20,6 +20,8 @@ server {
     }
 
     location / {
+        uwsgi_read_timeout 600s;
+        uwsgi_send_timeout 600s;
         uwsgi_pass              ${APP_HOST}:${APP_PORT};
         include                 /etc/nginx/uwsgi_params;
         client_max_body_size    30M;
