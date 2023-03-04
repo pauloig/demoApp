@@ -2384,29 +2384,25 @@ def update_daily(request, daily):
 def update_ptp_Emp(dailyID, split):
     emp_ptp = 0
     crew = Daily.objects.filter(id = dailyID).first()
-    if crew:        
-
-        
+    if crew:
         itemCount = 0
         itemSum = 0
         
         if bool(split):
-            empCount = DailyEmployee.objects.filter(DailyID = crew).count()                
+            empCount = DailyEmployee.objects.filter(DailyID = crew).count()
            
-
             if empCount > 0:
-                empPtp =  validate_decimals(100 / empCount)                 
-                empList = DailyEmployee.objects.filter(DailyID = crew)               
+                empPtp =  validate_decimals(100 / empCount)
+                empList = DailyEmployee.objects.filter(DailyID = crew)
 
                 for empl in empList:
                     empD = DailyEmployee.objects.filter(id = empl.id).first()
-                    empD.per_to_pay = empPtp                                       
-                    empD.save()    
+                    empD.per_to_pay = empPtp
+                    empD.save()
       
 
         itemCount = DailyItem.objects.filter(DailyID = crew).count()
-        if itemCount > 0:       
-            
+        if itemCount > 0:            
             itemList = DailyItem.objects.filter(DailyID = crew)
 
             for iteml in itemList:
@@ -2419,18 +2415,25 @@ def update_ptp_Emp(dailyID, split):
         empList = DailyEmployee.objects.filter(DailyID = crew)
         
         for empl in empList:
+            rt_pay = 0
+            ot_pay = 0
+            dt_pay = 0
+            empRate = 0
+            production = 0
+            
             empD = DailyEmployee.objects.filter(id = empl.id).first()    
             if empD.per_to_pay != None:                                         
-                emp_ptp += empD.per_to_pay
-
+                emp_ptp += empD.per_to_pay                 
             if itemCount > 0:
                 pay_out = validate_decimals(((itemSum * empD.per_to_pay) / 100))
+                production = validate_decimals(((itemSum * empD.per_to_pay) / 100))
             else: 
                 if empD.EmployeeID.hourly_rate != None: 
                     empRate = validate_decimals(empD.EmployeeID.hourly_rate)
-                else:
-                    empRate = 0
 
+                rt_pay = (empD.regular_hours * empRate)
+                ot_pay = (empD.ot_hour * (empRate * 1.5))
+                dt_pay = (empD.double_time * (empRate * 2))
                 pay_out = (empD.regular_hours * empRate) + (empD.ot_hour * (empRate * 1.5)) + (empD.double_time * (empRate * 2))
 
             if empD.on_call != None:
@@ -2439,7 +2442,12 @@ def update_ptp_Emp(dailyID, split):
             if empD.bonus != None:
                 pay_out += empD.bonus
             
+            empD.rt_pay = rt_pay
+            empD.ot_pay = ot_pay
+            empD.dt_pay = dt_pay
+            empD.emp_rate = empRate
             empD.payout = pay_out
+            empD.production = production
             empD.save()
         
         crew.total_pay = emp_ptp
@@ -2810,8 +2818,17 @@ def create_daily_item(request, id, LocID):
         selectedItem = itemPrice.objects.filter(id = itemid).first()
         form.instance.itemID = selectedItem
 
-        price = form.instance.itemID.emp_payout    
-        form.instance.total = form.instance.quantity * float(price)
+        price = form.instance.itemID.price   
+        Emppayout = form.instance.itemID.emp_payout 
+        
+        form.instance.emp_payout = float(Emppayout)
+        if form.instance.itemID.price != None and form.instance.itemID.price != "":
+            price = form.instance.itemID.price   
+        else:
+            price = 0
+            
+        form.instance.price = float(price)
+        form.instance.total = form.instance.quantity * float(Emppayout)
         form.instance.created_date = datetime.now()
 
         form.save()      
@@ -2842,6 +2859,7 @@ def update_daily_item(request, id, LocID):
  
     if form.is_valid():
         price = form.instance.itemID.emp_payout    
+        form.instance.price = float(price)
         form.instance.total = form.instance.quantity * float(price)
         
         itemid = request.POST.get('itemID')
@@ -2909,6 +2927,7 @@ def upload_daily(request, id, LocID):
 
     return render(request, "upload_daily.html", context)
 
+
 def recap(request, perID):
     
     empList = Employee.objects.all()   
@@ -2918,7 +2937,7 @@ def recap(request, perID):
         dailyEmp = DailyEmployee.objects.filter(EmployeeID = item, DailyID__Period = perID).count()
 
         if dailyEmp > 0:
-            file = generate_recap(item.employeeID,perID)
+            file = make_recap_pdf(item.employeeID,perID)
 
             empRecap = employeeRecap.objects.filter(EmployeeID = item, Period = per).first()
             
@@ -2936,6 +2955,300 @@ def recap(request, perID):
     
     return HttpResponseRedirect('/location_period_list/' + perID)     
 
+
+def make_recap_pdf(empID, perID):
+    context= {}  
+
+    per = period.objects.filter(status__in=(1,2)).first()
+    context["per"] = per
+
+    template_path = 'recap_template.html'
+
+    template= get_template(template_path)
+    
+    fileName = "recap-1.pdf"
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename=' + fileName
+    
+    lines = []
+    lines2 = []
+    itemHtml = ''
+    itemHtml2 = ''
+    
+    per = period.objects.filter(id = perID).first()
+    context["period"] = per
+
+    emp = Employee.objects.filter(employeeID = empID).first()
+    context["emp"] = emp
+
+    dailyemp = DailyEmployee.objects.filter(EmployeeID = emp, DailyID__Period = per)
+
+    contador = 0
+    rtTotal = 0
+    otTotal = 0
+    dtTotal = 0
+    ocTotal = 0
+    bonTotal = 0
+    prodTotal = 0
+    ovTotal = 0
+    payTotal = 0
+    line2 = False 
+
+    for item in dailyemp:
+        contador += 1
+        rt = 0
+        ot = 0
+        dt = 0
+        on_call = 0
+        bonus = 0
+        
+
+        prod = DailyItem.objects.filter(DailyID = item.DailyID).count()
+
+        if prod <= 0:           
+            if item.EmployeeID.hourly_rate != None:
+                rt = (item.regular_hours * float(item.EmployeeID.hourly_rate))
+                ot = ((item.ot_hour * (float(item.EmployeeID.hourly_rate)*1.5)))
+                dt = ((item.double_time * (float(item.EmployeeID.hourly_rate)*2)))
+
+        payroll = item.payout
+        on_call = item.on_call
+        bonus = item.bonus
+
+        itemd = DailyItem.objects.filter(DailyID = item.DailyID)
+
+        total = 0
+        for i in itemd:
+            total += i.total
+
+        production = (total * item.per_to_pay) / 100
+        if item.DailyID.own_vehicle != None:
+            own_vehicle = (((total * item.DailyID.own_vehicle) / 100) * item.per_to_pay) / 100
+        else:
+            own_vehicle = 0
+
+        rtTotal += rt
+        otTotal += ot
+        dtTotal += dt
+        if on_call != None:
+            ocTotal += on_call
+
+        if bonus != None:
+            bonTotal += bonus
+
+        prodTotal += production
+        ovTotal += own_vehicle
+        payTotal += payroll
+
+        if contador <= 45:
+            itemHtml = itemHtml + '<tr style=" height: 20px;"> '          
+            itemHtml = itemHtml + ' <td style="font-family:Verdana, Geneva, sans-serif; font-weight:200; font-size:8px; border-top:1px solid #999; border-bottom:1px solid #999; border-left:1px solid #444; border-right:1px solid #999; padding-top: 3px;" width="12%" align="center"> '
+            if item.DailyID.Location == None:
+                itemHtml = itemHtml + '&nbsp;'
+            else:
+                itemHtml = itemHtml + item.DailyID.Location.name
+                            
+            itemHtml = itemHtml + '</td>'
+            itemHtml = itemHtml + '<td style="font-family:Verdana, Geneva, sans-serif; font-weight:200; font-size:8px; border-top:1px solid #999; border-bottom:1px solid #999; border-left:1px solid #999; border-right:1px solid #999; padding-top: 3px;" width="7%" align="center">'
+            itemHtml = itemHtml + item.DailyID.day.strftime('%Y-%m-%d')
+            itemHtml = itemHtml + ' </td> '
+            
+            itemHtml = itemHtml + ' <td style="font-family:Verdana, Geneva, sans-serif; font-weight:200; font-size:7px; border-top:1px solid #999; border-bottom:1px solid #999; border-left:1px solid #999; border-right:1px solid #999; padding-top: 3px;" width="20%" align="center">'
+            itemHtml = itemHtml + item.DailyID.woID.JobAddress
+            itemHtml = itemHtml + ' </td>'
+            
+            itemHtml = itemHtml + ' <td style=" font-family:Verdana, Geneva, sans-serif; font-weight:200; font-size:8px; border-top:1px solid #999; border-bottom:1px solid #999; border-left:1px solid #999; border-right:1px solid #999; padding-top: 3px;" width="8%" align="center">'
+            if rt!= 0:
+                itemHtml = itemHtml + '${0:,.2f}'.format((float(rt)))
+            itemHtml = itemHtml + '</td>'
+                            
+            itemHtml = itemHtml + ' <td style=" font-family:Verdana, Geneva, sans-serif; font-weight:200; font-size:8px; border-top:1px solid #999; border-bottom:1px solid #999; border-left:1px solid #999; border-right:1px solid #999; padding-top: 3px;" width="7%" align="center">'
+            if ot != 0:                    
+                itemHtml = itemHtml + '${0:,.2f}'.format((float(ot)))
+            itemHtml = itemHtml + ' </td> '
+            
+            itemHtml = itemHtml + '<td style="font-family:Verdana, Geneva, sans-serif; font-weight:200; font-size:8px; border-top:1px solid #999; border-bottom:1px solid #999; border-left:1px solid #999; border-right:1px solid #999; padding-top: 3px;" width="8%" align="center">'
+            if dt != 0:                    
+                itemHtml = itemHtml +'${0:,.2f}'.format((float(dt)))
+            itemHtml = itemHtml + '</td>'
+               
+                                
+                            
+            itemHtml = itemHtml + ' <td style="font-family:Verdana, Geneva, sans-serif; font-weight:200; font-size:8px; border-top:1px solid #999; border-bottom:1px solid #999; border-left:1px solid #999; border-right:1px solid #999; padding-top: 3px;" width="8%" align="center">'
+            if production != 0:
+                itemHtml = itemHtml + '${0:,.2f}'.format((float(production)))
+            itemHtml = itemHtml + '</td>'
+
+
+            itemHtml = itemHtml + '<td style="font-family:Verdana, Geneva, sans-serif; font-weight:200; font-size:8px; border-top:1px solid #999; border-bottom:1px solid #999; border-left:1px solid #999; border-right:1px solid #999; padding-top: 3px;" width="8%" align="center">'
+            if own_vehicle != 0:
+                itemHtml = itemHtml +  '${0:,.2f}'.format((float(own_vehicle)))
+            itemHtml = itemHtml + '</td>'
+            
+
+            itemHtml = itemHtml + ' <td style="font-family:Verdana, Geneva, sans-serif; font-weight:200; font-size:8px; border-top:1px solid #999; border-bottom:1px solid #999; border-left:1px solid #999; border-right:1px solid #999; padding-top: 3px;" width="7%" align="center">'
+            if on_call != 0 and on_call != None:
+                itemHtml = itemHtml + '${0:,.2f}'.format((float(on_call)))
+            itemHtml = itemHtml + '</td>'
+            
+                    
+            itemHtml = itemHtml + ' <td style="font-family:Verdana, Geneva, sans-serif; font-weight:200; font-size:8px; border-top:1px solid #999; border-bottom:1px solid #999; border-left:1px solid #999; border-right:1px solid #999; padding-top: 3px;" width="7%" align="center">'
+            if bonus != 0 and bonus != None:
+                itemHtml = itemHtml + '${0:,.2f}'.format((float(bonus)))
+            itemHtml = itemHtml + '</td>'
+            
+
+            itemHtml = itemHtml + ' <td style="font-family:Verdana, Geneva, sans-serif; font-weight:200; font-size:8px; border-top:1px solid #999; border-bottom:1px solid #999; border-left:1px solid #999; border-right:1px solid #444; padding-top: 3px;" width="8%" align="center">'
+            if payroll != 0 and payroll != None:
+                itemHtml = itemHtml + '${0:,.2f}'.format((float(payroll)))
+            itemHtml = itemHtml + '</td>'
+            
+                         
+            itemHtml = itemHtml + '</tr>'
+        else:
+            line2 = True
+            itemHtml2 = itemHtml2 + ' <tr style=" height: 20px;"> '          
+            itemHtml2 = itemHtml2 + ' <td style="font-family:Verdana, Geneva, sans-serif; font-weight:200; font-size:8px; border-top:1px solid #999; border-bottom:1px solid #999; border-left:1px solid #444; border-right:1px solid #999; padding-top: 3px;" width="12%" align="center"> '
+            if item.Location == None:
+                itemHtml2 = itemHtml2 + '&nbsp;'
+            else:
+                itemHtml2 = itemHtml2 + item.DailyID.Location.name
+                            
+            itemHtml2 = itemHtml2 + '</td>'
+            itemHtml2 = itemHtml2 + '<td style="font-family:Verdana, Geneva, sans-serif; font-weight:200; font-size:8px; border-top:1px solid #999; border-bottom:1px solid #999; border-left:1px solid #999; border-right:1px solid #999; padding-top: 3px;" width="7%" align="center">'
+            itemHtml2 = itemHtml2 + item.DailyID.day.strftime('%Y-%m-%d')
+            itemHtml2 = itemHtml2 + ' </td> '
+            
+            itemHtml2 = itemHtml2 + ' <td style="font-family:Verdana, Geneva, sans-serif; font-weight:200; font-size:7px; border-top:1px solid #999; border-bottom:1px solid #999; border-left:1px solid #999; border-right:1px solid #999; padding-top: 3px;" width="20%" align="center">'
+            itemHtml2 = itemHtml2 + item.DailyID.woID.JobAddress
+            itemHtml2 = itemHtml2 + ' </td>'
+            
+            itemHtml2 = itemHtml2 + ' <td style=" font-family:Verdana, Geneva, sans-serif; font-weight:200; font-size:8px; border-top:1px solid #999; border-bottom:1px solid #999; border-left:1px solid #999; border-right:1px solid #999; padding-top: 3px;" width="8%" align="center">'
+            if rt!= 0:
+                itemHtml2 = itemHtml2 + '${0:,.2f}'.format((float(rt)))
+            itemHtml2 = itemHtml2 + '</td>'
+                            
+            itemHtml2 = itemHtml2 + ' <td style=" font-family:Verdana, Geneva, sans-serif; font-weight:200; font-size:8px; border-top:1px solid #999; border-bottom:1px solid #999; border-left:1px solid #999; border-right:1px solid #999; padding-top: 3px;" width="7%" align="center">'
+            if ot != 0:                    
+                itemHtml2 = itemHtml2 + '${0:,.2f}'.format((float(ot))) 
+            itemHtml2 = itemHtml2 + ' </td> '
+            
+            itemHtml2 = itemHtml2 + '<td style="font-family:Verdana, Geneva, sans-serif; font-weight:200; font-size:8px; border-top:1px solid #999; border-bottom:1px solid #999; border-left:1px solid #999; border-right:1px solid #999; padding-top: 3px;" width="8%" align="center">'
+            if dt != 0:                    
+                itemHtml2 = itemHtml2 + '${0:,.2f}'.format((float(dt)))
+            itemHtml2 = itemHtml2 + '</td>'
+               
+                                
+                            
+            itemHtml2 = itemHtml2 + ' <td style="font-family:Verdana, Geneva, sans-serif; font-weight:200; font-size:8px; border-top:1px solid #999; border-bottom:1px solid #999; border-left:1px solid #999; border-right:1px solid #999; padding-top: 3px;" width="8%" align="center">'
+            if production != 0:
+                itemHtml2 = itemHtml2 + '${0:,.2f}'.format((float(production)))
+            itemHtml2 = itemHtml2 + '</td>'
+
+
+            itemHtml2 = itemHtml2 + '<td style="font-family:Verdana, Geneva, sans-serif; font-weight:200; font-size:8px; border-top:1px solid #999; border-bottom:1px solid #999; border-left:1px solid #999; border-right:1px solid #999; padding-top: 3px;" width="8%" align="center">'
+            if own_vehicle != 0:
+                itemHtml2 = itemHtml2 + '${0:,.2f}'.format((float(own_vehicle))) 
+            itemHtml2 = itemHtml2 + '</td>'
+            
+
+            itemHtml2 = itemHtml2 + ' <td style="font-family:Verdana, Geneva, sans-serif; font-weight:200; font-size:8px; border-top:1px solid #999; border-bottom:1px solid #999; border-left:1px solid #999; border-right:1px solid #999; padding-top: 3px;" width="7%" align="center">'
+            if on_call != 0 and on_call != None:
+                itemHtml2 = itemHtml2 + '${0:,.2f}'.format((float(on_call)))
+            itemHtml2 = itemHtml2 + '</td>'
+            
+                    
+            itemHtml2 = itemHtml2 + ' <td style="font-family:Verdana, Geneva, sans-serif; font-weight:200; font-size:8px; border-top:1px solid #999; border-bottom:1px solid #999; border-left:1px solid #999; border-right:1px solid #999; padding-top: 3px;" width="7%" align="center">'
+            if bonus != 0 and bonus != None:
+                itemHtml2 = itemHtml2 + '${0:,.2f}'.format((float(bonus)))
+            itemHtml2 = itemHtml2 + '</td>'
+            
+
+            itemHtml2 = itemHtml2 + ' <td style="font-family:Verdana, Geneva, sans-serif; font-weight:200; font-size:8px; border-top:1px solid #999; border-bottom:1px solid #999; border-left:1px solid #999; border-right:1px solid #444; padding-top: 3px;" width="8%" align="center">'
+            if payroll != 0 and payroll != None:
+                itemHtml2 = itemHtml2 + '${0:,.2f}'.format((float(payroll)))
+            itemHtml2 = itemHtml2 + '</td>'
+            
+                         
+            itemHtml2 = itemHtml2 + '</tr>'
+
+
+
+    itemLine = ''
+    
+    itemLine = itemLine + '<tr style=" height: 20px;"> '          
+    itemLine = itemLine + ' <td style="font-family:Verdana, Geneva, sans-serif; font-weight:200; font-size:8px; border-top:1px solid #999; border-bottom:1px solid #999; border-left:1px solid #444; border-right:1px solid #999; padding-top: 3px;" width="12%" align="center"> '
+    itemLine = itemLine + '&nbsp;'
+    itemLine = itemLine + '</td>'
+    itemLine = itemLine + '<td style="font-family:Verdana, Geneva, sans-serif; font-weight:200; font-size:8px; border-top:1px solid #999; border-bottom:1px solid #999; border-left:1px solid #999; border-right:1px solid #999; padding-top: 3px;" width="7%" align="center">'
+    itemLine = itemLine + ' </td> '   
+    itemLine = itemLine + ' <td style="font-family:Verdana, Geneva, sans-serif; font-weight:200; font-size:7px; border-top:1px solid #999; border-bottom:1px solid #999; border-left:1px solid #999; border-right:1px solid #999; padding-top: 3px;" width="20%" align="center">'
+    itemLine = itemLine + ' </td>'   
+    itemLine = itemLine + ' <td style=" font-family:Verdana, Geneva, sans-serif; font-weight:200; font-size:8px; border-top:1px solid #999; border-bottom:1px solid #999; border-left:1px solid #999; border-right:1px solid #999; padding-top: 3px;" width="8%" align="center">'
+    itemLine = itemLine + '</td>'                 
+    itemLine = itemLine + ' <td style=" font-family:Verdana, Geneva, sans-serif; font-weight:200; font-size:8px; border-top:1px solid #999; border-bottom:1px solid #999; border-left:1px solid #999; border-right:1px solid #999; padding-top: 3px;" width="7%" align="center">'   
+    itemLine = itemLine + ' </td> '  
+    itemLine = itemLine + '<td style="font-family:Verdana, Geneva, sans-serif; font-weight:200; font-size:8px; border-top:1px solid #999; border-bottom:1px solid #999; border-left:1px solid #999; border-right:1px solid #999; padding-top: 3px;" width="8%" align="center">'  
+    itemLine = itemLine + '</td>'                
+    itemLine = itemLine + ' <td style="font-family:Verdana, Geneva, sans-serif; font-weight:200; font-size:8px; border-top:1px solid #999; border-bottom:1px solid #999; border-left:1px solid #999; border-right:1px solid #999; padding-top: 3px;" width="8%" align="center">' 
+    itemLine = itemLine + '</td>'
+    itemLine = itemLine + '<td style="font-family:Verdana, Geneva, sans-serif; font-weight:200; font-size:8px; border-top:1px solid #999; border-bottom:1px solid #999; border-left:1px solid #999; border-right:1px solid #999; padding-top: 3px;" width="8%" align="center">'   
+    itemLine = itemLine + '</td>'
+    itemLine = itemLine + ' <td style="font-family:Verdana, Geneva, sans-serif; font-weight:200; font-size:8px; border-top:1px solid #999; border-bottom:1px solid #999; border-left:1px solid #999; border-right:1px solid #999; padding-top: 3px;" width="7%" align="center">'   
+    itemLine = itemLine + '</td>'        
+    itemLine = itemLine + ' <td style="font-family:Verdana, Geneva, sans-serif; font-weight:200; font-size:8px; border-top:1px solid #999; border-bottom:1px solid #999; border-left:1px solid #999; border-right:1px solid #999; padding-top: 3px;" width="7%" align="center">'    
+    itemLine = itemLine + '</td>'    
+    itemLine = itemLine + ' <td style="font-family:Verdana, Geneva, sans-serif; font-weight:200; font-size:8px; border-top:1px solid #999; border-bottom:1px solid #999; border-left:1px solid #999; border-right:1px solid #444; padding-top: 3px;" width="8%" align="center">'
+    itemLine = itemLine + '</td>'                      
+    itemLine = itemLine + '</tr>'
+    
+    itemLineFinal2 = ''
+    itemLineFinal = ''
+    if contador <= 45:
+        itemLineFinal = itemLine * (45-contador)
+    else:
+         line2 = True
+         itemLineFinal2 = itemLine * (50 - (contador-45))
+    
+    """if contador <= 45:
+        for x in range(0,45-contador):
+            lines.append({'line':x, 'Location': None, 'date': None, 'address': '',
+                       'rt': 0, 'ot': 0, 'dt': 0, 'production': 0, 'own_vehicle': 0 , 'on_call': None,  'bonus': None,'payroll': 0})
+    else:
+        for x in range(45,95-contador):
+            line2 = True
+            lines2.append({'line':x, 'Location': None, 'date': None, 'address': '',
+                        'rt': 0, 'ot': 0, 'dt': 0, 'production': 0, 'own_vehicle': 0 , 'on_call': None,  'bonus': None, 'payroll': 0})"""
+
+    context["lines"] = lines
+    context["lines2"] = lines2
+    context["line2"] = line2
+    context["rtTotal"] = rtTotal
+    context["otTotal"] = otTotal
+    context["dtTotal"] = dtTotal
+    context["ocTotal"] = ocTotal
+    context["bonTotal"] = bonTotal
+    context["prodTotal"] = prodTotal
+    context["ovTotal"] = ovTotal
+    context["payTotal"] = payTotal
+    context["itemHtml"] = itemHtml
+    context["itemHtml2"] = itemHtml2
+    context["itemLine"] = itemLineFinal
+    context["itemLine2"] = itemLineFinal2
+
+
+    
+    html = template.render(context)
+    pisa_status = pisa.CreatePDF(html, dest=response)
+
+
+    output = BytesIO()
+    pisa_status = pisa.CreatePDF(html, dest=output)
+    file_name = str(emp.employeeID) + " " + emp.last_name + " " + emp.first_name + " " + per.weekRange
+    myPdf = ContentFile(output.getvalue(),file_name + '.pdf')
+
+    return myPdf
 
 
 def generate_recap(empID, perID):
@@ -3031,7 +3344,8 @@ def generate_recap(empID, perID):
                        'date': item.DailyID.day, 'address': item.DailyID.woID.JobAddress,
                        'rt': rt, 'ot': ot, 'dt': dt, 'production': production , 'own_vehicle': own_vehicle, 'on_call': on_call, 'bonus': bonus, 'payroll': payroll })
 
-    if contador <= 45:
+
+    """if contador <= 45:
         for x in range(0,45-contador):
             lines.append({'line':x, 'Location': None, 'date': None, 'address': '',
                        'rt': 0, 'ot': 0, 'dt': 0, 'production': 0, 'own_vehicle': 0 , 'on_call': None,  'bonus': None,'payroll': 0})
@@ -3039,7 +3353,7 @@ def generate_recap(empID, perID):
         for x in range(45,95-contador):
             line2 = True
             lines2.append({'line':x, 'Location': None, 'date': None, 'address': '',
-                        'rt': 0, 'ot': 0, 'dt': 0, 'production': 0, 'own_vehicle': 0 , 'on_call': None,  'bonus': None, 'payroll': 0})
+                        'rt': 0, 'ot': 0, 'dt': 0, 'production': 0, 'own_vehicle': 0 , 'on_call': None,  'bonus': None, 'payroll': 0})"""
 
     context["lines"] = lines
     context["lines2"] = lines2
@@ -5042,4 +5356,55 @@ def date_difference(orders):
     
     return day_diff
 
+    
+def update_linked_orders(request):
+    emp = Employee.objects.filter(user__username__exact = request.user.username).first()
+    per = period.objects.filter(status__in=(1,2)).first()
+    
+
+    try:        
         
+        linkedOrders = workOrder.objects.filter(linkedOrder__isnull = False)
+        updated = 0
+        for lo in linkedOrders:
+            
+            if lo.linkedOrder != "updated":
+                manOrder = workOrder.objects.filter(id=lo.id).first()
+                
+                order = workOrder.objects.filter(id=manOrder.linkedOrder).first()
+        
+                #Se traslada produccion si la hay a la nueva orden
+                
+                prod = Daily.objects.filter(woID = manOrder)
+                
+                for p in prod:
+                    temProd = Daily.objects.filter(id = p.id).first()
+                    temProd.woID = order
+                    temProd.save()
+                
+                #Se traslada internal PO
+                
+                internal = internalPO.objects.filter(woID = manOrder)
+                
+                for i in internal:
+                    temInternal = internalPO.objects.filter(id = i.id).first()
+                    temInternal.woID = order
+                    temInternal.save()
+                    
+                #Se traslada external Production
+                
+                external = externalProduction.objects.filter(woID = manOrder)
+                
+                for e in external:
+                    temExternal = externalProduction.objects.filter(id = e.id).first()
+                    temExternal.woID = order
+                    temExternal.save()
+                
+                updated += 1    
+                
+        
+        
+
+        return render(request,'landing.html',{ 'message':str(updated) + ' Orders Linked Successfully', 'alertType':'success','emp':emp, 'per':per})
+    except Exception as e:
+        return render(request,'landing.html',{'message':'Somenthing went Wrong!' + str(e), 'alertType':'danger','emp':emp, 'per': per})

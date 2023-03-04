@@ -104,6 +104,7 @@ urlpatterns = [
     path('employee_location_list/<empID>',views.employee_location_list),
     path('create_employee_location/<empID>',views.create_employee_location),
     path('delete_employee_location/<empID>',views.delete_employee_location),
+    path('update_linked_orders/',views.update_linked_orders),
     path('logout/', LogoutView.as_view(next_page='/login/'), name='logout'),
     path('', include('authentication.urls')),
     path('home/', include('authentication.urls')),

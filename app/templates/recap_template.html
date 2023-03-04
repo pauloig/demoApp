@@ -113,7 +113,10 @@
                             <strong>payroll</strong>
                         </td>
                     </tr>
-                    {% for item in lines %}
+                    
+                    {{ itemHtml | safe }}
+                    {{ itemLine | safe }}
+                    <!--{% for item in lines %}
                         <tr style=" height: 20px; ">
                             <td style="font-family:Verdana, Geneva, sans-serif; font-weight:200; font-size:8px; border-top:1px solid #999; border-bottom:1px solid #999; border-left:1px solid #444; border-right:1px solid #999; padding-top: 3px;" width="12%" align="center">
                                 {%if item.Location == None %}
@@ -169,7 +172,7 @@
                                 {% endif %}
                             </td>
                         </tr>
-                    {% endfor %}
+                    {% endfor %}-->
                     {% if line2 == False %}                    
                         <tr>
                             <td colspan="3" style="font-family:Verdana, Geneva, sans-serif; font-weight:200; font-size:9px; border-top:2px solid #000; border-bottom:1px solid #444; border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="39%" align="center">
@@ -245,7 +248,10 @@
                                 payroll
                             </td>
                         </tr>
-                        {% for item in lines2 %}
+                    
+                        {{ itemHtml2 | safe }}
+                        {{ itemLine2 | safe }}
+                       <!--{% for item in lines2 %}
                             <tr style=" height: 20px; ">
                                 <td style="font-family:Verdana, Geneva, sans-serif; font-weight:200; font-size:8px; border-top:1px solid #444; border-bottom:1px solid #444; border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center">
                                     {%if item.Location == None %}
@@ -301,8 +307,8 @@
                                     {% endif %}
                                 </td>
                             </tr>
-                        {% endfor %}
-                        {% if line2 %}
+                        {% endfor %}-->
+                        {% if line2 %}                         
                             <tr>
                                 <td colspan="3" style="font-family:Verdana, Geneva, sans-serif; font-weight:200; font-size:9px; border-top:2px solid #000; border-bottom:1px solid #444; border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="40%" align="center">
                                 <strong>Totals</strong> 
