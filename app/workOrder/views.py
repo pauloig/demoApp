@@ -5029,116 +5029,123 @@ def comment_authorized_prod_item(request, id):
 
 
 def billing_list(request, id):
-    context = {} 
-    emp = Employee.objects.filter(user__username__exact = request.user.username).first()
-    context["emp"] = emp
-
-    per = period.objects.filter(status__in=(1,2)).first()
-    context["per"] = per
-
-    wo = workOrder.objects.filter(id=id).first()
-    context["order"] = wo
-    
-
-    payItems = DailyItem.objects.filter(DailyID__woID = wo, Status=1)
-    itemResume = []
-
-
-    #list estimate numbers
-    estimateList = woEstimate.objects.filter(woID = wo)
-    context["estimateList"] = estimateList
-
-    #list estimate numbers
-    estimateList = woInvoice.objects.filter(woID = wo)
-    context["invoiceList"] = estimateList
-
+    errorMessage = ""
     try:
-        for data in payItems:
+        context = {} 
+        emp = Employee.objects.filter(user__username__exact = request.user.username).first()
+        context["emp"] = emp
 
-            itemResult = next((i for i, item in enumerate(itemResume) if item["item"] == data.itemID.item.itemID), None)
-            amount = 0
-            amount = Decimal(str(data.quantity)) * Decimal(str(data.itemID.price))  
-            if itemResult != None:                  
-                itemResume[itemResult]['quantity'] += data.quantity
-                itemResume[itemResult]['amount'] += amount
-            else:            
-                itemResume.append({'item':data.itemID.item.itemID, 'name': data.itemID.item.name, 'quantity': data.quantity, 'price':data.itemID.price, 'amount':amount,'Encontrado':False})
-           
+        per = period.objects.filter(status__in=(1,2)).first()
+        context["per"] = per
+
+        wo = workOrder.objects.filter(id=id).first()
+        context["order"] = wo
         
-    except Exception as e:
-        print(str(e)) 
 
-    # Group External Production by Item
-    try:
-        extProduction = externalProdItem.objects.filter(externalProdID__woID = wo, Status=1)
+        payItems = DailyItem.objects.filter(DailyID__woID = wo, Status=1)
+        itemResume = []
 
-        for data in extProduction:
 
-            itemResult = next((i for i, item in enumerate(itemResume) if item["item"] == data.itemID.item.itemID), None)
-            amount = 0
-            amount = Decimal(str(data.quantity)) * Decimal(str(data.itemID.price))  
-            if itemResult != None:                  
-                itemResume[itemResult]['quantity'] += data.quantity
-                itemResume[itemResult]['amount'] += amount
-            else:            
-                itemResume.append({'item':data.itemID.item.itemID, 'name': data.itemID.item.name, 'quantity': data.quantity, 'price':data.itemID.price, 'amount':amount,'Encontrado':False})
-           
-        
-    except Exception as e:
-        print(str(e)) 
+        #list estimate numbers
+        estimateList = woEstimate.objects.filter(woID = wo)
+        context["estimateList"] = estimateList
 
-    itemFinal = []    
+        #list estimate numbers
+        estimateList = woInvoice.objects.filter(woID = wo)
+        context["invoiceList"] = estimateList
 
-    #Insert Production in Authorized Items
-    for itemR in itemResume:
+        try:
+            for data in payItems:
 
-        #Validating if Item exists in Authorized Item
-        countItem = authorizedBilling.objects.filter(woID = wo, Status = 1, itemID__item__itemID = itemR['item']).count()
-
-        if countItem == 0:
-            #Getting the Item Price
-            iPrice = itemPrice.objects.filter(item__itemID=itemR['item'], location__LocationID = wo.Location.LocationID).first()
-
-            authI = authorizedBilling(
-                        woID = wo,
-                        itemID = iPrice,
-                        quantity = itemR['quantity'],
-                        total = itemR['amount'],
-                        createdBy = request.user.username,
-                        created_date = datetime.now()
-                    )
-
-            authI.save()       
+                itemResult = next((i for i, item in enumerate(itemResume) if item["item"] == data.itemID.item.itemID), None)
+                amount = 0
+                amount = Decimal(str(data.quantity)) * Decimal(str(data.itemID.price))  
+                if itemResult != None:                  
+                    itemResume[itemResult]['quantity'] += data.quantity
+                    itemResume[itemResult]['amount'] += amount
+                else:            
+                    itemResume.append({'item':data.itemID.item.itemID, 'name': data.itemID.item.name, 'quantity': data.quantity, 'price':data.itemID.price, 'amount':amount,'Encontrado':False})
             
-    authorizedItem = authorizedBilling.objects.filter(woID = wo, Status = 1)
-    qtyP = 0
-    totalP = 0
-    qtyA = 0
-    totalA = 0
+            
+        except Exception as e:
+            print(str(e)) 
 
-    for itemA in authorizedItem:
-        itemResult = next((i for i, item in enumerate(itemResume) if item["item"] == itemA.itemID.item.itemID), None)
+        # Group External Production by Item
+        try:
+            extProduction = externalProdItem.objects.filter(externalProdID__woID = wo, Status=1)
 
-        if itemResult != None:          
-            itemFinal.append({'item':itemResume[itemResult]['item'], 'name': itemResume[itemResult]['name'], 'quantity': itemResume[itemResult]['quantity'], 'price': itemResume[itemResult]['price'], 'amount':itemResume[itemResult]['amount'], 'quantityA': itemA.quantity, 'priceA':itemA.itemID.price, 'amountA':itemA.total, 'idA': itemA.id})
-            qtyP += validate_decimals(itemResume[itemResult]['quantity'])
-            totalP += validate_decimals(itemResume[itemResult]['amount'])
-            qtyA += validate_decimals(itemA.quantity)
-            totalA += validate_decimals(itemA.total)
-        else:
-            itemFinal.append({'item':itemA.itemID.item.itemID, 'name': itemA.itemID.item.name, 'quantity': None, 'price': None, 'amount':None, 'quantityA': itemA.quantity, 'priceA':itemA.itemID.price, 'amountA':itemA.total, 'idA': itemA.id})
-            qtyA += validate_decimals(itemA.quantity)
-            totalA += validate_decimals(itemA.total)
+            for data in extProduction:
 
-    #Getting Partial Estimates
-    openEstimate = woEstimate.objects.filter(woID = wo, Status = 1).count()
+                itemResult = next((i for i, item in enumerate(itemResume) if item["item"] == data.itemID.item.itemID), None)
+                amount = 0
+                amount = Decimal(str(data.quantity)) * Decimal(str(data.itemID.price))  
+                if itemResult != None:                  
+                    itemResume[itemResult]['quantity'] += data.quantity
+                    itemResume[itemResult]['amount'] += amount
+                else:            
+                    itemResume.append({'item':data.itemID.item.itemID, 'name': data.itemID.item.name, 'quantity': data.quantity, 'price':data.itemID.price, 'amount':amount,'Encontrado':False})
+            
+            
+        except Exception as e:
+            print(str(e)) 
 
-    
-    context["openEstimate"] = openEstimate > 0
-    context["itemCount"] = len(itemFinal)
-    context["itemResume"] = sorted(itemFinal, key=lambda d: d['item']) 
-    context["totals"] = {'qtyP':qtyP, 'totalP':totalP,'qtyA':qtyA,'totalA':totalA  }
-  
+        itemFinal = []    
+
+        #Insert Production in Authorized Items
+        for itemR in itemResume:
+
+            #Validating if Item exists in Authorized Item
+            countItem = authorizedBilling.objects.filter(woID = wo, Status = 1, itemID__item__itemID = itemR['item']).count()
+
+            if countItem == 0:
+                #Getting the Item Price
+                iPrice = itemPrice.objects.filter(item__itemID=itemR['item'], location__LocationID = wo.Location.LocationID).first()
+
+                authI = authorizedBilling(
+                            woID = wo,
+                            itemID = iPrice,
+                            quantity = itemR['quantity'],
+                            total = itemR['amount'],
+                            createdBy = request.user.username,
+                            created_date = datetime.now()
+                        )
+
+                authI.save()       
+                
+        authorizedItem = authorizedBilling.objects.filter(woID = wo, Status = 1)
+        qtyP = 0
+        totalP = 0
+        qtyA = 0
+        totalA = 0
+
+        for itemA in authorizedItem:
+            itemResult = next((i for i, item in enumerate(itemResume) if item["item"] == itemA.itemID.item.itemID), None)
+
+            if itemResult != None:          
+                itemFinal.append({'item':itemResume[itemResult]['item'], 'name': itemResume[itemResult]['name'], 'quantity': itemResume[itemResult]['quantity'], 'price': itemResume[itemResult]['price'], 'amount':itemResume[itemResult]['amount'], 'quantityA': itemA.quantity, 'priceA':itemA.itemID.price, 'amountA':itemA.total, 'idA': itemA.id})
+                qtyP += validate_decimals(itemResume[itemResult]['quantity'])
+                totalP += validate_decimals(itemResume[itemResult]['amount'])
+                qtyA += validate_decimals(itemA.quantity)
+                totalA += validate_decimals(itemA.total)
+            else:
+                itemFinal.append({'item':itemA.itemID.item.itemID, 'name': itemA.itemID.item.name, 'quantity': None, 'price': None, 'amount':None, 'quantityA': itemA.quantity, 'priceA':itemA.itemID.price, 'amountA':itemA.total, 'idA': itemA.id})
+                qtyA += validate_decimals(itemA.quantity)
+                totalA += validate_decimals(itemA.total)
+
+        #Getting Partial Estimates
+        openEstimate = woEstimate.objects.filter(woID = wo, Status = 1).count()
+
+        
+        context["openEstimate"] = openEstimate > 0
+        context["itemCount"] = len(itemFinal)
+        context["itemResume"] = sorted(itemFinal, key=lambda d: d['item']) 
+        context["totals"] = {'qtyP':qtyP, 'totalP':totalP,'qtyA':qtyA,'totalA':totalA  }
+    except Exception as e:
+        errorMessage = str(e)
+        print(str(e)) 
+     
+    context["errorMessage"] = errorMessage
+         
     return render(request, "billing_list.html", context)
 
 
@@ -5408,3 +5415,48 @@ def update_linked_orders(request):
         return render(request,'landing.html',{ 'message':str(updated) + ' Orders Linked Successfully', 'alertType':'success','emp':emp, 'per':per})
     except Exception as e:
         return render(request,'landing.html',{'message':'Somenthing went Wrong!' + str(e), 'alertType':'danger','emp':emp, 'per': per})
+
+
+def list_linked_orders(request):
+    locationList = Locations.objects.all()
+    emp = Employee.objects.filter(user__username__exact = request.user.username).first()
+    per = period.objects.filter(status__in=(1,2)).first()
+    estatus = "0"
+    loc = "0"
+    
+    context={}
+
+    if request.method == "POST":
+        estatus = request.POST.get('status')
+        loc = request.POST.get('location') 
+        if loc == None or loc =="":
+            loc = "0"
+        locationObject = Locations.objects.filter(LocationID=loc).first()
+    
+    context["selectEstatus"] = estatus    
+    context["emp"]=emp
+    context["location"]=locationList
+    context["per"]=per    
+    context["selectLoc"]=loc
+
+    if request.user.is_staff:        
+        if estatus == "0" and loc == "0":    
+            orders = workOrder.objects.filter(linkedOrder__isnull = False)  
+        else:
+            if estatus != "0" and loc != "0":
+                orders = workOrder.objects.filter(Status = estatus, Location = locationObject).exclude(linkedOrder__isnull = False, uploaded = False )  
+            else:
+                if estatus != "0":
+                    orders = workOrder.objects.filter(Status = estatus).exclude(linkedOrder__isnull = False, uploaded = False )  
+                else:
+                    orders = workOrder.objects.filter(Location = locationObject).exclude(linkedOrder__isnull = False, uploaded = False )  
+        context["orders"]=orders
+
+        context["day_diff"]=date_difference(orders)
+
+        return render(request,'order_list.html',context)
+
+
+    
+
+    return render(request,'order_linked_list.html',context)

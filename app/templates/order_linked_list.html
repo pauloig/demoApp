@@ -1,0 +1,175 @@
+{% extends 'index.html' %} 
+{%load static%}
+{% block title %} Duplicate Order List {% endblock %} 
+{% load humanize %}
+{% block container %}
+
+<div class="container">
+    <form method='post' enctype="multipart/form-data">
+        {% csrf_token %}
+
+        
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="card">
+                    <h6 class="card-header card-header-wc" >Filters</h6>
+                    <div class="card-body">
+                        <div class="row">                   
+                            <div class="col-lg-3">                                                     
+                                <select class="form-select" aria-label="Default select example" name="status" id="status"> 
+                                {%if selectEstatus == "0"%} 
+                                        <option value ="0"  selected >Status</option>
+                                    {%else%}
+                                        <option value ="0" >Status</option>
+                                    {%endif%}
+                                    {%if selectEstatus == "1"%}
+                                        <option value="1" selected>Not Started</option>
+                                    {%else%}
+                                        <option value="1" >Not Started</option>
+                                    {%endif%}
+                                    {%if selectEstatus == "2"%}
+                                        <option value="2" selected>Work in Progress</option>
+                                    {%else%}
+                                        <option value="2">Work in Progress</option>
+                                    {%endif%}
+                                    {%if selectEstatus == "3"%}
+                                        <option value="3" selected>Pending Docs</option>
+                                    {%else%}
+                                        <option value="3" >Pending Docs</option>
+                                    {%endif%}
+                                    {%if selectEstatus == "4"%}
+                                        <option value="4" selected>Pending Revised WO</option>
+                                    {%else%}
+                                        <option value="4">Pending Revised WO</option>
+                                    {%endif%}
+                                    {%if selectEstatus == "5"%}
+                                        <option value="5" selected>Invoiced</option>
+                                    {%else%}
+                                        <option value="5">Invoiced</option>
+                                    {%endif%}
+                                  </select>
+                            </div>
+                            <div class="col-lg-3">                            
+                                {%if emp.is_superAdmin or user.is_staff%} 
+                                    <select class="form-select" aria-label="Default select example" name="location" id="location">                                                
+                                {%else%}
+                                    <select class="form-select" aria-label="Default select example" name="location" id="location" hidden>                                    
+                                {%endif%}
+                                {%if selectLoc == "0" %}
+                                    <option value ="0" selected>Location</option>
+                                {%else%}
+                                    <option value ="0">Location</option>
+                                {%endif%}
+                                {% for data in location %}
+                                    {%if data.LocationID|slugify == selectLoc%}                              
+                                        <option value="{{data.LocationID}}" selected>{{data.name}}</option>
+                                    {%else%}
+                                        <option value="{{data.LocationID}}">{{data.name}}</option>
+                                    {%endif%}
+                                {% endfor %}
+                                  </select>
+                            </div>
+                            <div class="col-lg-5">                                                              
+                                <div class="form-outline" style="align-items: center;">
+                                    <input class="btn btn-primary" type="submit" value="Search">                            
+                                    <a class="btn btn-primary" href="/get_order_list/{{selectEstatus}}/{{selectLoc}}" role="button">Download</a>  
+                                    {% if emp.is_superAdmin  or user.is_staff %}
+                                        <a class="btn btn-success" href="/create_order/" role="button">Create New Order</a>                                    
+                                    {%endif%}
+                                </div>
+                            </div>
+                            <div class="col-lg-1">  
+                                <a href="/" type="button" class="btn btn-danger">Close</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+  
+        <div class="row">
+            <div class="col-sm-12 my-3">
+                <div class="card">
+                    <h6 class="card-header card-header-wc" >Orders List</h6>
+                    <div class="card-body">
+                        <div class="row">                                          
+                            <div class="col-lg-12"> 
+                                <table id="orders" class="table table-sm table-bordered table-striped">
+                                    <thead class="table-primary">
+                                        <tr>
+                                            <th scope="col" class="p-1">Order</th>                                            
+                                           <!--  <th scope="col" class="p-1">work Order Id</th>
+                                            <th scope="col" class="p-1">PO</th>-->
+                                            <th scope="col" class="p-1">PO Amount</th>    
+                                            <th scope="col" class="p-1">Status</th>
+                                            <th scope="col" class="p-1">Location</th>
+                                            <th scope="col" class="p-1">Sup.</th>
+                                            <th scope="col" class="p-1">created Date</th>
+                                            <th scope="col" class="p-1">last Update</th>
+                                            <th scope="col" class="p-1">days</th>
+                                            <th scope="col" class="p-1">Issue By</th>
+                                            <th scope="col" class="p-1">Job Name</th>
+                                            <th scope="col" class="p-1">Job Address</th>                                
+                                            <th scope="col" class="p-1" style="width: 3%">Manage</th>
+                                            <!--<th scope="col" class="p-1" style="width: 3%">Expenses</th>
+                                            <th scope="col" class="p-1" style="width: 5%">Billing</th>-->
+                                        </tr>              
+                                    </thead>
+                                    <tbody>                                       
+                                        {% for order in day_diff %}
+                                            <tr                                                                                         
+                                                {%if order.days > 8%}
+                                                    style = "background: yellow;"
+                                                {%endif%}
+                                            >
+                                                <td class="p-1">{{order.prismID}} - {{order.workOrderId}} - {{order.PO}} </td>
+                                                <!--<td class="p-1"></td>
+                                                <td class="p-1"></td>-->
+                                                
+                                                <td class="p-1">${{order.POAmount|floatformat:2|intcomma}}</td>
+                                                <!-- <td>{{order.Status}}</td> -->
+                                                {% if order.Status == "1" %}
+                                                    <td class="p-1">Not Started</td>
+                                                {% elif order.Status == "2" %}
+                                                    <td class="p-1">Work in Progress</td>
+                                                {% elif order.Status == "3" %}
+                                                    <td class="p-1">Pending Docs</td>
+                                                {% elif order.Status == "4" %}
+                                                    <td class="p-1">Pending Revised WO</td>
+                                                {% elif order.Status == "5" %}
+                                                    <td class="p-1">Invoiced</td>
+                                                {%else%}
+                                                    <td class="p-1"></td>
+                                                {% endif %}
+                                                <td class="p-1">{{order.Location}}</td>
+                                                <td class="p-1">{{order.WCSup}}</td>
+                                                <td class="p-1">{{order.created_date|date:'Y-m-d H:i'}}</td> 
+                                                <td class="p-1">{{order.UploadDate}}</td>      
+                                                <td class="p-1">
+                                                            {{order.days}}
+                                                </td>              
+                                                <td class="p-1">{{order.IssuedBy}}</td>
+                                                <td class="p-1">{{order.JobName}}</td>
+                                                <td class="p-1">{{order.JobAddress}}</td>
+                                                <td class="p-1">
+                                                    <div class="d-flex justify-content-center align-items-center">
+                                                        <a data-bs-toggle="tooltip" data-bs-placement="top" title="Order Details" href="/order_detail/{{order.id}}"><i class="fa-solid fa-circle-right" style="color: green;"></i></a>
+                                                    </div>                                                    
+                                                </td>                                                                                          
+                                            </tr>                                             
+                                        {% endfor %}
+                                    </tbody>                              
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    
+        
+        
+    </form>
+</div>
+{% endblock %}
