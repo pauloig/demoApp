@@ -304,7 +304,7 @@
                                                                     <tr>
                                                                         <td class="p-1">{{itemd.itemID.item.itemID}}</td>
                                                                         <td class="p-1">{{itemd.quantity}}</td>
-                                                                        <td class="p-1">${{itemd.itemID.emp_payout|floatformat:2|intcomma}}</td>
+                                                                        <td class="p-1">${{itemd.emp_payout|floatformat:2|intcomma}}</td>
                                                                         <td class="p-1">${{itemd.total|floatformat:2|intcomma}}</td>   
                                                                         <td class="p-1">
                                                                             {% if emp.is_superAdmin  or user.is_staff or period.status == 1 %}

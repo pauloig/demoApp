@@ -895,6 +895,10 @@ def updateLinkOrder(request, id, manualid):
         manOrder.linkedOrder = id
         manOrder.save()
         
+        order.Status = manOrder.Status
+        order.Location = manOrder.Location
+        order.save()
+        
         #Se traslada produccion si la hay a la nueva orden
         
         prod = Daily.objects.filter(woID = manOrder)
@@ -5379,6 +5383,10 @@ def update_linked_orders(request):
                 manOrder = workOrder.objects.filter(id=lo.id).first()
                 
                 order = workOrder.objects.filter(id=manOrder.linkedOrder).first()
+                
+                order.Status = manOrder.Status
+                order.Location = manOrder.Location
+                order.save()
         
                 #Se traslada produccion si la hay a la nueva orden
                 
@@ -5456,7 +5464,54 @@ def list_linked_orders(request):
 
         return render(request,'order_list.html',context)
 
+    return render(request,'order_linked_list.html',context)
 
+
+
+def update_item_payout(request):
+    emp = Employee.objects.filter(user__username__exact = request.user.username).first()
+    per = period.objects.filter(status__in=(1,2)).first()
     
 
-    return render(request,'order_linked_list.html',context)
+    try:        
+        
+        itemProduction = DailyItem.objects.all()
+        
+        updated = 0
+        diff = ""
+        for prod in itemProduction:           
+            
+            current = DailyItem.objects.filter(id = prod.id).first()
+            current.emp_payout = current.total / current.quantity
+            current.price = prod.itemID.price
+            current.save()               
+            updated += 1    
+                
+            if prod.itemID.emp_payout != current.emp_payout:
+                diff = diff +  prod.itemID.item.itemID + "|" + str(prod.itemID.location.LocationID) + ","
+        
+
+        return render(request,'landing.html',{ 'message':str(updated) + ' Items updated Successfully.... Detail:  ' + diff, 'alertType':'success','emp':emp, 'per':per})
+    except Exception as e:
+        return render(request,'landing.html',{'message':'Somenthing went Wrong!' + str(e), 'alertType':'danger','emp':emp, 'per': per})
+
+
+def update_emp_payout(request):
+    
+    emp = Employee.objects.filter(user__username__exact = request.user.username).first()
+    per = period.objects.filter(status__in=(1,2)).first()
+    
+    
+    try:
+        
+        
+        Production = Daily.objects.all()
+        updated = 0
+        
+        for item in Production:
+            updated += 1
+            
+        
+        return render(request,'landing.html',{ 'message':str(updated) + ' Items updated Successfully.... Detail:  ' + diff, 'alertType':'success','emp':emp, 'per':per})
+    except Exception as e:
+        return render(request,'landing.html',{'message':'Somenthing went Wrong!' + str(e), 'alertType':'danger','emp':emp, 'per': per})
