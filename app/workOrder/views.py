@@ -2627,6 +2627,76 @@ def payroll(request, perID, dID, crewID, LocID):
 
 
 def calculate_hours(startTime, endTime, lunch_startTime, lunch_endTime):
+    
+    if startTime != None and endTime != None:
+        if startTime > endTime:
+            total = 0
+        else:
+            #convert to decimal
+            startTime = startTime/100
+            st_h = int(startTime) 
+            st_m = validate_decimals(startTime % 1)* 100
+            st_total = validate_decimals(st_h + validate_decimals(st_m / 60))
+            
+            endTime = endTime / 100
+            et_h = int(endTime) 
+            et_m = validate_decimals(endTime % 1)* 100
+            et_total = validate_decimals(et_h + validate_decimals(et_m / 60))
+            
+            total = et_total - st_total
+    else:
+        total = 0 
+    
+    if lunch_startTime != None and lunch_endTime != None:
+        lunch_startTime = lunch_startTime / 100
+        lunch_endTime = lunch_endTime / 100
+        
+        if lunch_startTime > lunch_endTime:
+            total_lunch = 0
+        elif lunch_startTime > endTime or lunch_endTime > endTime:
+            total_lunch = 0
+        else:
+            #convert to decimal
+            lst_h = int(lunch_startTime) 
+            lst_m = validate_decimals(lunch_startTime % 1) * 100
+            lst_total = validate_decimals(lst_h + validate_decimals(lst_m / 60))
+            
+            let_h = int(lunch_endTime) 
+            let_m = validate_decimals(lunch_endTime % 1)* 100
+            let_total = validate_decimals(let_h + validate_decimals(let_m / 60))
+            
+            total_lunch = let_total - lst_total
+    else:
+        total_lunch = 0
+    
+    endTotal = total - total_lunch
+    
+    if endTotal <= 8:          
+        regular_hours =  validate_decimals(endTotal)
+        ot_hours = 0
+        double_time = 0
+    elif endTotal > 8 and endTotal <= 12:
+        regular_hours =  8
+        ot_hours = (float(endTotal) - 8)   
+        double_time = 0
+    elif endTotal > 12:
+        regular_hours =  8
+        ot_hours = 4
+        double_time = (float(endTotal) - 12)   
+    else:
+        regular_hours =  0
+        ot_hours = 0
+        double_time = 0
+        
+
+    total_hours = regular_hours + ot_hours + double_time
+
+    return total_hours, regular_hours, ot_hours, double_time
+
+
+    """
+    def calculate_hours(startTime, endTime, lunch_startTime, lunch_endTime):
+    
     if startTime != None and endTime != None:
         if startTime > endTime:
             total = 0
@@ -2643,7 +2713,8 @@ def calculate_hours(startTime, endTime, lunch_startTime, lunch_endTime):
         else:
             total_lunch = int(str(lunch_endTime)) - int(str(lunch_startTime))
 
-            if total_lunch < 100 and total %1 > 0:
+            #if total_lunch < 100 and total %1 > 0:
+            if total_lunch < 100 and (total + total_lunch + 40) % 1  > 0: 
                 total_lunch = total_lunch + 40
 
     else:
@@ -2683,10 +2754,12 @@ def calculate_hours(startTime, endTime, lunch_startTime, lunch_endTime):
         regular_hours =  0
         ot_hours = 0
         double_time = 0  
+        
+        
 
     total_hours = regular_hours + ot_hours + double_time
 
-    return total_hours, regular_hours, ot_hours, double_time
+    return total_hours, regular_hours, ot_hours, double_time"""
         
     
 def create_daily_emp(request, id, LocID):
