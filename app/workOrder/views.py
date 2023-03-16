@@ -392,101 +392,101 @@ def listOrders(request):
     estatus = "0"
     loc = "0"
     
-    try:
-        context={}
+    """try:"""
+    context={}
 
-        if request.method == "POST":
-            estatus = request.POST.get('status')
-            loc = request.POST.get('location') 
-            if loc == None or loc =="":
-                loc = "0"
-            locationObject = Locations.objects.filter(LocationID=loc).first()
-        
-        context["selectEstatus"] = estatus    
-        context["emp"]=emp
-        context["location"]=locationList
-        context["per"]=per    
-        context["selectLoc"]=loc
+    if request.method == "POST":
+        estatus = request.POST.get('status')
+        loc = request.POST.get('location') 
+        if loc == None or loc =="":
+            loc = "0"
+        locationObject = Locations.objects.filter(LocationID=loc).first()
+    
+    context["selectEstatus"] = estatus    
+    context["emp"]=emp
+    context["location"]=locationList
+    context["per"]=per    
+    context["selectLoc"]=loc
 
-        if emp:
-            if emp.is_superAdmin:                
-                if estatus == "0" and loc == "0":   
-                    orders = workOrder.objects.exclude(linkedOrder__isnull = False, uploaded = False )        
-                else:
-                    if estatus != "0" and loc != "0":
-                        orders = workOrder.objects.filter(Status = estatus, Location = locationObject).exclude(linkedOrder__isnull = False, uploaded = False )     
-                    else:
-                        if estatus != "0":
-                            orders = workOrder.objects.filter(Status = estatus).exclude(linkedOrder__isnull = False, uploaded = False ) 
-                        else:
-                            orders = workOrder.objects.filter(Location = locationObject).exclude(linkedOrder__isnull = False, uploaded = False ) 
-                context["orders"]=orders
-                context["day_diff"]=date_difference(orders)
-                return render(request,'order_list.html',context)
-            
-            if emp.is_admin:  
-                context["perfil"]="Admin"  
-                
-                locaList = employeeLocation.objects.filter(employeeID = emp)
-                    
-                locationList = []
-                locationList.append(emp.Location.LocationID)
-                
-                for i in locaList:
-                    locationList.append(i.LocationID.LocationID)
-                        
-                if emp.Location!= None:
-                    if estatus == "0" and loc == "0":                     
-                        orders = workOrder.objects.filter(Location__LocationID__in = locationList).exclude(linkedOrder__isnull = False, uploaded = False) 
-                    else:
-                        if estatus != "0" and loc != "0":                          
-                            orders = workOrder.objects.filter(Status = estatus, Location = emp.Location).exclude(linkedOrder__isnull = False, uploaded = False )     
-                        else:
-                            if estatus != "0":                              
-                                orders = workOrder.objects.filter(Status = estatus, Location__LocationID__in = locationList).exclude(linkedOrder__isnull = False, uploaded = False ) 
-                            else:                             
-                                orders = workOrder.objects.filter(Location__LocationID__in = locationList).exclude(linkedOrder__isnull = False, uploaded = False ) 
-                else:
-                    orders = None
-                context["orders"]=orders
-                if orders != None:
-                    context["day_diff"]=date_difference(orders)
-                else:
-                    context["day_diff"] = None
-
-                return render(request,'order_list.html',context)
-
-        if request.user.is_staff:        
-            if estatus == "0" and loc == "0":    
-                orders = workOrder.objects.exclude(linkedOrder__isnull = False, uploaded = False )  
+    if emp:
+        if emp.is_superAdmin:                
+            if estatus == "0" and loc == "0":   
+                orders = workOrder.objects.exclude(linkedOrder__isnull = False, uploaded = False )        
             else:
                 if estatus != "0" and loc != "0":
-                    orders = workOrder.objects.filter(Status = estatus, Location = locationObject).exclude(linkedOrder__isnull = False, uploaded = False )  
+                    orders = workOrder.objects.filter(Status = estatus, Location = locationObject).exclude(linkedOrder__isnull = False, uploaded = False )     
                 else:
                     if estatus != "0":
-                        orders = workOrder.objects.filter(Status = estatus).exclude(linkedOrder__isnull = False, uploaded = False )  
+                        orders = workOrder.objects.filter(Status = estatus).exclude(linkedOrder__isnull = False, uploaded = False ) 
                     else:
-                        orders = workOrder.objects.filter(Location = locationObject).exclude(linkedOrder__isnull = False, uploaded = False )  
+                        orders = workOrder.objects.filter(Location = locationObject).exclude(linkedOrder__isnull = False, uploaded = False ) 
             context["orders"]=orders
-
             context["day_diff"]=date_difference(orders)
+            return render(request,'order_list.html',context)
+        
+        if emp.is_admin:  
+            context["perfil"]="Admin"  
+            
+            locaList = employeeLocation.objects.filter(employeeID = emp)
+                
+            locationList = []
+            locationList.append(emp.Location.LocationID)
+            
+            for i in locaList:
+                locationList.append(i.LocationID.LocationID)
+                    
+            if emp.Location!= None:
+                if estatus == "0" and loc == "0":                     
+                    orders = workOrder.objects.filter(Location__LocationID__in = locationList).exclude(linkedOrder__isnull = False, uploaded = False) 
+                else:
+                    if estatus != "0" and loc != "0":                          
+                        orders = workOrder.objects.filter(Status = estatus, Location = emp.Location).exclude(linkedOrder__isnull = False, uploaded = False )     
+                    else:
+                        if estatus != "0":                              
+                            orders = workOrder.objects.filter(Status = estatus, Location__LocationID__in = locationList).exclude(linkedOrder__isnull = False, uploaded = False ) 
+                        else:                             
+                            orders = workOrder.objects.filter(Location__LocationID__in = locationList).exclude(linkedOrder__isnull = False, uploaded = False ) 
+            else:
+                orders = None
+            context["orders"]=orders
+            if orders != None:
+                context["day_diff"]=date_difference(orders)
+            else:
+                context["day_diff"] = None
 
             return render(request,'order_list.html',context)
 
-        
-        if estatus == "0" and loc == "0":   
-            orders = workOrder.objects.filter(WCSup__isnull=True).exclude(linkedOrder__isnull = False, uploaded = False )
+    if request.user.is_staff:        
+        if estatus == "0" and loc == "0":    
+            orders = workOrder.objects.exclude(linkedOrder__isnull = False, uploaded = False )  
         else:
             if estatus != "0" and loc != "0":
-                orders = workOrder.objects.filter(WCSup__isnull=True, Location = locationObject, Status = estatus).exclude(linkedOrder__isnull = False, uploaded = False )
+                orders = workOrder.objects.filter(Status = estatus, Location = locationObject).exclude(linkedOrder__isnull = False, uploaded = False )  
             else:
                 if estatus != "0":
-                    orders = workOrder.objects.filter(WCSup__isnull=True, Status = estatus).exclude(linkedOrder__isnull = False, uploaded = False )
+                    orders = workOrder.objects.filter(Status = estatus).exclude(linkedOrder__isnull = False, uploaded = False )  
                 else:
-                    orders = workOrder.objects.filter(WCSup__isnull=True, Location = locationObject).exclude(linkedOrder__isnull = False, uploaded = False )
+                    orders = workOrder.objects.filter(Location = locationObject).exclude(linkedOrder__isnull = False, uploaded = False )  
+        context["orders"]=orders
+
+        context["day_diff"]=date_difference(orders)
+
+        return render(request,'order_list.html',context)
+
     
-    except Exception as e:
-        return render(request,'landing.html',{'message':'Somenthing went Wrong!' + str(e), 'alertType':'danger','emp':emp, 'per': per})
+    if estatus == "0" and loc == "0":   
+        orders = workOrder.objects.filter(WCSup__isnull=True).exclude(linkedOrder__isnull = False, uploaded = False )
+    else:
+        if estatus != "0" and loc != "0":
+            orders = workOrder.objects.filter(WCSup__isnull=True, Location = locationObject, Status = estatus).exclude(linkedOrder__isnull = False, uploaded = False )
+        else:
+            if estatus != "0":
+                orders = workOrder.objects.filter(WCSup__isnull=True, Status = estatus).exclude(linkedOrder__isnull = False, uploaded = False )
+            else:
+                orders = workOrder.objects.filter(WCSup__isnull=True, Location = locationObject).exclude(linkedOrder__isnull = False, uploaded = False )
+    
+    """except Exception as e:
+        return render(request,'landing.html',{'message':'Somenthing went Wrong!' + str(e), 'alertType':'danger','emp':emp, 'per': per})"""
         
 
     return render(request,'order_list.html',context)
@@ -5426,7 +5426,8 @@ def vendorSubcontrator(request):
 def date_difference(orders):
     day_diff = []
     for i in orders:
-        if int(i.Status) >= 2 and int(i.Status) <=4:   
+        
+        if validate_decimals(i.Status) >= 2 and validate_decimals(i.Status) <=4:   
             try:
                 date_format = "%Y-%m-%d"
                 a = datetime.strptime(str(datetime.now().date()), date_format)
