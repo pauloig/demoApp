@@ -392,99 +392,102 @@ def listOrders(request):
     estatus = "0"
     loc = "0"
     
-    context={}
+    try:
+        context={}
 
-    if request.method == "POST":
-        estatus = request.POST.get('status')
-        loc = request.POST.get('location') 
-        if loc == None or loc =="":
-            loc = "0"
-        locationObject = Locations.objects.filter(LocationID=loc).first()
-    
-    context["selectEstatus"] = estatus    
-    context["emp"]=emp
-    context["location"]=locationList
-    context["per"]=per    
-    context["selectLoc"]=loc
+        if request.method == "POST":
+            estatus = request.POST.get('status')
+            loc = request.POST.get('location') 
+            if loc == None or loc =="":
+                loc = "0"
+            locationObject = Locations.objects.filter(LocationID=loc).first()
+        
+        context["selectEstatus"] = estatus    
+        context["emp"]=emp
+        context["location"]=locationList
+        context["per"]=per    
+        context["selectLoc"]=loc
 
-    if emp:
-        if emp.is_superAdmin:                
-            if estatus == "0" and loc == "0":   
-                orders = workOrder.objects.exclude(linkedOrder__isnull = False, uploaded = False )        
+        if emp:
+            if emp.is_superAdmin:                
+                if estatus == "0" and loc == "0":   
+                    orders = workOrder.objects.exclude(linkedOrder__isnull = False, uploaded = False )        
+                else:
+                    if estatus != "0" and loc != "0":
+                        orders = workOrder.objects.filter(Status = estatus, Location = locationObject).exclude(linkedOrder__isnull = False, uploaded = False )     
+                    else:
+                        if estatus != "0":
+                            orders = workOrder.objects.filter(Status = estatus).exclude(linkedOrder__isnull = False, uploaded = False ) 
+                        else:
+                            orders = workOrder.objects.filter(Location = locationObject).exclude(linkedOrder__isnull = False, uploaded = False ) 
+                context["orders"]=orders
+                context["day_diff"]=date_difference(orders)
+                return render(request,'order_list.html',context)
+            
+            if emp.is_admin:  
+                context["perfil"]="Admin"  
+                
+                locaList = employeeLocation.objects.filter(employeeID = emp)
+                    
+                locationList = []
+                locationList.append(emp.Location.LocationID)
+                
+                for i in locaList:
+                    locationList.append(i.LocationID.LocationID)
+                        
+                if emp.Location!= None:
+                    if estatus == "0" and loc == "0":                     
+                        orders = workOrder.objects.filter(Location__LocationID__in = locationList).exclude(linkedOrder__isnull = False, uploaded = False) 
+                    else:
+                        if estatus != "0" and loc != "0":                          
+                            orders = workOrder.objects.filter(Status = estatus, Location = emp.Location).exclude(linkedOrder__isnull = False, uploaded = False )     
+                        else:
+                            if estatus != "0":                              
+                                orders = workOrder.objects.filter(Status = estatus, Location__LocationID__in = locationList).exclude(linkedOrder__isnull = False, uploaded = False ) 
+                            else:                             
+                                orders = workOrder.objects.filter(Location__LocationID__in = locationList).exclude(linkedOrder__isnull = False, uploaded = False ) 
+                else:
+                    orders = None
+                context["orders"]=orders
+                if orders != None:
+                    context["day_diff"]=date_difference(orders)
+                else:
+                    context["day_diff"] = None
+
+                return render(request,'order_list.html',context)
+
+        if request.user.is_staff:        
+            if estatus == "0" and loc == "0":    
+                orders = workOrder.objects.exclude(linkedOrder__isnull = False, uploaded = False )  
             else:
                 if estatus != "0" and loc != "0":
-                    orders = workOrder.objects.filter(Status = estatus, Location = locationObject).exclude(linkedOrder__isnull = False, uploaded = False )     
+                    orders = workOrder.objects.filter(Status = estatus, Location = locationObject).exclude(linkedOrder__isnull = False, uploaded = False )  
                 else:
                     if estatus != "0":
-                        orders = workOrder.objects.filter(Status = estatus).exclude(linkedOrder__isnull = False, uploaded = False ) 
+                        orders = workOrder.objects.filter(Status = estatus).exclude(linkedOrder__isnull = False, uploaded = False )  
                     else:
-                        orders = workOrder.objects.filter(Location = locationObject).exclude(linkedOrder__isnull = False, uploaded = False ) 
+                        orders = workOrder.objects.filter(Location = locationObject).exclude(linkedOrder__isnull = False, uploaded = False )  
             context["orders"]=orders
+
             context["day_diff"]=date_difference(orders)
+
             return render(request,'order_list.html',context)
+
         
-        if emp.is_admin:  
-            context["perfil"]="Admin"  
-            
-            locaList = employeeLocation.objects.filter(employeeID = emp)
-                
-            locationList = []
-            locationList.append(emp.Location.LocationID)
-            
-            for i in locaList:
-                locationList.append(i.LocationID.LocationID)
-                    
-            if emp.Location!= None:
-                if estatus == "0" and loc == "0":                     
-                    orders = workOrder.objects.filter(Location__LocationID__in = locationList).exclude(linkedOrder__isnull = False, uploaded = False) 
-                else:
-                    if estatus != "0" and loc != "0":                          
-                        orders = workOrder.objects.filter(Status = estatus, Location = emp.Location).exclude(linkedOrder__isnull = False, uploaded = False )     
-                    else:
-                        if estatus != "0":                              
-                            orders = workOrder.objects.filter(Status = estatus, Location__LocationID__in = locationList).exclude(linkedOrder__isnull = False, uploaded = False ) 
-                        else:                             
-                            orders = workOrder.objects.filter(Location__LocationID__in = locationList).exclude(linkedOrder__isnull = False, uploaded = False ) 
-            else:
-                orders = None
-            context["orders"]=orders
-            if orders != None:
-                context["day_diff"]=date_difference(orders)
-            else:
-                context["day_diff"] = None
-
-            return render(request,'order_list.html',context)
-
-    if request.user.is_staff:        
-        if estatus == "0" and loc == "0":    
-            orders = workOrder.objects.exclude(linkedOrder__isnull = False, uploaded = False )  
+        if estatus == "0" and loc == "0":   
+            orders = workOrder.objects.filter(WCSup__isnull=True).exclude(linkedOrder__isnull = False, uploaded = False )
         else:
             if estatus != "0" and loc != "0":
-                orders = workOrder.objects.filter(Status = estatus, Location = locationObject).exclude(linkedOrder__isnull = False, uploaded = False )  
+                orders = workOrder.objects.filter(WCSup__isnull=True, Location = locationObject, Status = estatus).exclude(linkedOrder__isnull = False, uploaded = False )
             else:
                 if estatus != "0":
-                    orders = workOrder.objects.filter(Status = estatus).exclude(linkedOrder__isnull = False, uploaded = False )  
+                    orders = workOrder.objects.filter(WCSup__isnull=True, Status = estatus).exclude(linkedOrder__isnull = False, uploaded = False )
                 else:
-                    orders = workOrder.objects.filter(Location = locationObject).exclude(linkedOrder__isnull = False, uploaded = False )  
-        context["orders"]=orders
-
-        context["day_diff"]=date_difference(orders)
-
-        return render(request,'order_list.html',context)
-
-     
-    if estatus == "0" and loc == "0":   
-        orders = workOrder.objects.filter(WCSup__isnull=True).exclude(linkedOrder__isnull = False, uploaded = False )
-    else:
-        if estatus != "0" and loc != "0":
-            orders = workOrder.objects.filter(WCSup__isnull=True, Location = locationObject, Status = estatus).exclude(linkedOrder__isnull = False, uploaded = False )
-        else:
-            if estatus != "0":
-                orders = workOrder.objects.filter(WCSup__isnull=True, Status = estatus).exclude(linkedOrder__isnull = False, uploaded = False )
-            else:
-                orders = workOrder.objects.filter(WCSup__isnull=True, Location = locationObject).exclude(linkedOrder__isnull = False, uploaded = False )
-
+                    orders = workOrder.objects.filter(WCSup__isnull=True, Location = locationObject).exclude(linkedOrder__isnull = False, uploaded = False )
     
+    except Exception as e:
+        return render(request,'landing.html',{'message':'Somenthing went Wrong!' + str(e), 'alertType':'danger','emp':emp, 'per': per})
+        
 
     return render(request,'order_list.html',context)
 
@@ -2107,10 +2110,10 @@ def location_period_list(request, id):
                     over_time += validate_decimals(i.ot_hour)
                     double_time += validate_decimals(i.double_time)
                     total_time += validate_decimals(i.total_hours)
-                    if validate_decimals(i.EmployeeID.hourly_rate) != None:
-                        rt += (validate_decimals(i.regular_hours) * float(validate_decimals(i.EmployeeID.hourly_rate)))
-                        ot += ((validate_decimals(i.ot_hour) * (float(validate_decimals(i.EmployeeID.hourly_rate))*1.5)))
-                        dt += ((validate_decimals(i.double_time) * (float(validate_decimals(i.EmployeeID.hourly_rate))*2)))
+                    #if validate_decimals(i.EmployeeID.hourly_rate) != None:
+                    rt += validate_decimals(i.rt_pay)
+                    ot += validate_decimals(i.ot_pay)
+                    dt += validate_decimals(i.dt_pay)
 
                 if validate_decimals(i.bonus) != None:
                     bonus += validate_decimals(i.bonus)
@@ -2128,10 +2131,10 @@ def location_period_list(request, id):
             ov = 0
             for j in dailyprod:                
                 total += validate_decimals(j.total)
-                if validate_decimals(j.itemID.price) != None:
-                    invoice += (validate_decimals(j.quantity) * float(validate_decimals(j.itemID.price)) )
-                if validate_decimals(j.itemID.emp_payout) != None:    
-                    payroll2 += (validate_decimals(j.quantity) * float(validate_decimals(j.itemID.emp_payout)) )
+                if validate_decimals(j.price) != None:
+                    invoice += (validate_decimals(j.quantity) * float(validate_decimals(j.price)) )
+                if validate_decimals(j.emp_payout) != None:    
+                    payroll2 += (validate_decimals(j.quantity) * float(validate_decimals(j.emp_payout)) )
 
             dailyempleado = DailyEmployee.objects.filter(DailyID=dailyItem)
             ptpEmp = 0
@@ -3084,11 +3087,11 @@ def make_recap_pdf(empID, perID):
         prod = DailyItem.objects.filter(DailyID = item.DailyID).count()
 
         if prod <= 0:           
-            if item.EmployeeID.hourly_rate != None:
-                rt = (item.regular_hours * float(item.EmployeeID.hourly_rate))
-                ot = ((item.ot_hour * (float(item.EmployeeID.hourly_rate)*1.5)))
-                dt = ((item.double_time * (float(item.EmployeeID.hourly_rate)*2)))
-
+            #if item.EmployeeID.hourly_rate != None:
+            rt = validate_decimals(item.rt_pay)
+            ot = validate_decimals(item.ot_pay)
+            dt = validate_decimals(item.dt_pay)
+                
         payroll = item.payout
         on_call = item.on_call
         bonus = item.bonus
@@ -5576,15 +5579,76 @@ def update_emp_payout(request):
     
     
     try:
-        
-        
-        Production = Daily.objects.all()
+        #Getting all Dailys     
+        dailyObj = Daily.objects.all()
         updated = 0
         
-        for item in Production:
-            updated += 1
+        for crew in dailyObj:
             
-        
-        return render(request,'landing.html',{ 'message':str(updated) + ' Items updated Successfully.... Detail:  ' + diff, 'alertType':'success','emp':emp, 'per':per})
+            itemCount = 0
+            itemSum = 0
+            
+            itemCount = DailyItem.objects.filter(DailyID = crew).count()
+            
+            if itemCount > 0:            
+                itemList = DailyItem.objects.filter(DailyID = crew)
+
+                for iteml in itemList:
+                    itemSum += iteml.total 
+                    
+            if crew.own_vehicle != None:
+                ovp = (itemSum * crew.own_vehicle) / 100
+                itemSum += ovp
+
+            empList = DailyEmployee.objects.filter(DailyID = crew)
+            
+            for empl in empList:
+                rt_pay = 0
+                ot_pay = 0
+                dt_pay = 0
+                empRate = 0
+                production = 0
+
+                empD = DailyEmployee.objects.filter(id = empl.id).first()
+                
+                #updatating Work Hours
+                empD2 = DailyEmployee.objects.filter(id = empl.id).first()                
+                startTime = validate_decimals(empD2.start_time)
+                endTime = validate_decimals(empD2.end_time)
+                lunch_startTime = validate_decimals(empD2.start_lunch_time)
+                lunch_endTime = validate_decimals(empD2.end_lunch_time)
+
+                empD2.total_hours, empD2.regular_hours,empD2.ot_hour, empD2.double_time = calculate_hours(startTime, endTime, lunch_startTime, lunch_endTime)  
+                empD2.save()
+                
+                if itemCount > 0:                   
+                    production = validate_decimals(((itemSum * empD.per_to_pay) / 100))
+                else: 
+                    if validate_decimals(empD.regular_hours) > 0  and validate_decimals(empD.payout) > 0 and validate_decimals(empD.on_call) == 0 and validate_decimals(empD.bonus) == 0:
+                        empRate = validate_decimals(empD.payout / empD.regular_hours) 
+                    elif validate_decimals(empD.regular_hours) > 0  and validate_decimals(empD.payout) > 0  and (validate_decimals(empD.on_call) != 0 or validate_decimals(empD.bonus) != 0): 
+                        empRate = validate_decimals((empD.payout - validate_decimals(empD.on_call) - validate_decimals(empD.bonus)) / empD.regular_hours)         
+                    elif empD.EmployeeID.hourly_rate != None: 
+                        empRate = validate_decimals(empD.EmployeeID.hourly_rate)
+                    else:
+                        empRate = 0
+
+                    rt_pay = (empD.regular_hours * empRate)
+                    ot_pay = (empD.ot_hour * (empRate * 1.5))
+                    dt_pay = (empD.double_time * (empRate * 2))
+                
+                if empD.production == None:
+                    empD.rt_pay = rt_pay
+                    empD.ot_pay = ot_pay
+                    empD.dt_pay = dt_pay
+                    empD.emp_rate = empRate                
+                    empD.production = production
+                    empD.save()    
+            
+            
+                updated += 1
+                
+            
+        return render(request,'landing.html',{ 'message':str(updated) + ' Items updated Successfully.... Detail:  ' , 'alertType':'success','emp':emp, 'per':per})
     except Exception as e:
         return render(request,'landing.html',{'message':'Somenthing went Wrong!' + str(e), 'alertType':'danger','emp':emp, 'per': per})
