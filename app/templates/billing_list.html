@@ -117,12 +117,17 @@
                                                                     Open
                                                                 {%elif itemd.Status == 2%}
                                                                     Closed
+                                                                {%elif itemd.Status == 3%}
+                                                                    Updated
                                                                 {%endif%}
                                                             </td>
                                                             <!--<td class="p-1">{{itemd.total}}</td>-->
                                                             <td class="p-1">                                                                            
                                                                 <a data-bs-toggle="tooltip" data-bs-placement="top" title="Estimate Preview" hx-get="/estimate_preview/{{order.id}}/{{itemd.estimateNumber}}" hx-target="#dialog"><i class="fa-solid fa-magnifying-glass" style="color: green;"></i></a>    
-                                                                &nbsp; <a data-bs-toggle="tooltip" data-bs-placement="top" title="Download Estimate" href="/estimate/{{order.id}}/{{itemd.estimateNumber}}" role="button"><i class="fa-solid fa-download" style="color: green;"></i></a>                                                            
+                                                                &nbsp; <a data-bs-toggle="tooltip" data-bs-placement="top" title="Download Estimate" href="/estimate/{{order.id}}/{{itemd.estimateNumber}}" role="button"><i class="fa-solid fa-download" style="color: green;"></i></a> 
+                                                                {% if emp.is_superAdmin  or user.is_staff %}  
+                                                                    &nbsp; <a href="/update_estimate/{{order.id}}/{{itemd.estimateNumber}}"><i class="fa-solid fa-pen-to-square" style="color: green;"></i></a>
+                                                                {%endif%}                                                           
                                                                 {% if itemd.Status == 1%}
                                                                 &nbsp; <a data-bs-toggle="tooltip" data-bs-placement="top" title="Generate Invoice" href="/partial_estimate/{{order.id}}/True/2"><i class="fa-solid fa-circle-arrow-right" style="color: green;"></i></a>  
                                                                 {%endif%}
@@ -147,6 +152,7 @@
                                                 <thead>                                                                        
                                                     <tr class="table-primary">                                                    
                                                         <td  class="p-1">Invoice</td>
+                                                        <td  class="p-1">Estimate</td>
                                                         <td  class="p-1">Date Created</td>
                                                         <td  class="p-1">Status</td>
                                                         <!--<td  class="p-1">Total</td>-->                                                                            
@@ -159,6 +165,7 @@
                                                     {%for itemd in invoiceList %}
                                                         <tr>
                                                             <td class="p-1">{{itemd.invoiceNumber}}</td>
+                                                            <td class="p-1">{{itemd.estimateNumber}}</td>
                                                             <td class="p-1">{{itemd.created_date|date:"M d, Y"}}</td>
                                                             <td class="p-1">
                                                                 {% if itemd.Status == 1%}
@@ -253,7 +260,7 @@
                                                         <td width="5%" class="p-1">          
                                                             {%if order.Status == "2" or order.Status == "4" %}
                                                                 {% if emp.is_superAdmin  or user.is_staff %}                                     
-                                                                    <a hx-get="/create_authorized_prod_item/{{order.id}}/0" hx-target="#dialog"><i class="fa-solid fa-circle-plus"></i></a>
+                                                                    <a hx-get="/create_authorized_prod_item/{{order.id}}/0/0" hx-target="#dialog"><i class="fa-solid fa-circle-plus"></i></a>
                                                                 {%endif%}
                                                             {%endif%}
                                                         </td>                                                 
@@ -286,9 +293,9 @@
                                                                 
                                                                 {%if order.Status == "2" or order.Status == "4"%}     
                                                                     {% if emp.is_superAdmin  or user.is_staff %}                                                                     
-                                                                        <a hx-get="/update_authorized_prod_item/{{itemd.idA}}/0" hx-target="#dialog"><i class="fa-solid fa-pen-to-square" style="color: green;"></i></a>
+                                                                        <a hx-get="/update_authorized_prod_item/{{itemd.idA}}/0/0" hx-target="#dialog"><i class="fa-solid fa-pen-to-square" style="color: green;"></i></a>
                                                                         {%if  itemd.quantityA > 0 %}
-                                                                            <a hx-get="/delete_authorized_prod_item/{{itemd.idA}}/0" hx-target="#dialog"><i class="fa-solid fa-circle-minus" style="color: red;"></i></a>
+                                                                            <a hx-get="/delete_authorized_prod_item/{{itemd.idA}}/0/0" hx-target="#dialog"><i class="fa-solid fa-circle-minus" style="color: red;"></i></a>
                                                                         {%endif%}
                                                                     {%endif%}
                                                                 {%endif%}

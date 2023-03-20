@@ -240,7 +240,7 @@ class Daily(models.Model):
     woID = models.ForeignKey(workOrder, on_delete=models.CASCADE, db_column ='woID', null=True, blank=True)
     supervisor = models.CharField(max_length=200, blank=True, null=True)
     own_vehicle = models.FloatField(blank=True, null=True)
-    total_pay = models.IntegerField(null=True, blank=True)
+    total_pay = models.FloatField(blank=True, null=True) 
     split_paymet = models.BooleanField(default=False)
     pdfDaily = models.FileField(null=True, upload_to="dailys") 
     created_date = models.DateTimeField(null=True, blank=True)
@@ -360,6 +360,7 @@ class internalPO(models.Model):
     quantity = models.CharField(max_length=20, blank=True, null=True)
     total = models.CharField(max_length=20, blank=True, null=True)
     nonBillable = models.BooleanField(default=False)
+    isAmountRounded = models.BooleanField(default=True)
     estimate = models.CharField(max_length=50, null=True, blank=True)
     invoice = models.CharField(max_length=50, null=True, blank=True)
     Status = models.IntegerField(default=1, choices = prodStatus_choice)
@@ -431,6 +432,7 @@ class woEstimate(models.Model):
 
 class woInvoice(models.Model):
     woID = models.ForeignKey(workOrder, on_delete=models.CASCADE, db_column ='woID')
+    estimateNumber = models.IntegerField(null=True)
     invoiceNumber = models.IntegerField()
     total = models.FloatField(null=True, blank=True)
     Status = models.IntegerField(default=1, choices = estimateStatus_choice)

@@ -158,6 +158,7 @@ class InternalPOForm(forms.ModelForm):
     product = forms.CharField(label="Product",max_length=200, widget=forms.TextInput(attrs={'class':'form-control'}), required=False)
     quantity = forms.CharField(label="Quantity",max_length=200, widget=forms.TextInput(attrs={'class':'form-control'}), required=False)
     total = forms.CharField(label="Total",max_length=200, widget=forms.TextInput(attrs={'class':'form-control'}), required=False)
+    #isAmountRounded = forms.BooleanField(label="Is Amount Rounded",required=False)
     nonBillable = forms.BooleanField(label="Non-Billable",required=False)
 
     class Meta:
@@ -169,6 +170,7 @@ class InternalPOForm(forms.ModelForm):
             'product',
             'quantity',
             'total',
+            'isAmountRounded',
             'nonBillable'           
         ]
 
