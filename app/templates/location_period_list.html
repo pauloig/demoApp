@@ -4,8 +4,21 @@
 {% block title %} Duplicate Order List {% endblock %} 
 
 {% block container %}
-
+<style>
+    .alert {
+        display: none;
+    }
+</style>
 <div class="container">
+
+    <script>
+        $(document).ready(function () {
+            $('button').click(function () {
+                $('.alert').show()
+            })
+        });
+    </script>
+
     <form method='post' enctype="multipart/form-data">
         {% csrf_token %}
         <div class="row">
@@ -41,7 +54,7 @@
                             <div class="col-sm-10">
                                 <a class="btn btn-success btn" href="/get_summary/{{period.id}}" ><i class="fa-solid fa-bars-staggered fa-2x m-2"></i></br>Summary</a> 
                                 {% if emp.is_superAdmin  or user.is_staff %}                                          
-                                    <a class="btn btn-success btn" href="/recap/{{period.id}}"><i class="fa-regular fa-folder-open fa-2x m-2"></i></br> Gen Recap</a>
+                                    <a class="btn btn-success btn" href="/recap/{{period.id}}" id="recap"><i class="fa-regular fa-folder-open fa-2x m-2"></i></br> Gen Recap</a>
                                     <a class="btn btn-success btn" data-bs-toggle="modal" data-bs-target="#staticBackdrop"><i class="fa-solid fa-envelopes-bulk fa-2x m-2"></i></br>Send Recap</a>
                                     {%if period.status == 1%}
                                         <a class="btn btn-info btn" hx-get="/supervisor_approval/{{period.id}}" hx-target="#dialog"><i class="fa-sharp fa-solid fa-circle-check fa-2x m-2"></i></br>approve sup.</a>                                
@@ -49,16 +62,26 @@
                                         <a class="btn btn-warning btn" hx-get="/close_payroll/{{period.id}}" hx-target="#dialog"><i class="fa-solid fa-lock fa-2x m-2"></i></br>Close Payroll</a>                                
                                     {%endif%}
                                 {%endif%}
+
+                                
                             </div>
                             <div class="col-sm-2">
                                 <a class="btn btn-danger btn" href="/period_list/" ><i class="fa-solid fa-right-from-bracket fa-2x m-2"></i></br>Close</a>                                       
                             </div>
-                        </div>
-                                     
+                        </div>                                   
                     </div> 
                 </div>
             </div>                          
         </div> 
+
+        <div class="row p-2">
+            <div class="col">
+                <div class="alert alert-success alert-dismissable">
+                    <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+                    LOADING...
+                </div>
+            </div>
+        </div>
         <div class="row">
             <div class="col-sm-12">
                 <div class="card">

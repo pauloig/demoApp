@@ -355,7 +355,7 @@
             <br />
             {% include 'partials/modal.html' %}
       
-            {% include 'partials/alerts.html' %}
+           
       
             {% block container %}
       
@@ -476,6 +476,11 @@
 
   }  
 
+  $(document).ready(function () {
+            $('#recap').click(function () {
+                $('.alert').show()
+            })
+        });
   
 </script>
 
