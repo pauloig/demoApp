@@ -1103,6 +1103,8 @@ def update_po(request, id, woID):
 
         if int(woID) > 0:
             return HttpResponseRedirect("/po_list/" + str(obj.woID.id))
+        elif int(woID) < 0:
+            return HttpResponseRedirect("/billing_list/" + str(obj.woID.id))
         else:
             return HttpResponseRedirect("/internal_po_list/")
 
@@ -5517,6 +5519,15 @@ def update_estimate(request, id, estimateID):
     poTotal = 0
     for po in Internal:
         poTotal += validate_decimals(po.total)
+
+    
+    #Getting Internal PO's Included in Estimate
+    
+    InternalEst = internalPO.objects.filter(woID = wo, estimate = estimateID)
+    poTotalEst = 0
+    for po2 in InternalEst:
+        poTotalEst += validate_decimals(po2.total)
+
     
     vendorList = vendorSubcontrator(request) 
     context["vendorList"] = vendorList
@@ -5528,7 +5539,10 @@ def update_estimate(request, id, estimateID):
     context["totals"] = {'qtyP':qtyP, 'totalP':totalP,'qtyA':qtyA,'totalA':totalA  }
     context["estimateID"] = estimateID
     context["internalPO"] = Internal
+    context["internalPOEst"] = InternalEst
+
     context["poTotal"] = poTotal
+    context["poTotalEst"] = poTotalEst
     
     
     return render(request, "update_estimate.html", context)

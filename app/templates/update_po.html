@@ -57,12 +57,14 @@
                                 <div class="col-lg-6">  
                                     <div class="form-outline" style="align-items: center;">                                       
                                         <!-- <input type="submit" value="Save"> -->
-                                        {%if po.Status == 1%}
+                                        {%if po.Status == 1 or woID < 0  %}
                                             <input class="btn btn-primary" type="submit" value="Update">
                                         {%endif%}
                                         
                                         {%if woID > 0 %}
                                             <a href="/po_list/{{po.woID.id}}" type="button" class="btn btn-danger">Close</a> 
+                                        {%elif woID < 0 %}
+                                            <a href="/billing_list/{{po.woID.id}}" type="button" class="btn btn-danger">Close</a> 
                                         {%else%}
                                             <a href="/internal_po_list/" type="button" class="btn btn-danger">Close</a> 
                                         {%endif%}
