@@ -109,6 +109,7 @@ urlpatterns = [
     path('update_linked_orders/',views.update_linked_orders),
     path('update_item_payout/',views.update_item_payout),
     path('update_emp_payout/',views.update_emp_payout),
+    path('update_estimate_closed/',views.update_estimate_closed),
     path('list_linked_orders/',views.list_linked_orders),
     path('logout/', LogoutView.as_view(next_page='/login/'), name='logout'),
     path('', include('authentication.urls')),

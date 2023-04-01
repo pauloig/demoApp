@@ -5052,7 +5052,7 @@ def create_authorized_prod_item(request, id, invoiceID, estimateID):
         
         if int(estimateID) != 0:                       
             estimateO = woEstimate.objects.filter(woID = wo, estimateNumber = int(estimateID)).first()  
-            estimateO.Status = 3
+            #estimateO.Status = 3
             estimateO.save()
             
             
@@ -5124,7 +5124,7 @@ def update_authorized_prod_item(request, id, invoiceID, estimateID):
                 
             estimateO = woEstimate.objects.filter(woID = obj.woID, estimateNumber = invoiceO.estimateNumber ).first()  
             if estimateO:
-                estimateO.Status = 3
+                #estimateO.Status = 3
                 estimateO.save() 
             
             return HttpResponseRedirect("/update_invoice/" + str(obj.woID.id) + "/"  + invoiceID)
@@ -5138,7 +5138,7 @@ def update_authorized_prod_item(request, id, invoiceID, estimateID):
                 
             estimateO = woEstimate.objects.filter(woID = obj.woID, estimateNumber = int(estimateID) ).first()  
             if estimateO:
-                estimateO.Status = 3
+                #estimateO.Status = 3
                 estimateO.save() 
         
             return HttpResponseRedirect("/update_estimate/" + str(obj.woID.id) + "/"  + estimateID)  
@@ -5181,7 +5181,7 @@ def delete_authorized_prod_item(request, id, invoiceID, estimateID):
                 
             estimateO = woEstimate.objects.filter(woID = obj.woID, estimateNumber = invoiceO.estimateNumber ).first()  
             if estimateO:
-                estimateO.Status = 3
+                #estimateO.Status = 3
                 estimateO.save() 
             
             return HttpResponseRedirect("/update_invoice/" + str(obj.woID.id) + "/"  + invoiceID)
@@ -5195,7 +5195,7 @@ def delete_authorized_prod_item(request, id, invoiceID, estimateID):
                 
             estimateO = woEstimate.objects.filter(woID = obj.woID, estimateNumber = int(estimateID) ).first()  
             if estimateO:
-                estimateO.Status = 3
+                #estimateO.Status = 3
                 estimateO.save() 
         
             return HttpResponseRedirect("/update_estimate/" + str(obj.woID.id) + "/"  + estimateID)  
@@ -5250,7 +5250,17 @@ def billing_list(request, id):
 
         #list estimate numbers
         estimateList = woEstimate.objects.filter(woID = wo)
-        context["estimateList"] = estimateList
+        estimateFList = []
+        for eList in estimateList:
+            invoiceO = woInvoice.objects.filter(woID = wo, estimateNumber = eList.estimateNumber).first()
+            if invoiceO:
+                invoiceNum = invoiceO.invoiceNumber
+            else:
+                invoiceNum = 0
+            
+            estimateFList.append({'woID': eList.woID, 'estimateNumber': eList.estimateNumber, 'invoiceNumber':invoiceNum, 'Status':eList.Status, 'is_partial':eList.is_partial, 'created_date': eList.created_date, 'createdBy': eList.createdBy })
+
+        context["estimateList"] = estimateFList
 
         #list estimate numbers
         estimateList = woInvoice.objects.filter(woID = wo)
@@ -5344,7 +5354,7 @@ def billing_list(request, id):
         context["totals"] = {'qtyP':qtyP, 'totalP':totalP,'qtyA':qtyA,'totalA':totalA  }
     except Exception as e:
         errorMessage = str(e)
-        print(str(e)) 
+    #   print(str(e)) 
      
     context["errorMessage"] = errorMessage
          
@@ -5928,5 +5938,32 @@ def update_emp_payout(request):
                 
             
         return render(request,'landing.html',{ 'message':str(updated) + ' Items updated Successfully.... Detail:  ' , 'alertType':'success','emp':emp, 'per':per})
+    except Exception as e:
+        return render(request,'landing.html',{'message':'Somenthing went Wrong!' + str(e), 'alertType':'danger','emp':emp, 'per': per})
+
+
+def update_estimate_closed(request):
+    
+    emp = Employee.objects.filter(user__username__exact = request.user.username).first()
+    per = period.objects.filter(status__in=(1,2)).first()
+    
+    updated = 0
+    
+    try:
+        estimateList = woEstimate.objects.filter(Status = 3 )
+       
+        for eList in estimateList:
+            updated += 1
+            invoiceO = woInvoice.objects.filter(woID = eList.woID, estimateNumber = eList.estimateNumber)
+            if invoiceO:
+                stat = 2
+            else:
+                stat = 1
+
+            eList.Status = stat
+            eList.save()
+
+            
+        return render(request,'landing.html',{ 'message':str(updated) + ' Estimates updated Successfully.... Detail:  ' , 'alertType':'success','emp':emp, 'per':per})
     except Exception as e:
         return render(request,'landing.html',{'message':'Somenthing went Wrong!' + str(e), 'alertType':'danger','emp':emp, 'per': per})

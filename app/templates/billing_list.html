@@ -128,8 +128,8 @@
                                                                 {% if emp.is_superAdmin  or user.is_staff %}  
                                                                     &nbsp; <a href="/update_estimate/{{order.id}}/{{itemd.estimateNumber}}"><i class="fa-solid fa-pen-to-square" style="color: green;"></i></a>
                                                                 {%endif%}                                                           
-                                                                {% if itemd.Status == 1%}
-                                                                &nbsp; <a data-bs-toggle="tooltip" data-bs-placement="top" title="Generate Invoice" href="/partial_estimate/{{order.id}}/True/2"><i class="fa-solid fa-circle-arrow-right" style="color: green;"></i></a>  
+                                                                {% if itemd.Status == 1 %}
+                                                                    &nbsp; <a data-bs-toggle="tooltip" data-bs-placement="top" title="Generate Invoice" href="/partial_estimate/{{order.id}}/True/2"><i class="fa-solid fa-circle-arrow-right" style="color: green;"></i></a>  
                                                                 {%endif%}
                                                             </td> 
                                                         </tr>
