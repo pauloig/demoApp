@@ -5016,7 +5016,7 @@ def create_authorized_prod_item(request, id, invoiceID, estimateID):
     wo = workOrder.objects.filter(id = id).first()
 
     if int(invoiceID) == 0 and int(estimateID) == 0:
-        authorizedItems = authorizedBilling.objects.filter(woID = wo)
+        authorizedItems = authorizedBilling.objects.filter(woID = wo, estimate__isnull = True, invoice__isnull = True )
     elif int(estimateID) > 0:
         authorizedItems = authorizedBilling.objects.filter(woID = wo, estimate = int(estimateID))
     elif int(invoiceID) > 0:
