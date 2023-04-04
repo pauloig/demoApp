@@ -14,13 +14,13 @@ from telnetlib import WONT
 from unittest import TextTestResult
 from urllib import response
 from django.shortcuts import render, get_object_or_404, HttpResponseRedirect, redirect
-from .models import Employee, payrollDetail, workOrder, workOrderDuplicate, Locations, item, itemPrice, payroll, internalPO, period, Daily, DailyEmployee, DailyItem, employeeRecap, woStatusLog, vendor, subcontractor, externalProduction, externalProdItem, authorizedBilling, woEstimate, woInvoice, employeeLocation
+from .models import Employee, payrollDetail, workOrder, workOrderDuplicate, Locations, item, itemPrice, payroll, internalPO, period, Daily, DailyEmployee, DailyItem, employeeRecap, woStatusLog, vendor, subcontractor, externalProduction, externalProdItem, authorizedBilling, woEstimate, woInvoice, employeeLocation, billingAddress
 from .resources import workOrderResource
 from django.contrib import messages
 from tablib import Dataset
 from django.http import HttpResponse, FileResponse, HttpRequest
 from django.db import IntegrityError
-from .forms import EmployeesForm, InternalPOForm, ItemForm, ItemPriceForm, LocationsForm, workOrderForm, DailyEmpForm, DailyItemForm, dailydForm, dailySupForm, vendorForm, subcontractorForm, extProdForm, extProdItemForm, authorizedBillingForm, EmployeeLocationForm
+from .forms import EmployeesForm, InternalPOForm, ItemForm, ItemPriceForm, LocationsForm, workOrderForm, DailyEmpForm, DailyItemForm, dailydForm, dailySupForm, vendorForm, subcontractorForm, extProdForm, extProdItemForm, authorizedBillingForm, EmployeeLocationForm, billingAddressForm
 from sequences import get_next_value, Sequence
 from datetime import date
 from django.utils.dateparse import parse_date
@@ -1183,6 +1183,8 @@ def estimate(request, id, estimateID):
     
     authBilling = authorizedBilling.objects.filter(woID = wo, estimate = estimateID)
     woEst = woEstimate.objects.filter(woID = wo, estimateNumber = estimateID).first()
+    context["woEstimate"] = woEst
+
     if woEst.is_partial:
         isPartial = "*****  PARTIAL *****"
     else:
@@ -1309,7 +1311,7 @@ def estimate(request, id, estimateID):
     
     return response 
 
-def partial_estimate(request, id, isPartial, Status):
+def partial_estimate(request, id, isPartial, Status, addressID):
     context = {}    
     per = period.objects.filter(status__in=(1,2)).first()
     context["per"] = per
@@ -1322,12 +1324,19 @@ def partial_estimate(request, id, isPartial, Status):
         pre = Sequence("preinvoice")
         estimateID = str(pre.get_next_value())
 
+        billAddress = billingAddress.objects.filter(id  = addressID).first()
+
         #creating the estimate
         estimateObject = woEstimate(
             woID = wo,
             estimateNumber = estimateID,
             Status = 1,
             is_partial = isPartial,
+            zipCode = billAddress.zipCode,
+            state = billAddress.state,
+            city = billAddress.city,
+            address = billAddress.address,
+            description = billAddress.description,
             created_date = datetime.now(),
             createdBy = request.user.username
         )
@@ -1397,6 +1406,11 @@ def partial_estimate(request, id, isPartial, Status):
             estimateNumber = estimateID,
             invoiceNumber = invoiceID,
             Status = 1,
+            zipCode = est.zipCode,
+            state = est.state,
+            city = est.city,
+            address = est.address,
+            description = est.description,
             is_partial = est.is_partial,
             created_date = datetime.now(),
             createdBy = request.user.username
@@ -1516,6 +1530,8 @@ def invoice(request, id, invoiceID):
     authBilling = authorizedBilling.objects.filter(woID = wo, invoice = invoiceID)
 
     woInv = woInvoice.objects.filter(woID = wo, invoiceNumber = invoiceID).first()
+    context["woEstimate"] = woInv
+
     if woInv.is_partial:
         isPartial = "*****  PARTIAL *****"
     else:
@@ -1687,12 +1703,15 @@ def estimate_preview(request, id, estimateID):
 
     itemResume = []
 
+    woEst = woEstimate.objects.filter(woID = wo, estimateNumber = estimateID).first()
+    context["woEstimate"] = woEst
+
     if int(str(estimateID)) == 0:
         authBilling = authorizedBilling.objects.filter(woID = wo, Status = 1)
         isPartial = ""
     else:
         authBilling = authorizedBilling.objects.filter(woID = wo, estimate = estimateID)
-        woEst = woEstimate.objects.filter(woID = wo, estimateNumber = estimateID).first()
+        
         if woEst.is_partial:
             isPartial = "*****  PARTIAL *****"
         else:
@@ -1817,6 +1836,8 @@ def invoice_preview(request, id, invoiceID):
     authBilling = authorizedBilling.objects.filter(woID = wo, invoice = invoiceID)
 
     woInv = woInvoice.objects.filter(woID = wo, invoiceNumber = invoiceID).first()
+    context["woEstimate"] = woInv
+
     if woInv.is_partial:
         isPartial = "*****  PARTIAL *****"
     else:
@@ -2143,7 +2164,18 @@ def location_period_list(request, id):
                 loca = Locations.objects.filter(LocationID = -1)
 
     
-    
+
+    rtTotal = 0
+    otTotal = 0
+    dtTotal = 0
+    bonusTotal = 0
+    on_callTotal = 0
+    prodTotal = 0
+    gran_total = 0
+    payrollTotal = 0
+    ownvehicleTotal = 0
+    invoiceTotal = 0
+    percTotal = 0
     locationSummary = []
 
     for locItem in loca:
@@ -2216,6 +2248,17 @@ def location_period_list(request, id):
         if validate_decimals(invoice) > 0:                    
                 perc = validate_decimals((validate_decimals(payroll) * 100) / validate_decimals(invoice))
 
+        rtTotal += rt
+        otTotal += ot 
+        dtTotal += dt
+        bonusTotal += bonus
+        on_callTotal += on_call
+        prodTotal += prod        
+        payrollTotal += payroll
+        ownvehicleTotal += ownvehicle
+        invoiceTotal += invoice
+        
+
 
         locationSummary.append({ 'LocationID': locItem.LocationID, 'name': locItem.name, 
                                 'regular_time':regular_time, 'over_time':over_time, 
@@ -2223,8 +2266,14 @@ def location_period_list(request, id):
                                 'rt': rt, 'ot': ot, 'dt': dt, 'bonus':bonus, 'on_call': on_call,
                                 'production': prod, 'own_vehicle': ownvehicle, 'payroll': payroll, 'invoice':invoice, 'percentage': perc})
 
+    if validate_decimals(invoiceTotal) > 0:                    
+        percTotal = validate_decimals((validate_decimals(payrollTotal) * 100) / validate_decimals(invoiceTotal))
 
+    totals = {'rt': rtTotal, 'ot': otTotal, 'dt': dtTotal, 'bonus':bonusTotal, 'on_call': on_callTotal,
+                                'production': prodTotal, 'own_vehicle': ownvehicleTotal, 'payroll': payrollTotal, 'invoice':invoiceTotal, 'percentage': percTotal}
+    
     context["locationSummary"] = locationSummary
+    context["totals"] = totals
     context["period"] = per   
     context["emp"] = emp
 
@@ -2547,11 +2596,14 @@ def payroll(request, perID, dID, crewID, LocID):
     if int(LocID) > 0:
         loca = Locations.objects.filter(LocationID = LocID).first()
     else:
-        if emp.Location is None or not emp.Location:        
+        if emp:
+            if emp.Location is None or not emp.Location:        
+                return render(request,'landing.html',{'message':'This user does not have a location assigned', 'alertType':'danger', 'emp':emp})
+            elif not per:
+                return render(request,'landing.html',{'message':'no active period found', 'alertType':'danger', 'emp':emp})
+        else:
             return render(request,'landing.html',{'message':'This user does not have a location assigned', 'alertType':'danger', 'emp':emp})
-        elif not per:
-            return render(request,'landing.html',{'message':'no active period found', 'alertType':'danger', 'emp':emp})
-
+        
         loca = Locations.objects.filter(LocationID = emp.Location.LocationID).first()
 
     
@@ -5539,6 +5591,10 @@ def update_estimate(request, id, estimateID):
         poTotalEst += validate_decimals(po2.total)
 
     
+    #Getting ActualEstimate Address
+    woEst = woEstimate.objects.filter(woID = wo, estimateNumber = estimateID).first()
+    context["woEstimate"] = woEst
+
     vendorList = vendorSubcontrator(request) 
     context["vendorList"] = vendorList
 
@@ -5689,6 +5745,116 @@ def delete_employee_location(request, empID):
    
     return render(request, "delete_employee_location.html", context)
 
+
+def select_billing_address(request, id, isPartial, isUpdate):
+    context ={}
+    
+    emp = Employee.objects.filter(user__username__exact = request.user.username).first()    
+    context["emp"] = emp
+
+    per = period.objects.filter(status__in=(1,2)).first()
+    context["per"] = per
+
+    wo = workOrder.objects.filter(id = id).first()
+    
+    addressList = billingAddress.objects.all()
+    context["addressList"] = addressList
+
+    if request.method == 'POST':
+       addressID =  request.POST.get('addressID')
+
+       if int(isUpdate) == 0:
+           return HttpResponseRedirect("/partial_estimate/"+ str(wo.id) + "/" + isPartial + "/1/" + str(addressID))
+       else:
+           return HttpResponseRedirect("/update_estimate_address/"+ str(wo.id) + "/" + str(addressID) + "/" + str(isUpdate))              
+
+
+
+    return render(request, "select_billing_address.html", context)
+
+def update_estimate_address(request, woID, addressID, estimateID):
+    context ={}
+    
+    emp = Employee.objects.filter(user__username__exact = request.user.username).first()    
+    context["emp"] = emp
+
+    per = period.objects.filter(status__in=(1,2)).first()
+    context["per"] = per
+
+    wo = workOrder.objects.filter(id = woID).first()
+    
+    addressO = billingAddress.objects.filter(id = addressID).first()
+    
+    est = woEstimate.objects.filter(woID = wo, estimateNumber = estimateID).first()
+
+    if est:
+        est.zipCode =addressO.zipCode
+        est.state = addressO.state
+        est.city = addressO.city
+        est.address = addressO.address
+        est.description = addressO.description
+        est.save()
+
+
+    inv = woInvoice.objects.filter(woID = wo, estimateNumber = estimateID).first()
+
+    if inv:
+        inv.zipCode =addressO.zipCode
+        inv.state = addressO.state
+        inv.city = addressO.city
+        inv.address = addressO.address
+        inv.description = addressO.description
+        inv.save()
+
+    return HttpResponseRedirect("/update_estimate/"+ str(wo.id) + "/" + str(estimateID))   
+
+def billing_address_list(request):
+    emp = Employee.objects.filter(user__username__exact = request.user.username).first()
+    context ={}
+    per = period.objects.filter(status__in=(1,2)).first()
+    context["per"] = per
+ 
+    context["addressList"] = billingAddress.objects.all()
+    context["emp"]= emp
+    return render(request, "billing_address_list.html", context)
+
+def create_billing_address(request):
+    emp = Employee.objects.filter(user__username__exact = request.user.username).first()
+    context ={}
+    per = period.objects.filter(status__in=(1,2)).first()
+    context["per"] = per
+ 
+    form = billingAddressForm(request.POST or None)
+    if form.is_valid():
+        form.instance.createdBy = request.user.username
+        form.instance.created_date = datetime.now()
+        form.save()               
+        return HttpResponseRedirect("/billing_address_list/")
+         
+    context['form']= form
+    context["emp"]=emp
+    return render(request, "create_billing_address.html", context)
+
+
+def update_billing_address(request, id):
+    emp = Employee.objects.filter(user__username__exact = request.user.username).first()
+    context ={}
+    per = period.objects.filter(status__in=(1,2)).first()
+    context["per"] = per
+
+    obj = get_object_or_404(billingAddress, id = id)
+ 
+    form = billingAddressForm(request.POST or None, instance = obj)
+ 
+    if form.is_valid():
+        form.save()
+        return HttpResponseRedirect("/billing_address_list/")
+
+    context["form"] = form
+    context["emp"] = emp
+    return render(request, "create_billing_address.html", context)
+
+
 ### General Functions
 def vendorSubcontrator(request):
     vendorList = vendor.objects.filter(is_active = True).only("id", "name")
@@ -5707,8 +5873,6 @@ def vendorSubcontrator(request):
 
 
     return vcList
-
-
 
 def date_difference(orders):
     day_diff = []
@@ -5967,3 +6131,7 @@ def update_estimate_closed(request):
         return render(request,'landing.html',{ 'message':str(updated) + ' Estimates updated Successfully.... Detail:  ' , 'alertType':'success','emp':emp, 'per':per})
     except Exception as e:
         return render(request,'landing.html',{'message':'Somenthing went Wrong!' + str(e), 'alertType':'danger','emp':emp, 'per': per})
+    
+
+
+

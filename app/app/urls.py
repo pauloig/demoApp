@@ -47,7 +47,7 @@ urlpatterns = [
     path('create_po/<id>',views.create_po),
     path('add_internalPO_to_estimate/<poID>/<woID>/<estimateID>',views.add_internalPO_to_estimate),
     path('estimate_preview/<id>/<estimateID>',views.estimate_preview),
-    path('partial_estimate/<id>/<isPartial>/<Status>',views.partial_estimate),
+    path('partial_estimate/<id>/<isPartial>/<Status>/<addressID>',views.partial_estimate),
     path('invoice_preview/<id>/<invoiceID>',views.invoice_preview),
     path('estimate/<id>/<estimateID>',views.estimate),
     path('invoice/<id>/<invoiceID>',views.invoice),
@@ -106,15 +106,20 @@ urlpatterns = [
     path('employee_location_list/<empID>',views.employee_location_list),
     path('create_employee_location/<empID>',views.create_employee_location),
     path('delete_employee_location/<empID>',views.delete_employee_location),
+    path('select_billing_address/<id>/<isPartial>/<isUpdate>',views.select_billing_address),
+    path('billing_address_list/',views.billing_address_list),
+    path('create_billing_address/',views.create_billing_address),
+    path('update_billing_address/<id>',views.update_billing_address),
+    path('update_billing_address/<id>',views.update_billing_address),
+    #Temp URL's
     path('update_linked_orders/',views.update_linked_orders),
     path('update_item_payout/',views.update_item_payout),
     path('update_emp_payout/',views.update_emp_payout),
-    path('update_estimate_closed/',views.update_estimate_closed),
+    path('update_estimate_address/<woID>/<addressID>/<estimateID>',views.update_estimate_address),
     path('list_linked_orders/',views.list_linked_orders),
     path('logout/', LogoutView.as_view(next_page='/login/'), name='logout'),
     path('', include('authentication.urls')),
     path('home/', include('authentication.urls')),
-    
     path('',
          LoginView.as_view
          (

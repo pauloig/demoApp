@@ -84,6 +84,56 @@
                                 <table class="table table-sm table-bordered table-striped">
                                     <thead>
                                         <tr class="table-primary">                                                  
+                                            <th scope="col" colspan="6" class="p-1" style="background-color: white; border: none;"></th>
+                                            <!--<th scope="col" class="p-1" style="width: 20%">Location</th>  
+                                            <th scope="col" class="p-1" style="width: 8%">Regular Time</th>  
+                                            <th scope="col" class="p-1" style="width: 8%">Over Time</th>  
+                                            <th scope="col" class="p-1" style="width: 8%">Double Time</th>  
+                                            <th scope="col" class="p-1" style="width: 8%">Total Time</th>  -->
+                                            <th scope="col" class="p-1" style="color:darkblue; font-weight: 600; width: 8%">
+                                                {% if totals.rt > 0%}
+                                                    ${{totals.rt|floatformat:"2"|intcomma}}
+                                                {%endif%}   </th>  
+                                            <th scope="col" class="p-1" style="color:darkblue; font-weight: 600; width: 8%">
+                                                {% if totals.ot > 0%}
+                                                    ${{totals.ot|floatformat:"2"|intcomma}}
+                                                {%endif%}</th> 
+                                            <th scope="col" class="p-1" style="color:darkblue; font-weight: 600; width: 8%">
+                                                {% if totals.dt > 0%}
+                                                    ${{totals.dt|floatformat:"2"|intcomma}}
+                                                {%endif%}</th>
+                                            <th scope="col" class="p-1" style="color:darkblue; font-weight: 600; width: 8%">
+                                                {% if totals.bonus > 0%}
+                                                    ${{totals.bonus|floatformat:"2"|intcomma}}
+                                                {%endif%}   </th>  
+                                            <th scope="col" class="p-1" style="color:darkblue; font-weight: 600; width: 8%">
+                                                {% if totals.production > 0%}
+                                                        ${{totals.production|floatformat:"2"|intcomma}}
+                                                    {%endif%}  </th>   
+                                            <th scope="col" class="p-1" style="color:darkblue; font-weight: 600; width: 8%">
+                                                {% if totals.own_vehicle > 0%}
+                                                    ${{totals.own_vehicle|floatformat:"2"|intcomma}}
+                                                {%endif%}</th>  
+                                            <th scope="col" class="p-1" style="color:darkblue; font-weight: 600; width: 8%">
+                                                {% if totals.on_call > 0%}
+                                                    ${{totals.on_call|floatformat:"2"|intcomma}}
+                                                {%endif%} </th>    
+                                            <th scope="col" class="p-1" style="color:darkblue; font-weight: 600; width: 8%">
+                                                {% if totals.payroll > 0%}
+                                                    ${{totals.payroll|floatformat:"2"|intcomma}}
+                                                {%endif%}</th> 
+                                            <th scope="col" class="p-1" style="color:darkblue; font-weight: 600; width: 8%">
+                                                {% if totals.invoice > 0%}
+                                                    ${{totals.invoice|floatformat:2|intcomma}}
+                                                {%endif%}</th>    
+                                            <th scope="col" class="p-1" style="color:darkblue; font-weight: 600; width: 8%">
+                                                {% if totals.percentage > 0%}
+                                                    {{totals.percentage|floatformat:"2"|intcomma}}%
+                                                {%endif%}
+                                            </th> 
+                                            <th scope="col" style="width: 5%"></th>                                            
+                                        </tr>
+                                        <tr class="table-primary">                                                  
                                             <th scope="col" class="p-1" style="width: 5%">Id</th>
                                             <th scope="col" class="p-1" style="width: 20%">Location</th>  
                                             <th scope="col" class="p-1" style="width: 8%">Regular Time</th>  

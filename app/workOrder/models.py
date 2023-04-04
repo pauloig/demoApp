@@ -426,6 +426,7 @@ class woEstimate(models.Model):
     state = models.CharField(max_length=200, blank=True, null=True)
     city = models.CharField(max_length=200, blank=True, null=True)
     address = models.CharField(max_length=200, blank=True, null=True)
+    description = models.CharField(max_length=200, blank=True, null=True)
     Status = models.IntegerField(default=1, choices = estimateStatus_choice)
     is_partial = models.BooleanField(default=False)
     created_date = models.DateTimeField(null=True, blank=True)
@@ -443,6 +444,7 @@ class woInvoice(models.Model):
     state = models.CharField(max_length=200, blank=True, null=True)
     city = models.CharField(max_length=200, blank=True, null=True)
     address = models.CharField(max_length=200, blank=True, null=True)
+    description = models.CharField(max_length=200, blank=True, null=True)
     Status = models.IntegerField(default=1, choices = estimateStatus_choice)
     is_partial = models.BooleanField(default=False)
     created_date = models.DateTimeField(null=True, blank=True)
@@ -450,3 +452,16 @@ class woInvoice(models.Model):
 
     def __str__(self):
         return str(self.woID) + " - " + str(self.id)
+    
+class billingAddress(models.Model):
+    zipCode = models.IntegerField(null=True, blank=True)
+    state = models.CharField(max_length=200, blank=True, null=True)
+    city = models.CharField(max_length=200, blank=True, null=True)
+    address = models.CharField(max_length=200, blank=True, null=True)
+    description = models.CharField(max_length=200, blank=True, null=True)
+    is_active = models.BooleanField(default=True)
+    created_date = models.DateTimeField(null=True, blank=True)
+    createdBy = models.CharField(max_length=60, blank=True, null=True)
+
+    def __str__(self):
+        return str(self.zipCode) + " - " + str(self.state) + " - " + str(self.city)

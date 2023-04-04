@@ -129,7 +129,7 @@
                                                                     &nbsp; <a href="/update_estimate/{{order.id}}/{{itemd.estimateNumber}}"><i class="fa-solid fa-pen-to-square" style="color: green;"></i></a>
                                                                 {%endif%}                                                           
                                                                 {% if itemd.Status == 1 %}
-                                                                    &nbsp; <a data-bs-toggle="tooltip" data-bs-placement="top" title="Generate Invoice" href="/partial_estimate/{{order.id}}/True/2"><i class="fa-solid fa-circle-arrow-right" style="color: green;"></i></a>  
+                                                                    &nbsp; <a data-bs-toggle="tooltip" data-bs-placement="top" title="Generate Invoice" href="/partial_estimate/{{order.id}}/True/2/0"><i class="fa-solid fa-circle-arrow-right" style="color: green;"></i></a>  
                                                                 {%endif%}
                                                             </td> 
                                                         </tr>
@@ -210,11 +210,13 @@
                                                     <a class="btn btn-success" hx-get="/estimate_preview/{{order.id}}/0" hx-target="#dialog">Estimate Preview</a>
                                                 {%endif%}
                                                 {%if order.Status == "2" and openEstimate and itemCount > 0 %}  
-                                                    <a class="btn btn-primary" href="/partial_estimate/{{order.id}}/True/1">Add to Open Estimate</a>
+                                                    <a class="btn btn-primary" href="/partial_estimate/{{order.id}}/True/1/0">Add to Open Estimate</a>
                                                 {%elif order.Status == "2" and openEstimate == False %}
                                                     {%if itemCount > 0%}
-                                                        <a class="btn btn-info" href="/partial_estimate/{{order.id}}/True/1">Partial Invoice</a>
-                                                        <a class="btn btn-primary" href="/partial_estimate/{{order.id}}/False/1" hx-target="#dialog">Final Invoice</a>
+                                                        <a class="btn btn-info" hx-get="/select_billing_address/{{order.id}}/True/0" hx-target="#dialog">Partial Invoice</a>
+                                                        <a class="btn btn-primary" hx-get="/select_billing_address/{{order.id}}/False/0" hx-target="#dialog">Final Invoice</a>
+                                                        <!--<a class="btn btn-info" href="/partial_estimate/{{order.id}}/True/1">Partial Invoice</a>
+                                                        <a class="btn btn-primary" href="/partial_estimate/{{order.id}}/False/1" hx-target="#dialog">Final Invoice</a>-->
                                                     {%endif%}
                                                     
                                                 {%endif%}       

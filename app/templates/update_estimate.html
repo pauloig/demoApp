@@ -97,6 +97,30 @@
                                 <div class="card-body">                                                                            
                                     <div class="row">
                                         <div class="col-sm-12">
+                                            <table  class="table table-sm table-striped">
+                                                <thead>
+                                                    <tr class="table-primary" style="border: none;"> 
+                                                        <td colspan="2" class="p-1" style="color:black; font-weight: 600;"><strong>Billing Address</strong> </td> 
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                    <td>
+                                                        {{woEstimate.description}} <br>
+                                                        {{woEstimate.address}}<br>
+                                                        {{woEstimate.city}}, {{woEstimate.state}} {{woEstimate.zipCode}}
+                                                    </td>
+                                                    <td width="5%" class="p-1"> 
+                                                        <br>                                                       
+                                                        <a hx-get="/select_billing_address/{{order.id}}/True/{{estimateID}}" hx-target="#dialog"><i class="fa-solid fa-pen-to-square fa-2x" style="color: green;"></i></a>
+                                                    </td>
+                                                    </tr>
+                                                </tbody>
+                                                
+                                            </table>
+                                            
+                                            <br>
+
                                             <table  class="table table-sm table-bordered table-striped">
                                                 <thead>
                                                     
