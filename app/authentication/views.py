@@ -43,23 +43,23 @@ def calculate_payroll(locID):
 
             for i in dailyemp:
                 if production <= 0:
-                    regular_time += i.regular_hours
-                    over_time += i.ot_hour
-                    double_time += i.double_time
-                    total_time += i.total_hours
-                    if i.EmployeeID.hourly_rate != None:
-                        rt += (i.regular_hours * float(i.EmployeeID.hourly_rate))
-                        ot += ((i.ot_hour * (float(i.EmployeeID.hourly_rate)*1.5)))
-                        dt += ((i.double_time * (float(i.EmployeeID.hourly_rate)*2)))
+                    regular_time += validate_decimals(i.regular_hours)
+                    over_time += validate_decimals(i.ot_hour)
+                    double_time += validate_decimals(i.double_time)
+                    total_time += validate_decimals(i.total_hours)
+                    #if validate_decimals(i.EmployeeID.hourly_rate) != None:
+                    rt += validate_decimals(i.rt_pay)
+                    ot += validate_decimals(i.ot_pay)
+                    dt += validate_decimals(i.dt_pay)
 
-                if i.bonus != None:
-                    bonus += i.bonus
+                if validate_decimals(i.bonus) != None:
+                    bonus += validate_decimals(i.bonus)
                     
-                if i.on_call != None:
-                    on_call += i.on_call
+                if validate_decimals(i.on_call) != None:
+                    on_call += validate_decimals(i.on_call)
 
-                if i.payout != None:
-                    payroll += i.payout
+                if validate_decimals(i.payout) != None:
+                    payroll += validate_decimals(i.payout)
 
             
             dailyprod =  woModels.DailyItem.objects.filter(DailyID=dailyItem)
@@ -67,24 +67,21 @@ def calculate_payroll(locID):
             
             ov = 0
             for j in dailyprod:                
-                total += j.total
-                if j.itemID.price != None:
-                    invoice += (j.quantity * float(j.itemID.price))
-                else:
-                    invoice += (j.quantity * 0)
-                
-                if j.itemID.emp_payout != None:
-                    payroll2 += (j.quantity * float(j.itemID.emp_payout))
-                else:
-                    payroll2 += (j.quantity * 0)
+                total += validate_decimals(j.total)
+                if validate_decimals(j.price) != None:
+                    invoice += (validate_decimals(j.quantity) * float(validate_decimals(j.price)) )
+                if validate_decimals(j.emp_payout) != None:    
+                    payroll2 += (validate_decimals(j.quantity) * float(validate_decimals(j.emp_payout)) )
 
-            if dailyItem.own_vehicle != None:
-                ov = ((total * dailyItem.own_vehicle) / 100)
-                ownvehicle += ov
-            prod += (total)
 
-        if invoice > 0:                    
-            perc = (payroll * 100) / invoice
+            if validate_decimals(dailyItem.own_vehicle) != None:
+                ov = validate_decimals(((validate_decimals(total) * validate_decimals(dailyItem.own_vehicle)) / 100))
+                ownvehicle += validate_decimals(ov)
+            prod += validate_decimals(total)
+
+        if validate_decimals(invoice) > 0:                    
+            perc = validate_decimals((validate_decimals(payroll) * 100) / validate_decimals(invoice))
+
         
         TotPayroll += payroll
         TotInvoice += invoice
@@ -190,6 +187,21 @@ def home(request):
         'home.html',
         context        
     )
+
+def validate_decimals(value):
+    try:
+        return round(float(str(value)), 2)
+    except:
+       return 0
+
+def validate_print_decimals(value): 
+    try:
+        if round(float(value), 2) > 0:                
+            return round(float(value), 2)
+        else:
+            return ''
+    except:
+       return ''    
 
 def login(request):
     state = 0
