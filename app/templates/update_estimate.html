@@ -126,7 +126,7 @@
                                                     
                                                     <tr class="table-primary" style="border: none;">                                                    
                                                         
-                                                        <td width="42%" colspan="2" class="p-1" style="background-color: white; border: none;">                                                           
+                                                        <td width="40%" colspan="2" class="p-1" style="background-color: white; border: none;">                                                           
                                                         </td>
                                                         <td width="7%" colspan="3" class="p-1" style="text-align: center; font-size: medium; font-weight: 600;" ><strong>Production</strong> </td>                                                              
                                                         <td width="7%" colspan="4" class="p-1" style="text-align: center; font-size: medium; font-weight: 600;"><strong>Authorized Billing</strong></td>
@@ -134,7 +134,7 @@
                                                     </tr>
                                                     <tr class="table-primary" >                                                    
                                                         
-                                                        <td width="42%" colspan="2" class="p-1" style="background-color: white; border: none;"></td>
+                                                        <td width="40%" colspan="2" class="p-1" style="background-color: white; border: none;"></td>
                                                         <td width="7%" class="p-1" style="color:darkblue; font-weight: 600;">{{totals.qtyP}}</td>
                                                         <td width="7%" class="p-1"></td>
                                                         <td width="10%" class="p-1" style="color:darkblue; font-weight: 600;">${{totals.totalP|floatformat:2|intcomma}}</td>  
@@ -145,17 +145,17 @@
                                                     </tr>
                                                     <tr class="table-primary">                                                    
                                                         <td width="7%" class="p-1">Item</td>
-                                                        <td width="35%" class="p-1">Description</td>
+                                                        <td width="33%" class="p-1">Description</td>
                                                         <td width="7%" class="p-1">Qty.</td>
                                                         <td width="7%" class="p-1">Rate</td>
                                                         <td width="10%" class="p-1">Total</td>  
                                                         <td width="7%" class="p-1">Qty.</td>
                                                         <td width="7%" class="p-1">Rate</td>
                                                         <td width="10%" class="p-1">Total</td>
-                                                        <td width="5%" class="p-1">          
+                                                        <td width="7%" class="p-1">          
                                                             {%if order.Status == "2" or order.Status == "3" or order.Status == "4" or order.Status == "5"%}
                                                                 {% if emp.is_superAdmin  or user.is_staff %}                                     
-                                                                    <a hx-get="/create_authorized_prod_item/{{order.id}}/0/{{estimateID}}" hx-target="#dialog"><i class="fa-solid fa-circle-plus"></i></a>
+                                                                    <a data-bs-toggle="tooltip" data-bs-placement="top" title="Add Item" hx-get="/create_authorized_prod_item/{{order.id}}/0/{{estimateID}}" hx-target="#dialog"><i class="fa-solid fa-circle-plus"></i></a>
                                                                 {%endif%}
                                                             {%endif%}
                                                         </td>                                                 
@@ -188,13 +188,14 @@
                                                                 
                                                                 {%if order.Status == "2" or order.Status == "3" or order.Status == "4" or order.Status == "5"%}     
                                                                     {% if emp.is_superAdmin  or user.is_staff %}                                                                     
-                                                                        <a hx-get="/update_authorized_prod_item/{{itemd.idA}}/0/{{estimateID}}" hx-target="#dialog"><i class="fa-solid fa-pen-to-square" style="color: green;"></i></a>
+                                                                        <a data-bs-toggle="tooltip" data-bs-placement="top" title="Update Item" hx-get="/update_authorized_prod_item/{{itemd.idA}}/0/{{estimateID}}" hx-target="#dialog"><i class="fa-solid fa-pen-to-square" style="color: green;"></i></a>
                                                                         {%if  itemd.quantityA > 0 %}
-                                                                            <a hx-get="/delete_authorized_prod_item/{{itemd.idA}}/0/{{estimateID}}" hx-target="#dialog"><i class="fa-solid fa-circle-minus" style="color: red;"></i></a>
+                                                                            <a data-bs-toggle="tooltip" data-bs-placement="top" title="Remove Item" hx-get="/delete_authorized_prod_item/{{itemd.idA}}/0/{{estimateID}}" hx-target="#dialog"><i class="fa-solid fa-circle-minus" style="color: red;"></i></a>
                                                                         {%endif%}
                                                                     {%endif%}
                                                                 {%endif%}
-                                                                <a hx-get="/comment_authorized_prod_item/{{itemd.idA}}" hx-target="#dialog"><i class="fa-solid fa-comment" style="color: green;"></i></a>
+                                                                <a data-bs-toggle="tooltip" data-bs-placement="top" title="Add Comment" hx-get="/comment_authorized_prod_item/{{itemd.idA}}" hx-target="#dialog"><i class="fa-solid fa-comment" style="color: green;"></i></a>
+                                                                <a data-bs-toggle="tooltip" data-bs-placement="top" title="Transfer" hx-get="/production_transfer/{{itemd.idA}}/0/{{estimateID}}" hx-target="#dialog"><i class="fa-solid fa-right-left" style="color: green;"></i></a>
                                                             </td> 
                                                         </tr>
                                                     {%endfor%}

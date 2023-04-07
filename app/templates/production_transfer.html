@@ -1,0 +1,126 @@
+{% extends 'base.html' %} 
+{%load static%}
+{% block title %} Order List {% endblock %} 
+{% load humanize %}
+{% block container %}
+{% load widget_tweaks%}
+
+<div class="container">
+    <form method='post' action="{{request.path}}" class="modal-content" id="daily_item">
+        {% csrf_token %}
+
+        <div class="modal-header">
+            <h5>Production Transfer</h5>           
+        </div>              
+       
+        <div class="modal-body">
+            <div class="row" id="items">            
+                <table id="orders" class="table table-sm table-bordered table-striped">
+                    <thead class="table-primary">
+                        <tr>
+                            <th scope="col">prism ID</th>
+                            <th scope="col">work Order Id</th>
+                            <th scope="col">PO</th>
+                            <th scope="col">Status</th>
+                            <th scope="col"></th>
+                        </tr>              
+                    </thead>
+                    <tbody>                                       
+                        {% for order in orderList %}
+                                <tr>
+                                    <td>{{order.prismID}}</td>
+                                    <td>{{order.workOrderId}}</td>
+                                    <td>{{order.PO}}</td>
+                                    {% if order.Status == "1" %}
+                                        <td>Not Started</td>
+                                    {% endif %}
+                                    {% if order.Status == "2" %}
+                                        <td>Work in Progress</td>
+                                    {% endif %}
+                                    {% if order.Status == "3" %}
+                                        <td>Pending Docs</td>
+                                    {% endif %}
+                                    {% if order.Status == "4" %}
+                                        <td>Pending Revised WO</td>
+                                    {% endif %}
+                                    {% if order.Status == "5" %}
+                                        <td>Invoiced</td>
+                                    {% endif %}
+                                   
+                                    <td>                                     
+                                         <a href="#" onclick="selectItem(1,'oso')"><i class="fa-solid fa-circle-arrow-right" style="color: green;"></i></a>                                        
+                                   </td>
+                                    
+                                    
+                                </tr>   
+                        {% endfor %}
+                    </tbody>                              
+                </table>
+            </div>
+            <script>
+                function selectItem(item, itemName)
+                {
+                    console.log("Se Selecciono un item" + item);
+
+                    var element = document.getElementById("items");
+                    element.style.display = "none";
+
+                    var element2 = document.getElementById("forma");
+                    element2.style.display = "block";
+
+                    var element3 = document.getElementById("itemID");
+                    element3.value = item    
+                    
+                    var element4 = document.getElementById("itemName");
+                    element4.value = itemName    
+
+                }
+
+                $("#orders").DataTable();  
+            </script>
+            <div id="forma" style="display: none;">
+                <div class="row">
+                    <div class="col-sm-6">
+                        <div class="mb-3">
+                            <label for="{{ form.woID.id_for_label }}" class="form-label">Selected work order</label>
+                            {% render_field form.woID class="form-control" %}
+                            <div class="invalid-feedback">{{ form.woID.errors|first }}</div>
+                        </div>
+                    </div>                
+                    <div class="col-sm-6">
+                        <div class="mb-3">
+                            <label for="itemName" class="form-label">Item</label>                        
+                            <input type="text" name="itemName" id="itemName" class="form-control" disabled>                                                
+                            <input type="hidden" name="itemID" id="itemID">
+                        </div>
+                    </div>                                   
+                </div>  
+                <div class="row">
+                    <div class="col-sm-6">
+                        <div class="mb-3">
+                            <label for="{{ form.quantity.id_for_label }}" class="form-label">Quantity</label>
+                            {% render_field form.quantity class="form-control" %}
+                            <div class="invalid-feedback">{{ form.quantity.errors|first }}</div>
+                        </div>
+                    </div> 
+                </div>   
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="mb-3">
+                            <label for="{{ form.comment.id_for_label }}" class="form-label">Comments</label>
+                            {% render_field form.comment|attr:"rows:5"|attr:"cols:20"|attr:"required:required" class="form-control" %}
+                            <div class="invalid-feedback">{{ form.comment.errors|first }}</div>
+                        </div>
+                    </div> 
+                </div>             
+            </div>            
+        </div>
+        
+        <div class="modal-footer">          
+            <!--<button type="submit" class="btn btn-primary" form="daily_item">Save</button>-->
+            <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button> 
+        </div>
+   
+    </form>
+</div>
+{% endblock %}

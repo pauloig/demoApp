@@ -107,10 +107,6 @@ class workOrder(models.Model):
 
     def __str__(self):
         return self.prismID + " - " + self.workOrderId + " - " + self.PO
-        
-    @property
-    def date_diff(self):
-        return (5)
 
 class workOrderDuplicate(models.Model):
     prismID = models.CharField(max_length=200, blank=True, null=True)

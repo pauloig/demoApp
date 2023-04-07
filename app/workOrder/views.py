@@ -5282,6 +5282,75 @@ def comment_authorized_prod_item(request, id):
     return render(request, "comment_authorized_prod_item.html", context)
 
 
+def production_transfer(request, id, invoiceID, estimateID):
+    emp = Employee.objects.filter(user__username__exact = request.user.username).first()
+    context ={}
+
+    per = period.objects.filter(status__in=(1,2)).first()
+    context["per"] = per
+
+    estimateO = None
+    invoiceO = None
+
+    obj = get_object_or_404(authorizedBilling, id = id)
+
+    wo = workOrder.objects.filter()
+    context["orderList"] = wo
+    
+    itemSelected = itemPrice.objects.filter(id = obj.itemID.id ).first()
+    itemLocation = itemPrice.objects.all()
+
+    form = authorizedBillingForm(request.POST or None, instance = obj, qs = itemLocation)
+ 
+    if form.is_valid():
+        price = form.instance.itemID.price    
+        form.instance.total = form.instance.quantity * float(price)
+        
+        itemid = request.POST.get('itemID')
+        
+        selectedItem = itemPrice.objects.filter(id = itemid).first()
+        form.instance.itemID = selectedItem
+        form.instance.updated_date = datetime.now()
+        form.instance.updatedBy = request.user.username
+        form.save()
+        context["emp"] = emp    
+
+        if int(invoiceID) == 0 and int(estimateID) == 0:
+            return HttpResponseRedirect("/billing_list/" + str(form.instance.woID.id)) 
+        elif int(invoiceID) > 0:            
+            
+            invoiceO = woInvoice.objects.filter(woID = obj.woID, invoiceNumber = int(invoiceID)).first()            
+            invoiceO.Status = 3
+            invoiceO.save() 
+                
+            estimateO = woEstimate.objects.filter(woID = obj.woID, estimateNumber = invoiceO.estimateNumber ).first()  
+            if estimateO:
+                #estimateO.Status = 3
+                estimateO.save() 
+            
+            return HttpResponseRedirect("/update_invoice/" + str(obj.woID.id) + "/"  + invoiceID)
+            
+        elif int(estimateID) > 0:            
+            
+            invoiceO = woInvoice.objects.filter(woID = obj.woID, estimateNumber = int(estimateID)).first()            
+            if invoiceO:
+                invoiceO.Status = 3
+                invoiceO.save() 
+                
+            estimateO = woEstimate.objects.filter(woID = obj.woID, estimateNumber = int(estimateID) ).first()  
+            if estimateO:
+                #estimateO.Status = 3
+                estimateO.save() 
+        
+            return HttpResponseRedirect("/update_estimate/" + str(obj.woID.id) + "/"  + estimateID)  
+
+    context["form"] = form
+    context["emp"] = emp
+    context["itemSelected"] = itemSelected
+
+    return render(request, "production_transfer.html", context)
+
+
 def billing_list(request, id):
     errorMessage = ""
     try:

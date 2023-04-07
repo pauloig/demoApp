@@ -1,31 +1,13 @@
 from django.contrib import admin
-from import_export.admin import ImportExportModelAdmin
-from workOrder.models import workOrder, workOrderDuplicate, Locations, Employee, item, itemPrice, payroll, payrollDetail, internalPO, period, Daily, DailyEmployee, DailyItem, employeeRecap, woStatusLog, vendor, subcontractor, externalProduction, externalProdItem, authorizedBilling, woEstimate, woInvoice, employeeLocation, billingAddress
+from workOrder.models import *
 
+@admin.register(workOrder)
+class  workOrderAdmin(admin.ModelAdmin):
+    list_display = ('prismID','workOrderId','PO')
+    search_fields = ('prismID','workOrderId','PO')
+    #list_filter = ('Location')
 
-admin.site.register(workOrder)
-class  workOrderAdmin(ImportExportModelAdmin):
-    list_display = ( 'id',
-    'prismID',
-    'workOrderId',
-    'PO',
-    'POAmount',
-    'ConstType',
-    'ConstCoordinator',
-    'WorkOrderDate',
-    'EstCompletion',
-    'IssuedBy',
-    'JobName',
-    'JobAddress',
-    'SiteContactName',
-    'SitePhoneNumber',
-    'Comments',
-    'Status',
-    'CloseDate',
-    'WCSup',
-    'UploadDate',
-    'UserName' )
-
+#admin.site.register(workOrder)
 admin.site.register(workOrderDuplicate)
 admin.site.register(Locations)
 admin.site.register(Employee)
