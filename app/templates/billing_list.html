@@ -273,8 +273,14 @@
                                                         <tr>
                                                             <td class="p-1">{{itemd.item}}</td>
                                                             <td class="p-1">{{itemd.name}}</td>
+                                                            
                                                             {% if itemd.quantity == None %}
-                                                                <td class="p-1" colspan="3" style="text-align: center; font-weight: 600; color: orangered;"> Not Included in Production</td>             
+                                                            
+                                                                {% if itemd.transferFrom == None %}
+                                                                    <td class="p-1" colspan="3" style="text-align: center; font-weight: 600; color: orangered;"> Not Included in Production</td> 
+                                                                {%else%}
+                                                                    <td class="p-1" colspan="3" style="text-align: center; font-weight: 500; color: orangered;"> Transfer from {{itemd.transferFrom}}</td> 
+                                                                {%endif%}            
                                                             {%else%}
                                                                 <td class="p-1" style="color:darkblue; font-weight: 600;">{{itemd.quantity}}</td>
                                                                 <td class="p-1" style="color:darkblue; font-weight: 600;">${{itemd.price|floatformat:2|intcomma}}</td>

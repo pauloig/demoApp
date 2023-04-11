@@ -347,6 +347,7 @@ class subcontractor(models.Model):
         return "S" +  str(self.id) + " - " + str(self.name)
 
 class internalPO(models.Model):
+    poNumber = models.IntegerField(null=True, blank=True)
     woID = models.ForeignKey(workOrder, on_delete=models.CASCADE, db_column ='woID')
     #vendor = models.ForeignKey(vendor, on_delete=models.SET_NULL, null=True, blank=True, db_column='vendor')
     vendor = models.CharField(max_length=50, null=True, blank=True)
@@ -405,6 +406,11 @@ class authorizedBilling(models.Model):
     invoice = models.CharField(max_length=50, null=True, blank=True)
     Status = models.IntegerField(default=1, choices = prodStatus_choice)
     comment = models.TextField(max_length=500, null=True, blank=True)
+    transferFrom = models.ForeignKey(workOrder, on_delete=models.CASCADE, null=True, blank=True, db_column ='transferFrom', related_name='transferFrom')
+    transferTo = models.ForeignKey(workOrder, on_delete=models.CASCADE, null=True, blank=True, db_column ='transferTo', related_name='transferTo')
+    transferQty = models.IntegerField(null=False, blank=False) 
+    transfer_date = models.DateTimeField(null=True, blank=True)
+    transferBy = models.CharField(max_length=60, blank=True, null=True)
     created_date = models.DateTimeField(null=True, blank=True)
     createdBy = models.CharField(max_length=60, blank=True, null=True)
     updated_date = models.DateTimeField(null=True, blank=True)

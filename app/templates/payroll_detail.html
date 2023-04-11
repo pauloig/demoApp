@@ -116,12 +116,13 @@
                 </div>
             </div>
         </div>
+        </div>
         <div class="row">
-            <div class="col-sm-12 my-3">
+            <div class="col-sm-12">
                 <div class="card">
                     <div class="card-header card-header-wc">
                         <div class="row">
-                            <div class="col-sm-9">
+                            <div class="col-sm-12">
                                 <h6 class="" >Expenses Details</h6>
                             </div>
                            
@@ -197,14 +198,84 @@
                                 
                             </div>
                         </div>
-                        <br/>           
+                        <div class="row">
+                            <div class="col-lg-12"> 
+                                Production Transfer To Another WO
+                                <table id="orders2" class="table table-sm table-bordered table-striped">
+                                    <thead>
+                                        <tr class="table-primary"> 
+                                            <td class="p-1">Item</td> 
+                                            <td class="p-1">Transfer To</td>                                                
+                                            <td class="p-1">Quantity</td>
+                                            <td class="p-1">Total</td>                                            
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {%for item in prodTransferTo%}
+                                        <tr>
+                                            <td>{{item.itemID.item.name}}</td>
+                                            <td>{{item.woID}}</td>
+                                            <td>{{item.transferQty}}</td>
+                                            <td>${% widthratio item.itemID.price 1 item.transferQty%}</td>
+                                           
+                                        </tr>
+                                        {%endfor%}
+                                        {% if pttTotal > 0%}
+                                            <tr>
+                                                <td colspan="3"> Total</td>
+                                                
+                                                <td><strong>${{pttTotal|floatformat:2|intcomma}}</strong></td>
+                                            </tr>
+                                        {%endif%}
+                                    </tbody>
+                                </table>                    
+                                
+                            </div>
+                        </div>
+                        <br/>     
+                        
+                        <div class="row">
+                            <div class="col-lg-12"> 
+                                Production Transfer From Another WO
+                                <table id="orders2" class="table table-sm table-bordered table-striped">
+                                    <thead>
+                                        <tr class="table-primary"> 
+                                            <td class="p-1">Item</td> 
+                                            <td class="p-1">Transfer To</td>                                                
+                                            <td class="p-1">Quantity</td>
+                                            <td class="p-1">Total</td>                                            
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {%for item in prodTransferFrom%}
+                                        <tr>
+                                            <td>{{item.itemID.item.name}}</td>
+                                            <td>{{item.TransferFrom}}</td>
+                                            <td>{{item.transferQty}}</td>
+                                            <td>${% widthratio item.itemID.price 1 item.transferQty%}</td>
+                                           
+                                        </tr>
+                                        {%endfor%}
+                                        {% if ptfTotal > 0%}
+                                            <tr>
+                                                <td colspan="3"> Total</td>
+                                                
+                                                <td><strong>${{ptfTotal|floatformat:2|intcomma}}</strong></td>
+                                            </tr>
+                                        {%endif%}
+                                    </tbody>
+                                </table>                    
+                                
+                            </div>
+                        </div>
+                        <br/>  
                             <div class="row">
                                 <div class="col-lg-12">
                                     Internal POs
-                                    <table id="orders" class="table table-sm table-bordered table-striped">
+                                    <table id="order" class="table table-sm table-bordered table-striped">
                                         <thead class="table-primary">
                                             <tr>
-                                                <td class="p-1">PO</td>
+                                                <td class="p-1">PO</td>                                                
                                                 <th scope="p-1">Vendor</th>
                                                 <td class="p-1">Supervisor</td>                                                
                                                 <td class="p-1">Pick up Employee</td>
@@ -216,7 +287,7 @@
                                         <tbody>                                       
                                             {% for po in po %}
                                                 <tr>
-                                                    <td>{{po.id}}</td>
+                                                    <td>{{po.poNumber}}</td>
                                                     <td>{{po.vendor}} - 
                                                         {%for i in vendorList%}
                                                             {%if po.vendor == i.id%}

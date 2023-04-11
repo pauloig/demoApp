@@ -153,6 +153,7 @@ class ItemPriceForm(forms.ModelForm):
         self.fields['item'].disabled = True
 
 class InternalPOForm(forms.ModelForm):   
+    #poNumber = forms.IntegerField(label = "PO Number", widget=forms.TextInput(attrs={'class':'form-control'}), required=False)
     supervisor = forms.ModelChoiceField(queryset=Employee.objects.filter(is_active=True, is_supervisor = True), widget=forms.Select(attrs={'class': 'form-control'}), required=False)
     pickupEmployee = forms.ModelChoiceField(queryset=Employee.objects.filter(is_active=True), widget=forms.Select(attrs={'class': 'form-control'}), required=False)
     product = forms.CharField(label="Product",max_length=200, widget=forms.TextInput(attrs={'class':'form-control'}), required=False)
@@ -164,6 +165,7 @@ class InternalPOForm(forms.ModelForm):
     class Meta:
         model = internalPO
         fields = [
+            'poNumber',
             'woID',
             'supervisor',
             'pickupEmployee',
@@ -177,6 +179,7 @@ class InternalPOForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):      
         super().__init__(*args, **kwargs)
+        self.fields['poNumber'].disabled = True
         self.fields['woID'].disabled = True
  
         
@@ -382,6 +385,30 @@ class authorizedBillingForm(forms.ModelForm):
             'itemID',
             'quantity', 
             'comment'           
+        ]
+
+    def __init__(self, *args, **kwargs):
+        qs = kwargs.pop('qs')
+        super().__init__(*args, **kwargs)
+        self.fields['woID'].disabled = True
+        self.fields['itemID'].queryset = qs
+
+
+class TrauthorizedBillingForm(forms.ModelForm):
+
+    class Meta:
+        model = authorizedBilling
+        fields = [
+            'woID',
+            'itemID',
+            'quantity', 
+            'comment',
+            'transferFrom',
+            'transferTo',
+            'transferQty',
+            'transfer_date',
+            'transferBy',
+
         ]
 
     def __init__(self, *args, **kwargs):
