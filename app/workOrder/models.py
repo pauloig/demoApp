@@ -408,7 +408,7 @@ class authorizedBilling(models.Model):
     comment = models.TextField(max_length=500, null=True, blank=True)
     transferFrom = models.ForeignKey(workOrder, on_delete=models.CASCADE, null=True, blank=True, db_column ='transferFrom', related_name='transferFrom')
     transferTo = models.ForeignKey(workOrder, on_delete=models.CASCADE, null=True, blank=True, db_column ='transferTo', related_name='transferTo')
-    transferQty = models.IntegerField(null=False, blank=False) 
+    transferQty = models.IntegerField(null=False, blank=False, default=0) 
     transfer_date = models.DateTimeField(null=True, blank=True)
     transferBy = models.CharField(max_length=60, blank=True, null=True)
     created_date = models.DateTimeField(null=True, blank=True)
