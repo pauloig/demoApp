@@ -3,20 +3,27 @@ from workOrder.models import *
 
 @admin.register(workOrder)
 class  workOrderAdmin(admin.ModelAdmin):
-    list_display = ('prismID','workOrderId','PO','Status')
-    search_fields = ('prismID','workOrderId','PO','Status')
+    list_display = ('id','prismID','workOrderId','PO','Status')
+    search_fields = ('id','prismID','workOrderId','PO','Status')
     list_filter = ('Status',)
 
 
 class  authorizedBillingAdmin(admin.ModelAdmin):
-    list_display = ('woID','itemID')
-    search_fields = ('woID__prismID','woID__workOrderId','woID__PO')
+    list_display = ('id','woID','itemID')
+    search_fields = ('id','woID__prismID','woID__workOrderId','woID__PO')
 
 class  internalPOAdmin(admin.ModelAdmin):
     list_display = ('id','poNumber')
     search_fields = ('id','poNumber')
 
 
+class  internalPOAdmin(admin.ModelAdmin):
+    list_display = ('id','poNumber')
+    search_fields = ('id','poNumber')
+
+class  DailyAdmin(admin.ModelAdmin):
+    list_display = ('id','woID', 'crew', 'Location','Period','day')
+    search_fields = ('id','woID')
 
 
 admin.site.register(workOrderDuplicate)

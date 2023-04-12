@@ -930,6 +930,33 @@ def updateLinkOrder(request, id, manualid):
             temExternal.save()
         
         
+        # Se traslada Producción Autorizada
+
+        authBilling = authorizedBilling.objects.filter(woID = manOrder)
+
+        for ab in authBilling:
+            temAB = authorizedBilling.objects.filter(id = ab.id).first()
+            temAB.woID = order
+            temAB.save()
+
+        # Se traslada estimate
+
+        estimate = woEstimate.objects.filter(woID = manOrder)
+
+        for es in estimate:
+            temEst = woEstimate.objects.filter(id = es.id).first()
+            temEst.woID = order
+            temEst.save()
+
+
+        # Se traslada Invoice
+        invoice = woInvoice.objects.filter(woID = manOrder)
+
+        for inv in invoice:
+            temInv = woInvoice.objects.filter(id = inv.id).first()
+            temInv.woID = order
+            temInv.save()
+
 
         return render(request,'landing.html',{'message':'Order Linked Successfully', 'alertType':'success','emp':emp, 'per':per})
     except Exception as e:
@@ -1092,6 +1119,10 @@ def update_po(request, id, woID):
             form.instance.vendor = None
         else:
             form.instance.vendor = vendor
+
+
+        if form.instance.poNumber == None:
+            form.instance.poNumber = form.instance.id
 
         try:         
             newFile = request.FILES['myfile']
