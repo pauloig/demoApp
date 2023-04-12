@@ -173,7 +173,10 @@ class InternalPOForm(forms.ModelForm):
             'quantity',
             'total',
             'isAmountRounded',
-            'nonBillable'           
+            'nonBillable',
+            'created_date',
+            'createdBy',
+            'Status'         
         ]
 
 
@@ -181,6 +184,9 @@ class InternalPOForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields['poNumber'].disabled = True
         self.fields['woID'].disabled = True
+        self.fields['createdBy'].disabled = True
+        self.fields['created_date'].disabled = True
+        self.fields['Status'].disabled = True
  
         
 

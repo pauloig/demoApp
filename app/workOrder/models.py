@@ -362,6 +362,8 @@ class internalPO(models.Model):
     invoice = models.CharField(max_length=50, null=True, blank=True)
     Status = models.IntegerField(default=1, choices = prodStatus_choice)
     receipt = models.FileField(null=True, upload_to="po")
+    created_date = models.DateTimeField(blank=True, null=True)
+    createdBy = models.CharField(max_length=60, blank=True, null=True)
 
     class Meta:
         unique_together = ('id', 'woID')

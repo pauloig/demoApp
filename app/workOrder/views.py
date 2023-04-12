@@ -1130,6 +1130,10 @@ def update_po(request, id, woID):
 
         except Exception as e:
             None
+
+        form.instance.createdBy = request.user.username
+        form.instance.created_date = datetime.now()
+            
         form.save()
 
         if int(woID) > 0:
@@ -1191,6 +1195,9 @@ def create_po(request, id):
         poSequence = Sequence("po") 
         poNumber = poSequence.get_next_value()        
         form.instance.poNumber = int(poNumber)
+
+        form.instance.createdBy = request.user.username
+        form.instance.created_date = datetime.now()
 
         form.save()               
         return HttpResponseRedirect("/po_list/" + str(id))
@@ -1277,10 +1284,10 @@ def estimate(request, id, estimateID):
     if totaPO > 0:
         totaPO2 = totaPO + (totaPO * Decimal(str(0.10)))
         
-        if data.isAmountRounded:
-            total = total + int(round(float(totaPO2)))
-        else:
-            total = total + totaPO2
+        #if data.isAmountRounded:
+        #    total = total + int(round(float(totaPO2)))
+        #else:
+        total = total + totaPO2
         
         itemHtml = itemHtml + ' <tr> '
         itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="20%" align="center">NS005 </td> '
@@ -1294,10 +1301,10 @@ def estimate(request, id, estimateID):
         
         itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="13%" align="center">$1.10 </td> '
         
-        if data.isAmountRounded:
-            itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> $'  + '{0:,.2f}'.format(int(round(float(totaPO2)))) + '</td>'
-        else:
-            itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> $' + '{0:,.2f}'.format(float(totaPO2)) + '</td>'
+        #if data.isAmountRounded:
+        #    itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> $'  + '{0:,.2f}'.format(int(round(float(totaPO2)))) + '</td>'
+        #else:
+        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> $' + '{0:,.2f}'.format(float(totaPO2)) + '</td>'
         
         
         itemHtml = itemHtml + ' </tr> '
@@ -1451,7 +1458,6 @@ def partial_estimate(request, id, isPartial, Status, addressID):
             created_date = datetime.now(),
             createdBy = request.user.username
         )
-
         invoiceObject.save()
 
     
@@ -1637,10 +1643,10 @@ def invoice(request, id, invoiceID):
     if totaPO > 0:
         totaPO = totaPO * Decimal(str(0.10))
         
-        if data.isAmountRounded:
-            total = total + int(round(float(totaPO)))
-        else:
-            total = total + totaPO
+        #if data.isAmountRounded:
+            #total = total + int(round(float(totaPO)))
+        #else:
+        total = total + totaPO
             
         itemHtml = itemHtml + ' <tr> '
         itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="20%" align="center"> </td> '
@@ -1648,10 +1654,10 @@ def invoice(request, id, invoiceID):
         itemHtml = itemHtml +  ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"></td> '
         itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="13%" align="center"> </td> '
         
-        if data.isAmountRounded:
-            itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> $'  + '{0:,.2f}'.format(int(round(float(totaPO)))) + '</td>'
-        else:
-            itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> $'  + '{0:,.2f}'.format(float(totaPO)) + '</td>'
+        #if data.isAmountRounded:
+            #itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> $'  + '{0:,.2f}'.format(int(round(float(totaPO)))) + '</td>'
+        #else:
+        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> $'  + '{0:,.2f}'.format(float(totaPO)) + '</td>'
         
         itemHtml = itemHtml + ' </tr> '
 
@@ -1806,10 +1812,10 @@ def estimate_preview(request, id, estimateID):
     if totaPO > 0:
         totaPO2 = totaPO + (totaPO * Decimal(str(0.10)))
         
-        if data.isAmountRounded:
-            total = total + int(round(float(totaPO2)))
-        else:
-            total = total + totaPO2
+        #if data.isAmountRounded:
+            #total = total + int(round(float(totaPO2)))
+        #else:
+        total = total + totaPO2
         
         itemHtml = itemHtml + ' <tr> '
         itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="20%" align="center">NS005 </td> '
@@ -1822,10 +1828,10 @@ def estimate_preview(request, id, estimateID):
         
         itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="13%" align="center">$1.10 </td> '
         
-        if data.isAmountRounded:
-            itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> $'  + '{0:,.2f}'.format(int(round(float(totaPO2)))) + '</td>'
-        else:
-            itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> $'  + '{0:,.2f}'.format(float(totaPO2)) + '</td>'
+        #if data.isAmountRounded:
+        #    itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> $'  + '{0:,.2f}'.format(int(round(float(totaPO2)))) + '</td>'
+        #else:
+        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> $'  + '{0:,.2f}'.format(float(totaPO2)) + '</td>'
         
         itemHtml = itemHtml + ' </tr> '
 
@@ -1943,10 +1949,10 @@ def invoice_preview(request, id, invoiceID):
 
     if totaPO > 0:
         totaPO = totaPO * Decimal(str(0.10))
-        if data.isAmountRounded:
-            total = total + int(round(float(totaPO)))
-        else:
-            total = total + totaPO
+        #if data.isAmountRounded:
+            #total = total + int(round(float(totaPO)))
+        #else:
+        total = total + totaPO
             
         itemHtml = itemHtml + ' <tr> '
         itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="20%" align="center"> </td> '
@@ -1954,10 +1960,10 @@ def invoice_preview(request, id, invoiceID):
         itemHtml = itemHtml +  ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"></td> '
         itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="13%" align="center"> </td> '
         
-        if data.isAmountRounded:
-            itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> $'  + '{0:,.2f}'.format(int(round(float(totaPO)))) + '</td>'
-        else:
-            itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> $'  + '{0:,.2f}'.format(float(totaPO)) + '</td>'
+        #if data.isAmountRounded:
+            #itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> $'  + '{0:,.2f}'.format(int(round(float(totaPO)))) + '</td>'
+        #else:
+        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> $'  + '{0:,.2f}'.format(float(totaPO)) + '</td>'
         
         itemHtml = itemHtml + ' </tr> '
 
@@ -5483,7 +5489,7 @@ def billing_list(request, id):
                 itemResume[itemResult]['amount'] += amount
             else:            
                 itemResume.append({'item':data.itemID.item.itemID, 'name': data.itemID.item.name, 'quantity': data.quantity, 'price':data.itemID.price, 'amount':amount,'Encontrado':False})
-        
+            
         
     except Exception as e:
         print(str(e)) 
