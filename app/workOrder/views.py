@@ -606,7 +606,7 @@ def updateDupOrder(request,pID, dupID):
 
         primaryOrder = workOrder.objects.filter(id = pID).first()
 
-        if int(primaryOrder.Status) >= 2 and int(primaryOrder.Status) < 5:
+        if int(primaryOrder.Status) >= 2 and int(primaryOrder.Status) <= 5:
             order = workOrder.objects.filter(id = pID).first()
             primaryOrder.prismID = dupOrder.prismID
             primaryOrder.workOrderId = dupOrder.workOrderId
@@ -646,7 +646,8 @@ def updateDupOrder(request,pID, dupID):
                                 JobAddress = dupOrder.JobAddress,
                                 SiteContactName = dupOrder.SiteContactName,
                                 SitePhoneNumber = dupOrder.SitePhoneNumber,
-                                Comments = dupOrder.Comments,
+                                Comments = "Original: " + primaryOrder.prismID + "-" + primaryOrder.workOrderId + "-" + primaryOrder.PO + ". " + str(dupOrder.Comments) ,
+                                Location = dupOrder.Location,
                                 Status = '1',
                                 CloseDate = dupOrder.CloseDate,
                                 UploadDate = datetime.now(),

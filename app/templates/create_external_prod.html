@@ -130,8 +130,10 @@
                                                     <td width="15%" class="p-1">Qty.</td>
                                                     <td width="15%" class="p-1">Price</td>
                                                     <td width="15%" class="p-1">Total</td>  
-                                                    <td width="15%" class="p-1">                                              
-                                                        <a hx-get="/create_ext_prod_item/{{externalProduction.id}}" hx-target="#dialog"><i class="fa-solid fa-circle-plus"></i></a>
+                                                    <td width="15%" class="p-1">     
+                                                        {% if emp.is_superAdmin or emp.is_admin or user.is_staff  %}                                         
+                                                            <a hx-get="/create_ext_prod_item/{{externalProduction.id}}" hx-target="#dialog"><i class="fa-solid fa-circle-plus"></i></a>
+                                                        {%endif%}
                                                     </td>                                                 
                                                 </tr>
                                             </thead>
@@ -143,11 +145,11 @@
                                                         <td class="p-1">${{itemd.itemID.emp_payout|floatformat:2|intcomma}}</td>
                                                         <td class="p-1">${{itemd.total|floatformat:2|intcomma}}</td>   
                                                         <td class="p-1">
-                                                            {% if emp.is_superAdmin  or user.is_staff  %}
-                                                                {%if itemd.Status == 1%}
+                                                            {% if emp.is_superAdmin or emp.is_admin or user.is_staff  %}
+                                                                <!--{%if itemd.Status == 1%}-->
                                                                     <a hx-get="/update_ext_prod_item/{{itemd.id}}" hx-target="#dialog"><i class="fa-solid fa-pen-to-square" style="color: green;"></i></a>
                                                                     <a hx-get="/delete_ext_prod_item/{{itemd.id}}" hx-target="#dialog"><i class="fa-solid fa-circle-minus" style="color: red;"></i></a>
-                                                                {%endif%}
+                                                                <!--{%endif%}-->
                                                             {%endif%}
                                                         </td> 
                                                     </tr>
