@@ -88,8 +88,15 @@
                                         {% endif %}
                                     </tr>
                                     <tr>
-                                        <td style="font-family:Verdana, Geneva, sans-serif; font-weight:350; font-size:12px; border-bottom:1px solid #444; border-left:1px solid #444; border-right:1px solid #444; padding: 3px;"  align="center">{% now "m/d/Y" %}</td>   
-                                                 
+                                        <td style="font-family:Verdana, Geneva, sans-serif; font-weight:350; font-size:12px; border-bottom:1px solid #444; border-left:1px solid #444; border-right:1px solid #444; padding: 3px;"  align="center">
+                                            {% if estimate and estimateID > "0" %}
+                                                {{woEstimate.created_date|date:"m/d/Y" }}
+                                            {%elif estimate == False and invoiceID > "0" %}
+                                                {{woEstimate.created_date|date:"m/d/Y" }}
+                                            {%else%}
+                                                {% now "m/d/Y" %} 
+                                            {% endif %}
+                                        </td>  
                                         <td style="font-family:Verdana, Geneva, sans-serif; font-weight:350; font-size:12px; border-bottom:1px solid #444; border-right:1px solid #444; padding: 3px;"  align="center"> 
                                             {% if estimate and estimateID > "0" %}
                                                 {{estimateID}}

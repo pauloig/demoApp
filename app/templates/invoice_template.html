@@ -78,8 +78,9 @@
                             {% endif %}
                         </tr>
                         <tr>
-                            <td style="font-family:Verdana, Geneva, sans-serif; font-weight:350; font-size:12px; border-bottom:1px solid #444; border-left:1px solid #444; border-right:1px solid #444; padding: 3px;"  align="center">{% now "m/d/Y" %}</td>   
-                            {% if estimate %}               
+                            <td style="font-family:Verdana, Geneva, sans-serif; font-weight:350; font-size:12px; border-bottom:1px solid #444; border-left:1px solid #444; border-right:1px solid #444; padding: 3px;"  align="center">{{woEstimate.created_date|date:"m/d/Y" }}</td>                 
+                            
+                            {% if estimate %} 
                                 <td style="font-family:Verdana, Geneva, sans-serif; font-weight:350; font-size:12px; border-bottom:1px solid #444; border-right:1px solid #444; padding: 3px;"  align="center"> {{estimateID}} </td>
                             {% else %}
                                 <td style="font-family:Verdana, Geneva, sans-serif; font-weight:350; font-size:12px; border-bottom:1px solid #444; border-right:1px solid #444; padding: 3px;"  align="center"> {{invoiceID}}</td>

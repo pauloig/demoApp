@@ -5994,8 +5994,33 @@ def update_billing_address(request, id):
         return HttpResponseRedirect("/billing_address_list/")
 
     context["form"] = form
-    context["emp"] = emp
+    
     return render(request, "create_billing_address.html", context)
+
+
+
+def invoice_daily_report(request):
+    context ={}
+
+    emp = Employee.objects.filter(user__username__exact = request.user.username).first()    
+    per = period.objects.filter(status__in=(1,2)).first()
+    context["per"] = per
+    context["emp"] = emp
+
+    
+
+    if request.method == 'POST':       
+       dateSelected =  request.POST.get('date')
+       dateS = datetime.strptime(dateSelected, '%Y-%m-%d').date()
+       result = woInvoice.objects.filter(created_date__year = datetime.strftime(dateS, '%Y'), created_date__month = datetime.strftime(dateS, '%m'),created_date__day=datetime.strftime(dateS, '%d') )
+
+       context["woInvoice"] = result
+       context["dateSelected"] =  dateS
+       
+
+    return render(request, "invoice_daily_report.html", context)
+
+
 
 
 ### General Functions
