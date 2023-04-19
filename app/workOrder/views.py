@@ -1461,6 +1461,8 @@ def partial_estimate(request, id, isPartial, Status, addressID):
         )
         invoiceObject.save()
 
+        
+
     
 
     
@@ -1550,6 +1552,9 @@ def partial_estimate(request, id, isPartial, Status, addressID):
         est.Status = 2
         est.save()
 
+
+        calculate_invoice_total(request,wo.id,int(invoiceID))
+        
     return HttpResponseRedirect("/billing_list/" + str(id)) 
 
 
@@ -2009,7 +2014,67 @@ def pre_invoice2(request, id):
 
     return render(request, "pre_invoice2.html", context)
 
+def calculate_invoice_total(request, id, invoiceID):
 
+    wo = workOrder.objects.filter(id=id).first()
+
+    itemResume = []
+
+    authBilling = authorizedBilling.objects.filter(woID = wo, invoice = invoiceID)
+
+    woInv = woInvoice.objects.filter(woID = wo, invoiceNumber = invoiceID).first()
+
+    for data in authBilling:
+        if data.quantity > 0:
+            itemResume.append({'item':data.itemID.item.itemID, 'name': data.itemID.item.name, 'quantity': data.quantity, 'price':data.itemID.price, 'amount':data.total,'Encontrado':False})
+    
+    total = 0 
+    linea = 0
+
+    try:
+        itemResumeS = sorted(itemResume, key=lambda d: d['item']) 
+        for data in itemResumeS:
+            linea = linea + 1
+            amount = 0
+            
+            amount = Decimal(str(data['quantity'])) * Decimal(str(data['price']))
+            total = total + amount         
+    except Exception as e:
+        print(e)
+
+
+    # obtengo las internal PO
+    internal = internalPO.objects.filter(woID = wo, nonBillable = False, invoice = invoiceID)
+    totaPO = 0
+    
+    vendorList = vendorSubcontrator(request)
+    
+    for data in internal:
+        linea = linea + 1
+        if data.total != None and data.total != "":
+            if data.isAmountRounded:
+                amount = int(round(float(str(data.total)))) 
+            else:
+                amount = Decimal(str(data.total))
+        else:
+            amount = 0
+
+        total = total + amount
+        totaPO += amount
+        
+                
+    if totaPO > 0:
+        totaPO = totaPO * Decimal(str(0.10))
+        
+        #if data.isAmountRounded:
+            #total = total + int(round(float(totaPO)))
+        #else:
+        total = total + totaPO
+
+    woInv.total = total
+    woInv.save()
+    
+    return total   
 
 
 def upload_item(request):
@@ -5177,6 +5242,7 @@ def create_authorized_prod_item(request, id, invoiceID, estimateID):
             
             if woInv:
                 form.instance.invoice = woInv.invoiceNumber
+
                 
             form.instance.estimate = int(estimateID)
             form.instance.Status = 2
@@ -5191,8 +5257,13 @@ def create_authorized_prod_item(request, id, invoiceID, estimateID):
         if int(invoiceID) == 0 and int(estimateID) == 0:
             return HttpResponseRedirect("/billing_list/" + str(wo.id))    
         elif int(estimateID) > 0: 
+            if woInv:
+                calculate_invoice_total(request, wo.id, woInv.invoiceNumber )
+
             return HttpResponseRedirect("/update_estimate/" + str(wo.id) + "/"  + estimateID )
+            
         elif int(invoiceID) > 0:
+            calculate_invoice_total(request, wo.id, int(invoiceID) )
             return HttpResponseRedirect("/update_invoice/" + str(wo.id) + "/"  + invoiceID  )   
          
     context['form']= form
@@ -5238,7 +5309,10 @@ def update_authorized_prod_item(request, id, invoiceID, estimateID):
             invoiceO = woInvoice.objects.filter(woID = obj.woID, invoiceNumber = int(invoiceID)).first()            
             invoiceO.Status = 3
             invoiceO.save() 
-                
+
+   
+            calculate_invoice_total(request, obj.woID.id, int(invoiceID))
+    
             estimateO = woEstimate.objects.filter(woID = obj.woID, estimateNumber = invoiceO.estimateNumber ).first()  
             if estimateO:
                 #estimateO.Status = 3
@@ -5252,6 +5326,9 @@ def update_authorized_prod_item(request, id, invoiceID, estimateID):
             if invoiceO:
                 invoiceO.Status = 3
                 invoiceO.save() 
+
+                calculate_invoice_total(request, obj.woID.id, invoiceO.invoiceNumber )
+
                 
             estimateO = woEstimate.objects.filter(woID = obj.woID, estimateNumber = int(estimateID) ).first()  
             if estimateO:
@@ -5295,7 +5372,11 @@ def delete_authorized_prod_item(request, id, invoiceID, estimateID):
             invoiceO = woInvoice.objects.filter(woID = obj.woID, invoiceNumber = int(invoiceID)).first()  
             invoiceO.Status = 3
             invoiceO.save() 
-                
+
+  
+            calculate_invoice_total(request, obj.woID.id, int(invoiceID) )
+
+
             estimateO = woEstimate.objects.filter(woID = obj.woID, estimateNumber = invoiceO.estimateNumber ).first()  
             if estimateO:
                 #estimateO.Status = 3
@@ -5309,6 +5390,8 @@ def delete_authorized_prod_item(request, id, invoiceID, estimateID):
             if invoiceO:
                 invoiceO.Status = 3
                 invoiceO.save() 
+
+                calculate_invoice_total(request, obj.woID.id, invoiceO.invoiceNumber )
                 
             estimateO = woEstimate.objects.filter(woID = obj.woID, estimateNumber = int(estimateID) ).first()  
             if estimateO:
@@ -5392,7 +5475,12 @@ def production_transfer(request, id, invoiceID, estimateID):
             obj.updated_date = datetime.now()
             obj.updatedBy = request.user.username
             obj.save()
-          
+
+            
+            invoiceO = woInvoice.objects.filter(woID = obj.woID.id, estimateNumber = int(estimateID)).first()
+            if invoiceO:
+                calculate_invoice_total(request,obj.woID.id,invoiceO.invoiceNumber)
+            
             #if Item Transfer Exists in destination
             # destABItem = authorizedBilling.objects.filter(woID = destWO, itemID = obj.itemID, transferFrom = obj.woID ).first()
        
@@ -6021,7 +6109,87 @@ def invoice_daily_report(request):
     return render(request, "invoice_daily_report.html", context)
 
 
+def get_daily_report(request, dateSelected):
+    
 
+    wb = xlwt.Workbook(encoding='utf-8')
+    ws = wb.add_sheet('daily-report', cell_overwrite_ok = True) 
+
+    
+
+    # Sheet header, first row
+    row_num = 4
+
+    font_title = xlwt.XFStyle()
+    font_title.font.bold = True
+    font_title = xlwt.easyxf('font: bold on, color black;\
+                     borders: top_color black, bottom_color black, right_color black, left_color black,\
+                              left thin, right thin, top thin, bottom thin;\
+                     pattern: pattern solid, fore_color gray25;')
+
+    
+    font_style =  xlwt.XFStyle()              
+
+    font_title2 = xlwt.easyxf('font: bold on, color black;\
+                                align: horiz center;\
+                                pattern: pattern solid, fore_color gray25;')
+                              
+    ws.write_merge(3, 3, 0, 8, 'Daily Report ' + dateSelected ,font_title2)   
+
+
+    columns = ['Invoice', 'Entered By', 'WC Supervisor', 'Attn To', 'System','Partial / Final','PO', 'PID','Invoice Amount']
+
+    for col_num in range(len(columns)):
+        ws.write(row_num, col_num, columns[col_num], font_title) # at 0 row 0 column 
+      
+
+    dateS = datetime.strptime(dateSelected, '%Y-%m-%d').date()
+    ordenes = woInvoice.objects.filter(created_date__year = datetime.strftime(dateS, '%Y'), created_date__month = datetime.strftime(dateS, '%m'),created_date__day=datetime.strftime(dateS, '%d') )
+
+
+    for item in ordenes:
+        row_num += 1
+        ws.write(row_num, 0, item.invoiceNumber, font_style) # at 0 row 0 column 
+        ws.write(row_num, 1, item.createdBy, font_style) # at 0 row 0 column 
+        if item.woID.WCSup != None:
+            ws.write(row_num,2, item.woID.WCSup.first_name + ' ' + item.woID.WCSup.last_name, font_style) # at 0 row 0 column 
+        else:
+            ws.write(row_num, 2, '',font_style) # at 0 row 0 column 
+        ws.write(row_num, 3, '', font_style)
+        if item.woID.Location != None:
+            ws.write(row_num, 4, item.woID.Location.name, font_style) # at 0 row 0 column 
+        else:
+             ws.write(row_num, 4, '', font_style) 
+
+        ws.write(row_num, 5, item.woID.JobAddress, font_style) # at 0 row 0 column 
+        
+        if item.is_partial:
+            ws.write(row_num, 5, 'Partial', font_style) 
+        else:
+            ws.write(row_num, 5, 'Final', font_style) 
+        
+        
+
+        ws.write(row_num, 6, item.woID.PO, font_style)
+        ws.write(row_num, 7, item.woID.prismID, font_style)
+        ws.write(row_num, 8, '$' + '{0:,.2f}'.format(validate_decimals(item.total)) , font_style)
+
+    ws.col(1).width = 5000
+    ws.col(2).width = 9000
+    ws.col(3).width = 6000
+    ws.col(4).width = 9000
+    ws.col(5).width = 4000
+    ws.col(6).width = 6000
+    ws.col(7).width = 6000
+    ws.col(8).width = 6000
+
+    filename = 'daily report ' + dateSelected + '.xls'
+    response = HttpResponse(content_type='application/ms-excel')
+    response['Content-Disposition'] = 'attachment; filename=' + filename 
+
+    wb.save(response)
+
+    return response
 
 ### General Functions
 def vendorSubcontrator(request):
@@ -6178,10 +6346,11 @@ def update_item_payout(request):
         for prod in itemProduction:           
             
             current = DailyItem.objects.filter(id = prod.id).first()
-            current.emp_payout = current.total / current.quantity
-            current.price = prod.itemID.price
-            current.save()               
-            updated += 1    
+            if current.emp_payout == None or current.emp_payout == 0:
+                current.emp_payout = current.total / current.quantity
+                current.price = prod.itemID.price
+                current.save()               
+                updated += 1    
                 
             if prod.itemID.emp_payout != current.emp_payout:
                 diff = diff +  prod.itemID.item.itemID + "|" + str(prod.itemID.location.LocationID) + ","
@@ -6302,4 +6471,23 @@ def update_estimate_closed(request):
     
 
 
+def update_total_invoice(request):
 
+    emp = Employee.objects.filter(user__username__exact = request.user.username).first()
+    per = period.objects.filter(status__in=(1,2)).first()
+
+    updated = 0
+    #try:
+
+    invoiceList = woInvoice.objects.all()
+
+    
+    for eList in invoiceList:
+        updated += 1
+        
+        calculate_invoice_total(request, eList.woID.id,eList.invoiceNumber)
+        
+    return render(request,'landing.html',{ 'message':str(updated) + ' Estimates updated Successfully.... Detail:  ' , 'alertType':'success','emp':emp, 'per':per})
+    #except Exception as e:
+        #return render(request,'landing.html',{'message':'Somenthing went Wrong!' + str(e), 'alertType':'danger','emp':emp, 'per': per})
+    
