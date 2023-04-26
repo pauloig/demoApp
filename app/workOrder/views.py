@@ -411,7 +411,8 @@ def listOrders(request):
     if emp:
         if emp.is_superAdmin:                
             if estatus == "0" and loc == "0":   
-                orders = workOrder.objects.exclude(linkedOrder__isnull = False, uploaded = False )        
+                #orders = workOrder.objects.exclude(linkedOrder__isnull = False, uploaded = False )     
+                orders = workOrder.objects.filter(id = -1)   
             else:
                 if estatus != "0" and loc != "0":
                     orders = workOrder.objects.filter(Status = estatus, Location = locationObject).exclude(linkedOrder__isnull = False, uploaded = False )     
@@ -458,7 +459,8 @@ def listOrders(request):
 
     if request.user.is_staff:        
         if estatus == "0" and loc == "0":    
-            orders = workOrder.objects.exclude(linkedOrder__isnull = False, uploaded = False )  
+            #orders = workOrder.objects.exclude(linkedOrder__isnull = False, uploaded = False )  
+            orders = workOrder.objects.filter(id = -1)
         else:
             if estatus != "0" and loc != "0":
                 orders = workOrder.objects.filter(Status = estatus, Location = locationObject).exclude(linkedOrder__isnull = False, uploaded = False )  
