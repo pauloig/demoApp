@@ -348,7 +348,7 @@ class subcontractor(models.Model):
 
 class internalPO(models.Model):
     poNumber = models.IntegerField(null=True, blank=True)
-    woID = models.ForeignKey(workOrder, on_delete=models.CASCADE, db_column ='woID')
+    woID = models.ForeignKey(workOrder, on_delete=models.CASCADE, db_column ='woID', related_name='woID')
     #vendor = models.ForeignKey(vendor, on_delete=models.SET_NULL, null=True, blank=True, db_column='vendor')
     vendor = models.CharField(max_length=50, null=True, blank=True)
     supervisor = models.ForeignKey(Employee, on_delete=models.SET_NULL, null=True, blank=True, db_column='supervisor', related_name='supervisor')
@@ -362,6 +362,10 @@ class internalPO(models.Model):
     invoice = models.CharField(max_length=50, null=True, blank=True)
     Status = models.IntegerField(default=1, choices = prodStatus_choice)
     receipt = models.FileField(null=True, upload_to="po")
+    transferFromPO = models.ForeignKey(workOrder, on_delete=models.CASCADE, null=True, blank=True, db_column ='transferFromPO', related_name='transferFromPO')
+    transferToPO = models.ForeignKey(workOrder, on_delete=models.CASCADE, null=True, blank=True, db_column ='transferToPO', related_name='transferToPO')
+    transfer_date = models.DateTimeField(null=True, blank=True)
+    transferBy = models.CharField(max_length=60, blank=True, null=True)
     created_date = models.DateTimeField(blank=True, null=True)
     createdBy = models.CharField(max_length=60, blank=True, null=True)
 

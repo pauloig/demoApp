@@ -176,7 +176,10 @@ class InternalPOForm(forms.ModelForm):
             'nonBillable',
             'created_date',
             'createdBy',
-            'Status'         
+            'Status',
+            'transferFromPO',
+            'transfer_date',
+            'transferBy'         
         ]
 
 
@@ -187,6 +190,9 @@ class InternalPOForm(forms.ModelForm):
         self.fields['createdBy'].disabled = True
         self.fields['created_date'].disabled = True
         self.fields['Status'].disabled = True
+        self.fields['transferFromPO'].disabled = True
+        self.fields['transfer_date'].disabled = True
+        self.fields['transferBy'].disabled = True
  
         
 

@@ -5514,6 +5514,65 @@ def production_transfer(request, id, invoiceID, estimateID):
     return render(request, "production_transfer.html", context)
 
 
+def internal_po_transfer(request, id, invoiceID, estimateID):
+    emp = Employee.objects.filter(user__username__exact = request.user.username).first()
+    context ={}
+
+    per = period.objects.filter(status__in=(1,2)).first()
+    context["per"] = per
+
+    obj = get_object_or_404(internalPO, id = id)
+
+    #Getting the list of WO used with the current Items
+    woList = []
+
+    #authorizedItems = internalPO.objects.filter(itemID = obj.itemID, transferFrom = obj.woID)
+
+    #for i in authorizedItems:
+    #   woList.append(i.woID.id) 
+
+    wo = workOrder.objects.filter(Status = 2).exclude(id__in = woList)
+    context["orderList"] = wo    
+    
+    itemLocation = itemPrice.objects.all()
+
+    form = InternalPOForm(request.POST or None, instance = obj)
+ 
+    if request.method == 'POST':     
+        destWoID = request.POST.get('destinationID')        
+        
+        #Getting destination wo
+        destWO = workOrder.objects.filter(id = int(destWoID)).first()
+        originWO = workOrder.objects.filter(id = obj.woID.id).first()
+
+        if destWO:
+            obj.woID =  destWO           
+            obj.transfer_date = datetime.now()
+            obj.transferBy = request.user.username
+            obj.transferFromPO = originWO
+            obj.estimate = None
+            obj.invoice = None
+            obj.Status = 1
+            obj.save()
+
+            
+            invoiceO = woInvoice.objects.filter(woID = originWO.id, estimateNumber = int(estimateID)).first()
+            if invoiceO:
+                calculate_invoice_total(request,originWO.id,invoiceO.invoiceNumber)
+        
+        
+
+        context["emp"] = emp    
+        
+        return HttpResponseRedirect("/update_estimate/" + str(originWO.id) + "/"  + estimateID)
+    
+       
+    context["form"] = form
+    context["emp"] = emp
+
+    return render(request, "internal_po_transfer.html", context)
+
+
 def billing_list(request, id):
     errorMessage = ""
     try:
@@ -5613,7 +5672,7 @@ def billing_list(request, id):
 
                     authI.save()       
                 else:
-                    errorMessage += 'The Item ' + str(itemR) + 'Does not appear in Item Price Catalog ' + '\n\n'
+                    errorMessage += 'Item ' + str(itemR['item']) + ' does not have a price definition for ' + wo.Location.name + '. ' +  os.linesep 
 
 
         authorizedItem = authorizedBilling.objects.filter(woID = wo, Status = 1)
