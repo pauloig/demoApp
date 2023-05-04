@@ -111,6 +111,7 @@ urlpatterns = [
     path('create_billing_address/',views.create_billing_address),
     path('update_billing_address/<id>',views.update_billing_address),
     path('production_transfer/<id>/<invoiceID>/<estimateID>',views.production_transfer),
+    path('internal_po_transfer/<id>/<invoiceID>/<estimateID>',views.internal_po_transfer),
     path('invoice_daily_report/',views.invoice_daily_report),
     path('get_daily_report/<dateSelected>',views.get_daily_report),
     #Temp URL's

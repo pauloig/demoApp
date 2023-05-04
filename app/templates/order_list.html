@@ -15,9 +15,9 @@
                     <h6 class="card-header card-header-wc" >Filters</h6>
                     <div class="card-body">
                         <div class="row">                   
-                            <div class="col-lg-3">                                                     
+                            <div class="col-lg-2">                                                     
                                 <select class="form-select" aria-label="Default select example" name="status" id="status"> 
-                                {%if selectEstatus == "0"%} 
+                                    {%if selectEstatus == "0"%} 
                                         <option value ="0"  selected >Status</option>
                                     {%else%}
                                         <option value ="0" >Status</option>
@@ -69,12 +69,18 @@
                                 {% endfor %}
                                   </select>
                             </div>
-                            <div class="col-lg-5">                                                              
+                            <div class="col-lg-2">
+
+                                {% if emp.is_superAdmin  or user.is_staff %}
+                                    <input class="form-control" type="text" name="pid" id="pid" value={{selectPID}}>
+                                {%endif%}                                
+                            </div>
+                            <div class="col-lg-4">                                                              
                                 <div class="form-outline" style="align-items: center;">
                                     <input class="btn btn-primary" type="submit" value="Search">                            
                                     <a class="btn btn-primary" href="/get_order_list/{{selectEstatus}}/{{selectLoc}}" role="button">Download</a>  
                                     {% if emp.is_superAdmin  or user.is_staff %}
-                                        <a class="btn btn-success" href="/create_order/" role="button">Create New Order</a>                                    
+                                        <a class="btn btn-success" href="/create_order/" role="button">Create New</a>                                    
                                     {%endif%}
                                 </div>
                             </div>

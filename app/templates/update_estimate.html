@@ -220,14 +220,13 @@
                                             <table id="orders3" class="table table-sm table-bordered table-striped">
                                                 <thead class="table-primary">
                                                     <tr>
-                                                        <td class="p-1">PO</td>
-                                                        <th scope="p-1">Vendor</th>
-                                                        <td class="p-1">Supervisor</td>                                                
-                                                        <td class="p-1">Pick up Employee</td>
-                                                        <td class="p-1">Product</td>    
-                                                        <td class="p-1">Quantity</td>
-                                                        <td class="p-1">Total</td>  
-                                                        <td class="p-1"></td>                                           
+                                                        <td width="5%" class="p-1">PO</td>
+                                                        <th width="25%" scope="p-1">Vendor</th>                                                    
+                                                        <td width="50%" class="p-1">Product</td>    
+                                                        <td width="3%" class="p-1">Transfer From</td>
+                                                        <td width="3%" class="p-1">Quantity</td>
+                                                        <td width="10%" class="p-1">Total</td>  
+                                                        <td width="7%" class="p-1"></td>                                           
                                                     </tr>              
                                                 </thead>
                                                 <tbody>                                       
@@ -241,20 +240,20 @@
                                                                     {%endif%}
                                                                 {%endfor%}
                                                             </td>
-                                                            <td>{{po.supervisor}}</td>
-                                                            <td>{{po.pickupEmployee}}</td>
                                                             <td>{{po.product}}</td>
+                                                            <td>{{po.transferFromPO}}</td>
                                                             <td>{{po.quantity}}</td>
                                                             <td>${{po.total|floatformat:2|intcomma}}</td>    
                                                             <td>{% if emp.is_superAdmin  or user.is_staff %}                                     
                                                                 
                                                                 <a href="/update_po/{{po.id}}/-1"><i class="fa-solid fa-pen-to-square"  style="color: green;"></i></a>
+                                                                <a data-bs-toggle="tooltip" data-bs-placement="top" title="Transfer" hx-get="/internal_po_transfer/{{po.id}}/0/{{estimateID}}" hx-target="#dialog"><i class="fa-solid fa-right-left" style="color: green;"></i></a>
                                                             {%endif%}</td>                                                                                            
                                                         </tr>                                             
                                                     {% endfor %}
                                                     {% if poTotalEst > 0%}
                                                     <tr>
-                                                        <td colspan="6"> Total</td>
+                                                        <td colspan="5"> Total</td>
                                                         
                                                         <td><strong>${{poTotalEst|floatformat:2|intcomma}}</strong></td>
                                                     </tr>
@@ -286,7 +285,8 @@
                                                     <th scope="p-1">Vendor</th>
                                                     <td class="p-1">Supervisor</td>                                                
                                                     <td class="p-1">Pick up Employee</td>
-                                                    <td class="p-1">Product</td>    
+                                                    <td class="p-1">Product</td>  
+                                                    <td class="p-1">Transfer From</td>  
                                                     <td class="p-1">Quantity</td>
                                                     <td class="p-1">Total</td>  
                                                     <td class="p-1"></td>                                           
@@ -306,6 +306,7 @@
                                                         <td>{{po.supervisor}}</td>
                                                         <td>{{po.pickupEmployee}}</td>
                                                         <td>{{po.product}}</td>
+                                                        <td>{{po.transferFromPO}}</td>
                                                         <td>{{po.quantity}}</td>
                                                         <td>${{po.total|floatformat:2|intcomma}}</td>    
                                                         <td>{% if emp.is_superAdmin  or user.is_staff %}                                     
@@ -315,7 +316,7 @@
                                                 {% endfor %}
                                                 {% if poTotal > 0%}
                                                 <tr>
-                                                    <td colspan="6"> Total</td>
+                                                    <td colspan="7  "> Total</td>
                                                     
                                                     <td><strong>${{poTotal|floatformat:2|intcomma}}</strong></td>
                                                 </tr>
