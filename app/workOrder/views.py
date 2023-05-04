@@ -391,6 +391,7 @@ def listOrders(request):
     per = period.objects.filter(status__in=(1,2)).first()
     estatus = "0"
     loc = "0"
+    pid = ""
     
     """try:"""
     context={}
@@ -398,6 +399,7 @@ def listOrders(request):
     if request.method == "POST":
         estatus = request.POST.get('status')
         loc = request.POST.get('location') 
+        pid = request.POST.get('pid')
         if loc == None or loc =="":
             loc = "0"
         locationObject = Locations.objects.filter(LocationID=loc).first()
@@ -407,12 +409,16 @@ def listOrders(request):
     context["location"]=locationList
     context["per"]=per    
     context["selectLoc"]=loc
+    context["selectPID"]=pid
 
     if emp:
         if emp.is_superAdmin:                
             if estatus == "0" and loc == "0":   
-                #orders = workOrder.objects.exclude(linkedOrder__isnull = False, uploaded = False )     
-                orders = workOrder.objects.filter(id = -1)   
+                #orders = workOrder.objects.exclude(linkedOrder__isnull = False, uploaded = False )    
+                if pid != None and pid != "":
+                    orders = workOrder.objects.filter(prismID__exact = pid).exclude(linkedOrder__isnull = False, uploaded = False)    
+                else:  
+                    orders = workOrder.objects.filter(id = -1)   
             else:
                 if estatus != "0" and loc != "0":
                     orders = workOrder.objects.filter(Status = estatus, Location = locationObject).exclude(linkedOrder__isnull = False, uploaded = False )     
@@ -460,7 +466,10 @@ def listOrders(request):
     if request.user.is_staff:        
         if estatus == "0" and loc == "0":    
             #orders = workOrder.objects.exclude(linkedOrder__isnull = False, uploaded = False )  
-            orders = workOrder.objects.filter(id = -1)
+            if pid != None and pid != "":
+                orders = workOrder.objects.filter(prismID__exact = pid).exclude(linkedOrder__isnull = False, uploaded = False)    
+            else:  
+                orders = workOrder.objects.filter(id = -1)
         else:
             if estatus != "0" and loc != "0":
                 orders = workOrder.objects.filter(Status = estatus, Location = locationObject).exclude(linkedOrder__isnull = False, uploaded = False )  
@@ -5648,6 +5657,7 @@ def billing_list(request, id):
 
         itemFinal = []    
 
+
         #Insert Production in Authorized Items
         for itemR in itemResume:
 
@@ -5673,6 +5683,12 @@ def billing_list(request, id):
                     authI.save()       
                 else:
                     errorMessage += 'Item ' + str(itemR['item']) + ' does not have a price definition for ' + wo.Location.name + '. ' +  os.linesep 
+            else:
+                existingAB = authorizedBilling.objects.filter(woID = wo, Status = 1, itemID__item__itemID = itemR['item']).first()
+
+                existingAB.quantity = itemR['quantity']
+                existingAB.total = itemR['amount']
+                existingAB.save()
 
 
         authorizedItem = authorizedBilling.objects.filter(woID = wo, Status = 1)

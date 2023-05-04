@@ -23,7 +23,11 @@ class  internalPOAdmin(admin.ModelAdmin):
 
 class  DailyAdmin(admin.ModelAdmin):
     list_display = ('id','woID', 'crew', 'Location','Period','day')
-    search_fields = ('id','woID')
+    search_fields = ('id','woID__prismID','woID__workOrderId','woID__PO')
+
+class DailyItemAdmin(admin.ModelAdmin):
+    list_display = ('id','itemID','DailyID')
+    search_fields = ('id','itemID__item__itemID', 'DailyID__woID__prismID')
 
 class externalProductionAdmin(admin.ModelAdmin):
     list_display = ('id','woID',)
@@ -46,7 +50,7 @@ admin.site.register(internalPO,internalPOAdmin)
 admin.site.register(period)
 admin.site.register(Daily, DailyAdmin)
 admin.site.register(DailyEmployee)
-admin.site.register(DailyItem)
+admin.site.register(DailyItem, DailyItemAdmin)
 admin.site.register(employeeRecap)
 admin.site.register(woStatusLog)
 admin.site.register(vendor)
