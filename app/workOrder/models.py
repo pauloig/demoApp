@@ -227,6 +227,30 @@ class period(models.Model):
 
     def __str__(self):
         return str(self.periodID) + " - " + str(self.periodYear)
+    
+class authorizedBilling(models.Model):    
+    woID = models.ForeignKey(workOrder, on_delete=models.CASCADE, db_column ='woID')
+    itemID = models.ForeignKey(itemPrice, on_delete=models.CASCADE, db_column ='itemID', null=False, blank=False )
+    quantity = models.IntegerField(null=False, blank=False) 
+    total = models.FloatField(null=True, blank=True)
+    estimate = models.CharField(max_length=50, null=True, blank=True)
+    invoice = models.CharField(max_length=50, null=True, blank=True)
+    Status = models.IntegerField(default=1, choices = prodStatus_choice)
+    comment = models.TextField(max_length=500, null=True, blank=True)
+    transferFrom = models.ForeignKey(workOrder, on_delete=models.CASCADE, null=True, blank=True, db_column ='transferFrom', related_name='transferFrom')
+    transferTo = models.ForeignKey(workOrder, on_delete=models.CASCADE, null=True, blank=True, db_column ='transferTo', related_name='transferTo')
+    transferQty = models.IntegerField(null=False, blank=False, default=0) 
+    transfer_date = models.DateTimeField(null=True, blank=True)
+    transferBy = models.CharField(max_length=60, blank=True, null=True)
+    created_date = models.DateTimeField(null=True, blank=True)
+    createdBy = models.CharField(max_length=60, blank=True, null=True)
+    updated_date = models.DateTimeField(null=True, blank=True)
+    updatedBy = models.CharField(max_length=60, blank=True, null=True)
+
+
+    def __str__(self):
+        return str(self.woID) + " - " + str(self.id)
+ 
 
 class Daily(models.Model):
     crew = models.IntegerField(null=False, blank=False)
@@ -284,8 +308,14 @@ class DailyItem(models.Model):
     emp_payout = models.FloatField(null=True, blank=True)      
     estimate = models.CharField(max_length=50, null=True, blank=True)
     invoice = models.CharField(max_length=50, null=True, blank=True)
-    Status = models.IntegerField(default=1, choices = prodStatus_choice)
-    created_date = models.DateTimeField(null=True, blank=True) 
+    Status = models.IntegerField(default=1, choices = prodStatus_choice)     
+    isAuthorized = models.BooleanField(default=False)
+    authorized_date = models.DateTimeField(null=True, blank=True)
+    autorizedID = models.ForeignKey(authorizedBilling, on_delete=models.SET_NULL, db_column ='autorizedID', null=True, blank=True)
+    created_date = models.DateTimeField(null=True, blank=True)
+    createdBy = models.CharField(max_length=60, blank=True, null=True)
+    updated_date = models.DateTimeField(null=True, blank=True)
+    updatedBy = models.CharField(max_length=60, blank=True, null=True)
 
     def __str__(self):
         return str(self.DailyID) + " - " + str(self.itemID)
@@ -397,35 +427,18 @@ class externalProdItem(models.Model):
     estimate = models.CharField(max_length=50, null=True, blank=True)
     invoice = models.CharField(max_length=50, null=True, blank=True)
     Status = models.IntegerField(default=1, choices = prodStatus_choice)
+    isAuthorized = models.BooleanField(default=False)
+    authorized_date = models.DateTimeField(null=True, blank=True)
+    autorizedID = models.ForeignKey(authorizedBilling, on_delete=models.SET_NULL, db_column ='autorizedID', null=True, blank=True)
+    updated_date = models.DateTimeField(null=True, blank=True)
+    updatedBy = models.CharField(max_length=60, blank=True, null=True)
     created_date = models.DateTimeField(null=True, blank=True)
     createdBy = models.CharField(max_length=60, blank=True, null=True)
 
     def __str__(self):
         return str(self.externalProdID) + " - " + str(self.id)
 
-class authorizedBilling(models.Model):    
-    woID = models.ForeignKey(workOrder, on_delete=models.CASCADE, db_column ='woID')
-    itemID = models.ForeignKey(itemPrice, on_delete=models.CASCADE, db_column ='itemID', null=False, blank=False )
-    quantity = models.IntegerField(null=False, blank=False) 
-    total = models.FloatField(null=True, blank=True)
-    estimate = models.CharField(max_length=50, null=True, blank=True)
-    invoice = models.CharField(max_length=50, null=True, blank=True)
-    Status = models.IntegerField(default=1, choices = prodStatus_choice)
-    comment = models.TextField(max_length=500, null=True, blank=True)
-    transferFrom = models.ForeignKey(workOrder, on_delete=models.CASCADE, null=True, blank=True, db_column ='transferFrom', related_name='transferFrom')
-    transferTo = models.ForeignKey(workOrder, on_delete=models.CASCADE, null=True, blank=True, db_column ='transferTo', related_name='transferTo')
-    transferQty = models.IntegerField(null=False, blank=False, default=0) 
-    transfer_date = models.DateTimeField(null=True, blank=True)
-    transferBy = models.CharField(max_length=60, blank=True, null=True)
-    created_date = models.DateTimeField(null=True, blank=True)
-    createdBy = models.CharField(max_length=60, blank=True, null=True)
-    updated_date = models.DateTimeField(null=True, blank=True)
-    updatedBy = models.CharField(max_length=60, blank=True, null=True)
 
-
-    def __str__(self):
-        return str(self.woID) + " - " + str(self.id)
- 
 class woEstimate(models.Model):
     woID = models.ForeignKey(workOrder, on_delete=models.CASCADE, db_column ='woID')
     estimateNumber = models.IntegerField()

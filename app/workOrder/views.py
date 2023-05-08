@@ -5619,17 +5619,30 @@ def billing_list(request, id):
         context["invoiceList"] = estimateList
 
         try:
-            for data in payItems:
+            for data in payItems:                
 
                 itemResult = next((i for i, item in enumerate(itemResume) if item["item"] == data.itemID.item.itemID), None)
                 amount = 0
                 amount = Decimal(str(data.quantity)) * Decimal(str(data.itemID.price))  
-                if itemResult != None:                  
+                if itemResult != None:                                      
                     itemResume[itemResult]['quantity'] += data.quantity
                     itemResume[itemResult]['amount'] += amount
+                    if data.isAuthorized == False:
+                        itemResume[itemResult]['updateQuantity'] += data.quantity
+                        itemResume[itemResult]['updateAmount'] += amount
                 else:            
-                    itemResume.append({'item':data.itemID.item.itemID, 'name': data.itemID.item.name, 'quantity': data.quantity, 'price':data.itemID.price, 'amount':amount,'Encontrado':False})
-            
+                    if data.isAuthorized == False:
+                        itemResume.append({'item':data.itemID.item.itemID, 'name': data.itemID.item.name, 'quantity': data.quantity, 'price':data.itemID.price, 'amount':amount,'Encontrado':False, 'updateAmount':amount, 'updateQuantity':data.quantity})
+                    else:
+                        itemResume.append({'item':data.itemID.item.itemID, 'name': data.itemID.item.name, 'quantity': data.quantity, 'price':data.itemID.price, 'amount':amount,'Encontrado':False, 'updateAmount':0, 'updateQuantity':0})
+
+                if data.isAuthorized == False:
+                    currentItem = DailyItem.objects.filter(id = data.id).first()
+                    currentItem.isAuthorized = True               
+                    currentItem.authorized_date = datetime.now()
+                    currentItem.save()
+
+
             
         except Exception as e:
             errorMessage += str(e) + '\n\n'
@@ -5647,9 +5660,22 @@ def billing_list(request, id):
                 if itemResult != None:                  
                     itemResume[itemResult]['quantity'] += data.quantity
                     itemResume[itemResult]['amount'] += amount
-                else:            
-                    itemResume.append({'item':data.itemID.item.itemID, 'name': data.itemID.item.name, 'quantity': data.quantity, 'price':data.itemID.price, 'amount':amount,'Encontrado':False})
-                
+
+                    if data.isAuthorized == False:
+                        itemResume[itemResult]['updateQuantity'] += data.quantity
+                        itemResume[itemResult]['updateAmount'] += amount
+                else:          
+                    if data.isAuthorized == False:
+                        itemResume.append({'item':data.itemID.item.itemID, 'name': data.itemID.item.name, 'quantity': data.quantity, 'price':data.itemID.price, 'amount':amount,'Encontrado':False, 'updateAmount':amount, 'updateQuantity':data.quantity})
+                        
+                    else:                      
+                        itemResume.append({'item':data.itemID.item.itemID, 'name': data.itemID.item.name, 'quantity': data.quantity, 'price':data.itemID.price, 'amount':amount,'Encontrado':False, 'updateAmount':0, 'updateQuantity':0})
+
+                if data.isAuthorized == False:
+                    currentItem = externalProdItem.objects.filter(id = data.id).first()
+                    currentItem.isAuthorized = True               
+                    currentItem.authorized_date = datetime.now()
+                    currentItem.save() 
             
         except Exception as e:
             errorMessage += str(e) + '\n\n'
@@ -5680,14 +5706,15 @@ def billing_list(request, id):
                                 transferQty = 0
                             )
 
-                    authI.save()       
+                    authI.save()     
+
                 else:
                     errorMessage += 'Item ' + str(itemR['item']) + ' does not have a price definition for ' + wo.Location.name + '. ' +  os.linesep 
             else:
                 existingAB = authorizedBilling.objects.filter(woID = wo, Status = 1, itemID__item__itemID = itemR['item']).first()
 
-                existingAB.quantity = itemR['quantity']
-                existingAB.total = itemR['amount']
+                existingAB.quantity += itemR['updateQuantity']
+                existingAB.total += float(itemR['updateAmount'])
                 existingAB.save()
 
 
