@@ -64,7 +64,7 @@
                                         {%if woID > 0 %}
                                             <a href="/po_list/{{po.woID.id}}" type="button" class="btn btn-danger">Close</a> 
                                         {%elif woID < 0 %}
-                                            <a href="/billing_list/{{po.woID.id}}" type="button" class="btn btn-danger">Close</a> 
+                                            <a href="/billing_list/{{po.woID.id}}/False" type="button" class="btn btn-danger">Close</a> 
                                         {%else%}
                                             <a href="/internal_po_list/" type="button" class="btn btn-danger">Close</a> 
                                         {%endif%}

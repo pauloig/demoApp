@@ -1151,7 +1151,7 @@ def update_po(request, id, woID):
         if int(woID) > 0:
             return HttpResponseRedirect("/po_list/" + str(obj.woID.id))
         elif int(woID) < 0:
-            return HttpResponseRedirect("/billing_list/" + str(obj.woID.id))
+            return HttpResponseRedirect("/billing_list/" + str(obj.woID.id) + "/False")
         else:
             return HttpResponseRedirect("/internal_po_list/")
 
@@ -1566,7 +1566,7 @@ def partial_estimate(request, id, isPartial, Status, addressID):
 
         calculate_invoice_total(request,wo.id,int(invoiceID))
         
-    return HttpResponseRedirect("/billing_list/" + str(id)) 
+    return HttpResponseRedirect("/billing_list/" + str(id)+ "/False") 
 
 
 
@@ -5266,7 +5266,7 @@ def create_authorized_prod_item(request, id, invoiceID, estimateID):
         form.save()      
 
         if int(invoiceID) == 0 and int(estimateID) == 0:
-            return HttpResponseRedirect("/billing_list/" + str(wo.id))    
+            return HttpResponseRedirect("/billing_list/" + str(wo.id) + "/False")    
         elif int(estimateID) > 0: 
             if woInv:
                 calculate_invoice_total(request, wo.id, woInv.invoiceNumber )
@@ -5314,7 +5314,7 @@ def update_authorized_prod_item(request, id, invoiceID, estimateID):
         context["emp"] = emp    
 
         if int(invoiceID) == 0 and int(estimateID) == 0:
-            return HttpResponseRedirect("/billing_list/" + str(form.instance.woID.id)) 
+            return HttpResponseRedirect("/billing_list/" + str(form.instance.woID.id) + "/False") 
         elif int(invoiceID) > 0:            
             
             invoiceO = woInvoice.objects.filter(woID = obj.woID, invoiceNumber = int(invoiceID)).first()            
@@ -5377,7 +5377,7 @@ def delete_authorized_prod_item(request, id, invoiceID, estimateID):
 
 
         if int(invoiceID) == 0 and int(estimateID) == 0:
-            return HttpResponseRedirect("/billing_list/" + str(obj.woID.id)) 
+            return HttpResponseRedirect("/billing_list/" + str(obj.woID.id)+ "/False") 
         elif int(invoiceID) > 0:           
             
             invoiceO = woInvoice.objects.filter(woID = obj.woID, invoiceNumber = int(invoiceID)).first()  
@@ -5435,7 +5435,7 @@ def comment_authorized_prod_item(request, id):
         obj.save()
 
 
-        return HttpResponseRedirect("/billing_list/" + str(obj.woID.id)) 
+        return HttpResponseRedirect("/billing_list/" + str(obj.woID.id) + "/False") 
 
    
     return render(request, "comment_authorized_prod_item.html", context)
@@ -5582,7 +5582,7 @@ def internal_po_transfer(request, id, invoiceID, estimateID):
     return render(request, "internal_po_transfer.html", context)
 
 
-def billing_list(request, id):
+def billing_list(request, id, isRestoring):
     errorMessage = ""
     try:
         context = {} 
@@ -5712,10 +5712,14 @@ def billing_list(request, id):
                     errorMessage += 'Item ' + str(itemR['item']) + ' does not have a price definition for ' + wo.Location.name + '. ' +  os.linesep 
             else:
                 existingAB = authorizedBilling.objects.filter(woID = wo, Status = 1, itemID__item__itemID = itemR['item']).first()
-
-                existingAB.quantity += itemR['updateQuantity']
-                existingAB.total += float(itemR['updateAmount'])
-                existingAB.save()
+                if isRestoring == "True":
+                    existingAB.quantity = itemR['quantity']
+                    existingAB.total = float(itemR['amount'])
+                    existingAB.save()
+                else:                  
+                    existingAB.quantity += itemR['updateQuantity']
+                    existingAB.total += float(itemR['updateAmount'])
+                    existingAB.save()
 
 
         authorizedItem = authorizedBilling.objects.filter(woID = wo, Status = 1)
@@ -5753,6 +5757,24 @@ def billing_list(request, id):
     context["errorMessage"] = errorMessage
          
     return render(request, "billing_list.html", context)
+
+
+def restore_original_production(request, id):
+
+    context = {} 
+    emp = Employee.objects.filter(user__username__exact = request.user.username).first()
+    context["emp"] = emp
+
+    per = period.objects.filter(status__in=(1,2)).first()
+    context["per"] = per
+
+    context["woID"] = id
+
+
+    if request.method == 'POST':   
+        return HttpResponseRedirect("/billing_list/" + str(id) + "/True")
+
+    return render(request, "restore_original_production.html", context)
 
 
 def update_invoice(request, id, invoiceID):
