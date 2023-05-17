@@ -3298,7 +3298,7 @@ def make_recap_pdf(empID, perID):
     emp = Employee.objects.filter(employeeID = empID).first()
     context["emp"] = emp
 
-    dailyemp = DailyEmployee.objects.filter(EmployeeID = emp, DailyID__Period = per)
+    dailyemp = DailyEmployee.objects.filter(EmployeeID = emp, DailyID__Period = per).order_by('DailyID__day')
 
     contador = 0
     rtTotal = 0
