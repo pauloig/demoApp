@@ -114,7 +114,9 @@ urlpatterns = [
     path('production_transfer/<id>/<invoiceID>/<estimateID>',views.production_transfer),
     path('internal_po_transfer/<id>/<invoiceID>/<estimateID>',views.internal_po_transfer),
     path('invoice_daily_report/',views.invoice_daily_report),
+    path('invoice_monthly_report/',views.invoice_monthly_report),
     path('get_daily_report/<dateSelected>',views.get_daily_report),
+    path('get_monthly_report/<dateSelected>',views.get_monthly_report),
     #Temp URL's
     path('update_linked_orders/',views.update_linked_orders),
     path('update_item_payout/',views.update_item_payout),

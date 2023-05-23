@@ -6241,6 +6241,71 @@ def invoice_daily_report(request):
 
     return render(request, "invoice_daily_report.html", context)
 
+def invoice_monthly_report(request):
+    context ={}
+
+    emp = Employee.objects.filter(user__username__exact = request.user.username).first()    
+    per = period.objects.filter(status__in=(1,2)).first()
+    context["per"] = per
+    context["emp"] = emp
+
+    
+
+    if request.method == 'POST':       
+       dateSelected =  request.POST.get('date')
+       dateS = datetime.strptime(dateSelected, '%Y-%m-%d').date()
+       result = woInvoice.objects.filter(created_date__year = datetime.strftime(dateS, '%Y'), created_date__month = datetime.strftime(dateS, '%m'))
+
+       resultList = []
+        # Calculating Labor
+
+       for i in result:
+            totalLabor = 0
+            totalMaterials = 0
+            totaPO = 0
+
+            labor = DailyItem.objects.filter(invoice = str(i.invoiceNumber))
+            
+            for j in labor:
+                totalLabor += validate_decimals(j.total) 
+
+
+            extProduction = externalProdItem.objects.filter(externalProdID__woID = i.woID, invoice = str(i.invoiceNumber))
+
+            for ep in extProduction:
+                totalLabor += validate_decimals(ep.total)
+
+            internal = internalPO.objects.filter(woID = i.woID, nonBillable = False, invoice = str(i.invoiceNumber))
+           
+            for data in internal:                
+                if data.total != None and data.total != "":                    
+                    if data.isAmountRounded:
+                        amount = int(round(float(str(data.total))))  
+                    else:
+                        amount = Decimal(str(data.total)) 
+                else:
+                    amount = 0
+
+                # Sum all the Internal PO's
+                totaPO += amount
+            
+
+            if totaPO > 0:
+                totalMaterials = totaPO + (totaPO * Decimal(str(0.10)))
+
+
+
+            resultList.append({'woID': i.woID,'estimateNumber': i.estimateNumber,'invoiceNumber': i.invoiceNumber,'total': i.total,'zipCode' : i.zipCode,
+                               'state' : i.state, 'city' : i.city,'address' : i.address,'description' : i.description,
+                                'Status' : i.Status, 'is_partial' : i.is_partial, 'created_date' : i.created_date,'createdBy' : i.createdBy, 'labor': validate_decimals(totalLabor),'materials': validate_decimals(totalMaterials)})
+            
+
+       context["woInvoice"] = resultList
+       context["dateSelected"] =  dateS
+       
+
+    return render(request, "invoice_monthly_report.html", context)
+
 
 def get_daily_report(request, dateSelected):
     
@@ -6317,6 +6382,133 @@ def get_daily_report(request, dateSelected):
     ws.col(8).width = 6000
 
     filename = 'daily report ' + dateSelected + '.xls'
+    response = HttpResponse(content_type='application/ms-excel')
+    response['Content-Disposition'] = 'attachment; filename=' + filename 
+
+    wb.save(response)
+
+    return response
+
+def get_monthly_report(request, dateSelected):
+    
+
+    wb = xlwt.Workbook(encoding='utf-8')
+    ws = wb.add_sheet('monthly-report', cell_overwrite_ok = True) 
+
+    
+
+    # Sheet header, first row
+    row_num = 4
+
+    font_title = xlwt.XFStyle()
+    font_title.font.bold = True
+    font_title = xlwt.easyxf('font: bold on, color black;\
+                     borders: top_color black, bottom_color black, right_color black, left_color black,\
+                              left thin, right thin, top thin, bottom thin;\
+                     pattern: pattern solid, fore_color gray25;')
+
+    
+    font_style =  xlwt.XFStyle()              
+
+    font_title2 = xlwt.easyxf('font: bold on, color black;\
+                                align: horiz center;\
+                                pattern: pattern solid, fore_color gray25;')
+
+    dateS = datetime.strptime(dateSelected, '%Y-%m-%d').date()
+                              
+    ws.write_merge(3, 3, 0, 11, 'Monthly Report ' + str(datetime.strftime(dateS, '%Y')) + ' - ' + str(datetime.strftime(dateS, '%m')),font_title2)   
+
+
+    columns = ['Invoice', 'Entered By', 'WC Supervisor', 'Attn To', 'System','Partial / Final','PO', 'PID','Labor','Materials','Labor + Materials','Invoice Amount']
+
+    for col_num in range(len(columns)):
+        ws.write(row_num, col_num, columns[col_num], font_title) # at 0 row 0 column 
+      
+
+    
+    ordenes = woInvoice.objects.filter(created_date__year = datetime.strftime(dateS, '%Y'), created_date__month = datetime.strftime(dateS, '%m'))
+
+
+    for item in ordenes:
+        row_num += 1
+        ws.write(row_num, 0, item.invoiceNumber, font_style) # at 0 row 0 column 
+        ws.write(row_num, 1, item.createdBy, font_style) # at 0 row 0 column 
+        if item.woID.WCSup != None:
+            ws.write(row_num,2, item.woID.WCSup.first_name + ' ' + item.woID.WCSup.last_name, font_style) # at 0 row 0 column 
+        else:
+            ws.write(row_num, 2, '',font_style) # at 0 row 0 column 
+        ws.write(row_num, 3, '', font_style)
+        if item.woID.Location != None:
+            ws.write(row_num, 4, item.woID.Location.name, font_style) # at 0 row 0 column 
+        else:
+             ws.write(row_num, 4, '', font_style) 
+
+        ws.write(row_num, 5, item.woID.JobAddress, font_style) # at 0 row 0 column 
+        
+        if item.is_partial:
+            ws.write(row_num, 5, 'Partial', font_style) 
+        else:
+            ws.write(row_num, 5, 'Final', font_style) 
+        
+        
+
+
+
+        ws.write(row_num, 6, item.woID.PO, font_style)
+        ws.write(row_num, 7, item.woID.prismID, font_style)
+
+        totalLabor = 0
+        totalMaterials = 0
+        totaPO = 0
+
+        labor = DailyItem.objects.filter(invoice = str(item.invoiceNumber))
+        
+        for j in labor:
+            totalLabor += validate_decimals(j.total) 
+
+
+        extProduction = externalProdItem.objects.filter(externalProdID__woID = item.woID, invoice = str(item.invoiceNumber))
+
+        for ep in extProduction:
+            totalLabor += validate_decimals(ep.total)
+
+        internal = internalPO.objects.filter(woID = item.woID, nonBillable = False, invoice = str(item.invoiceNumber))
+        
+        for data in internal:                
+            if data.total != None and data.total != "":                    
+                if data.isAmountRounded:
+                    amount = int(round(float(str(data.total))))  
+                else:
+                    amount = Decimal(str(data.total)) 
+            else:
+                amount = 0
+
+            # Sum all the Internal PO's
+            totaPO += amount
+        
+
+        if totaPO > 0:
+            totalMaterials = totaPO + (totaPO * Decimal(str(0.10)))
+
+        ws.write(row_num, 8, '$' + '{0:,.2f}'.format(validate_decimals(totalLabor)) , font_style)
+        ws.write(row_num, 9, '$' + '{0:,.2f}'.format(validate_decimals(totalMaterials)) , font_style)
+        ws.write(row_num, 10, '$' + '{0:,.2f}'.format(validate_decimals(totalLabor) + validate_decimals(totalMaterials)) , font_style)
+
+        ws.write(row_num, 11, '$' + '{0:,.2f}'.format(validate_decimals(item.total)) , font_style)
+
+    ws.col(1).width = 5000
+    ws.col(2).width = 9000
+    ws.col(3).width = 6000
+    ws.col(4).width = 9000
+    ws.col(5).width = 4000
+    ws.col(6).width = 6000
+    ws.col(7).width = 6000
+    ws.col(8).width = 6000
+    ws.col(9).width = 6000
+    ws.col(10).width = 6000
+    ws.col(11).width = 6000
+
+    filename = 'Monthly report ' + dateSelected + '.xls'
     response = HttpResponse(content_type='application/ms-excel')
     response['Content-Disposition'] = 'attachment; filename=' + filename 
 

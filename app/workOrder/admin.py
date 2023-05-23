@@ -26,8 +26,8 @@ class  DailyAdmin(admin.ModelAdmin):
     search_fields = ('id','woID__prismID','woID__workOrderId','woID__PO')
 
 class DailyItemAdmin(admin.ModelAdmin):
-    list_display = ('id','itemID','DailyID')
-    search_fields = ('id','itemID__item__itemID', 'DailyID__woID__prismID')
+    list_display = ('id','itemID','DailyID','invoice')
+    search_fields = ('id','itemID__item__itemID', 'DailyID__woID__prismID','invoice')
 
 class externalProductionAdmin(admin.ModelAdmin):
     list_display = ('id','woID',)
