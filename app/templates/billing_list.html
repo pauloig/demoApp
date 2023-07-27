@@ -76,7 +76,7 @@
                                 <p>{{errorMessage}}</p>
                             </div>
                             <div class="col-sm-1">
-                                <a href="/order_detail/{{order.id}}" type="button" class="btn btn-danger">Close</a>
+                                <a href="/order_detail/{{order.id}}/{{emp.is_supervisor}}" type="button" class="btn btn-danger">Close</a>
                             </div>
                         </div>
                                 
@@ -211,7 +211,7 @@
                                                 {%endif%}
                                                 {%if order.Status == "2" and openEstimate and itemCount > 0 %}  
                                                     <a class="btn btn-primary" href="/partial_estimate/{{order.id}}/True/1/0">Add to Open Estimate</a>
-                                                {%elif order.Status == "2" and openEstimate == False %}
+                                                {%elif order.Status == "2" and openEstimate == False and emp.is_supervisor == False%}
                                                     {%if itemCount > 0%}
                                                         <a class="btn btn-info" hx-get="/select_billing_address/{{order.id}}/True/0" hx-target="#dialog">Partial Invoice</a>
                                                         <a class="btn btn-primary" hx-get="/select_billing_address/{{order.id}}/False/0" hx-target="#dialog">Final Invoice</a>

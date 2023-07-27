@@ -82,9 +82,11 @@
                                                 {% if external.invoice != '' and external.invoice != None %}   
                                                     <a class="btn btn-info" href="/static/media/{{external.invoice}}" target="_blank">View Invoice</a>  
                                                 {%endif%}
-                                                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#staticBackdrop">
-                                                    upload Invoice
-                                                </button>
+                                                {%if emp.is_supervisor == False %}
+                                                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#staticBackdrop">
+                                                        upload Invoice
+                                                    </button>
+                                                {%endif%}
                                             </div>
                                         </div>
                                     </div>
@@ -99,7 +101,10 @@
                                             {%if id == None %}                                                                 
                                                 <input class="btn btn-primary" type="submit" value="Save">
                                             {%else%}
+                                            
+                                            {%if emp.is_supervisor == False %}
                                                 <a class="btn btn-success" hx-get="/update_external_prod/{{externalProduction.id}}" hx-target="#dialog">UPDATE</a>
+                                            {%endif%}
                                                 
                                             {%endif%}
                                             <a class="btn btn-danger" href="/external_prod_list/{{order.id}}" role="button">Close</a>

@@ -15,8 +15,10 @@
                     <h6 class="card-header card-header-wc" >Filters</h6>
                     <div class="card-body">
                         <div class="row">                   
-                            <div class="col-lg-2">                                                     
+                            <div class="col-lg-2">   
+                                Status                                                  
                                 <select class="form-select" aria-label="Default select example" name="status" id="status"> 
+                                    
                                     {%if selectEstatus == "0"%} 
                                         <option value ="0"  selected >Status</option>
                                     {%else%}
@@ -49,7 +51,8 @@
                                     {%endif%}
                                   </select>
                             </div>
-                            <div class="col-lg-3">                            
+                            <div class="col-lg-3">  
+                                Location                          
                                 {%if emp.is_superAdmin or user.is_staff%} 
                                     <select class="form-select" aria-label="Default select example" name="location" id="location">                                                
                                 {%else%}
@@ -66,19 +69,35 @@
                                     {%else%}
                                         <option value="{{data.LocationID}}">{{data.name}}</option>
                                     {%endif%}
-                                {% endfor %}
+                                {% endfor %}    
                                   </select>
                             </div>
+                           
                             <div class="col-lg-2">
-
+                                
                                 {% if emp.is_superAdmin  or user.is_staff %}
+                                PID
                                     <input class="form-control" type="text" name="pid" id="pid" value={{selectPID}}>
                                 {%endif%}                                
-                            </div>
+                            </div>     
+                            <div class="col-lg-2">                                
+                                {% if emp.is_superAdmin  or user.is_staff %}
+                                Invoice
+                                    <input class="form-control" type="text" name="invoiceNumber" id="invoiceNumber" value={{selectedInvoice}}>
+                                {%endif%}                                
+                            </div>   
+                            <div class="col-lg-3">                                
+                                {% if emp.is_superAdmin  or user.is_staff %}
+                                    Address
+                                    <input class="form-control" type="text" name="address" id="address" value="{{selectedAddress}}">
+                                {%endif%}                                
+                            </div>                     
+                        </div>
+                        <div class="row my-4">  
                             <div class="col-lg-4">                                                              
                                 <div class="form-outline" style="align-items: center;">
                                     <input class="btn btn-primary" type="submit" value="Search">                            
-                                    <a class="btn btn-primary" href="/get_order_list/{{selectEstatus}}/{{selectLoc}}" role="button">Download</a>  
+                                    <a class="btn btn-primary" href="/get_order_list/{{selectEstatus}}/{{selectLoc}}/False" role="button">Download</a>  
                                     {% if emp.is_superAdmin  or user.is_staff %}
                                         <a class="btn btn-success" href="/create_order/" role="button">Create New</a>                                    
                                     {%endif%}
@@ -160,7 +179,7 @@
                                                 <td class="p-1">{{order.JobAddress}}</td>
                                                 <td class="p-1">
                                                     <div class="d-flex justify-content-center align-items-center">
-                                                        <a data-bs-toggle="tooltip" data-bs-placement="top" title="Order Details" href="/order_detail/{{order.id}}"><i class="fa-solid fa-circle-right" style="color: green;"></i></a>
+                                                        <a data-bs-toggle="tooltip" data-bs-placement="top" title="Order Details" href="/order_detail/{{order.id}}/False"><i class="fa-solid fa-circle-right" style="color: green;"></i></a>
                                                     </div>                                                    
                                                 </td>                                                                                          
                                             </tr>                                             

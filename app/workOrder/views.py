@@ -392,6 +392,8 @@ def listOrders(request):
     estatus = "0"
     loc = "0"
     pid = ""
+    addR = ""
+    invNumber=""
     
     """try:"""
     context={}
@@ -400,6 +402,9 @@ def listOrders(request):
         estatus = request.POST.get('status')
         loc = request.POST.get('location') 
         pid = request.POST.get('pid')
+        invNumber = request.POST.get('invoiceNumber')
+        
+        addR = request.POST.get('address')
         if loc == None or loc =="":
             loc = "0"
         locationObject = Locations.objects.filter(LocationID=loc).first()
@@ -410,6 +415,8 @@ def listOrders(request):
     context["per"]=per    
     context["selectLoc"]=loc
     context["selectPID"]=pid
+    context["selectedAddress"]=addR
+    context["selectedInvoice"]=invNumber
 
     if emp:
         if emp.is_superAdmin:                
@@ -417,6 +424,21 @@ def listOrders(request):
                 #orders = workOrder.objects.exclude(linkedOrder__isnull = False, uploaded = False )    
                 if pid != None and pid != "":
                     orders = workOrder.objects.filter(prismID__exact = pid).exclude(linkedOrder__isnull = False, uploaded = False)    
+                elif addR != None and addR !="":
+                    orders = workOrder.objects.filter(JobAddress__contains = addR).exclude(linkedOrder__isnull = False, uploaded = False)   
+                elif invNumber !="" and invNumber != None:
+                    
+                    #Getting the OrderList by Invoice Number
+                    
+                    woInv = woInvoice.objects.filter(invoiceNumber = invNumber)
+                    woInvLits = []
+                    
+                    for i in woInv:
+                        woInvLits.append(i.woID.id)
+
+                    orders = workOrder.objects.filter(id__in = woInvLits ).exclude(linkedOrder__isnull = False, uploaded = False) 
+                    
+                    
                 else:  
                     orders = workOrder.objects.filter(id = -1)   
             else:
@@ -465,11 +487,26 @@ def listOrders(request):
 
     if request.user.is_staff:        
         if estatus == "0" and loc == "0":    
-            #orders = workOrder.objects.exclude(linkedOrder__isnull = False, uploaded = False )  
+            
             if pid != None and pid != "":
                 orders = workOrder.objects.filter(prismID__exact = pid).exclude(linkedOrder__isnull = False, uploaded = False)    
+            elif addR != None and addR !="":
+                orders = workOrder.objects.filter(JobAddress__contains = addR).exclude(linkedOrder__isnull = False, uploaded = False)   
+            elif invNumber !="" and invNumber != None:
+                
+                #Getting the OrderList by Invoice Number
+                
+                woInv = woInvoice.objects.filter(invoiceNumber = invNumber)
+                woInvLits = []
+                
+                for i in woInv:
+                    woInvLits.append(i.woID.id)
+                orders = workOrder.objects.filter(id__in = woInvLits ).exclude(linkedOrder__isnull = False, uploaded = False) 
+                
+                
             else:  
-                orders = workOrder.objects.filter(id = -1)
+                orders = workOrder.objects.filter(id = -1)   
+        
         else:
             if estatus != "0" and loc != "0":
                 orders = workOrder.objects.filter(Status = estatus, Location = locationObject).exclude(linkedOrder__isnull = False, uploaded = False )  
@@ -517,18 +554,56 @@ def order_list_location(request, userID):
         {'orders': orders, 'emp': emp, 'per': per })
 
 def order_list_sup(request):  
+    locationList = Locations.objects.all()
     # emp = Employee.objects.filter(user__username__exact = userID).first()
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     per = period.objects.filter(status__in=(1,2)).first()
+    
+    
+    estatus = "0"
+    loc = "0"
+    pid = ""
+    
+    """try:"""
+    context={}
+
+    if request.method == "POST":
+        estatus = request.POST.get('status')
+        loc = request.POST.get('location') 
+        pid = request.POST.get('pid')
+        if loc == None or loc =="":
+            loc = "0"
+        locationObject = Locations.objects.filter(LocationID=loc).first()
+    
+    context["selectEstatus"] = estatus    
+    context["emp"]=emp
+    context["location"]=locationList
+    context["per"]=per    
+    context["selectLoc"]=loc
+    context["selectPID"]=pid
+    context["sup"]='True'
+
 
     if emp:
-        orders = workOrder.objects.filter(WCSup__employeeID__exact=emp.employeeID).exclude(linkedOrder__isnull = False, uploaded = False )
-        return render(request,'order_list_sup.html',
-        {'orders': orders, 'emp': emp, 'sup':'True', 'per':per})
+        if estatus == "0" and loc == "0":     
+            if pid != None and pid != "":
+                orders = workOrder.objects.filter(WCSup__employeeID__exact=emp.employeeID, prismID__exact = pid).exclude(linkedOrder__isnull = False, uploaded = False)   
+            else:     
+                orders = workOrder.objects.filter(WCSup__employeeID__exact=emp.employeeID).exclude(linkedOrder__isnull = False, uploaded = False )            
+        else:
+            if estatus != "0" and loc != "0":
+                orders = workOrder.objects.filter(WCSup__employeeID__exact=emp.employeeID, Status = estatus, Location = locationObject).exclude(linkedOrder__isnull = False, uploaded = False )                 
+            else:
+                if estatus != "0":
+                    orders = workOrder.objects.filter(WCSup__employeeID__exact=emp.employeeID, Status = estatus).exclude(linkedOrder__isnull = False, uploaded = False )
+                else:    
+                    orders = workOrder.objects.filter(WCSup__employeeID__exact=emp.employeeID, Location = locationObject).exclude(linkedOrder__isnull = False, uploaded = False )
+        context["orders"]=orders
+        return render(request,'order_list_sup.html',context)
     else:
         orders = workOrder.objects.filter(WCSup__employeeID__exact=0, Location__isnull=False).exclude(linkedOrder__isnull = False, uploaded = False )
-        return render(request,'order_list_sup.html',
-        {'orders': orders, 'emp': emp, 'sup':'True', 'per': per })
+        context["orders"]=orders
+        return render(request,'order_list_sup.html',context)
 
 def listOrdersFilter(request):
     orders = workOrder.objects.all()
@@ -582,7 +657,7 @@ def order(request, orderID):
                             )
             log.save()
         form.save()       
-        return HttpResponseRedirect('/order_detail/' + str(form.instance.id))
+        return HttpResponseRedirect('/order_detail/' + str(form.instance.id) + '/False')
  
     context["form"] = form
     context["emp"] = emp
@@ -3747,6 +3822,29 @@ def send_recap_emp(request, perID, empID):
 
     return HttpResponseRedirect('/location_period_list/' + perID) 
 
+
+def get_list_orders_bySupervisor(request,estatus, loc):
+    emp = Employee.objects.filter(user__username__exact = request.user.username).first()
+    per = period.objects.filter(status__in=(1,2)).first()
+    
+    locationObject = Locations.objects.filter(LocationID=loc).first() 
+   
+    if emp:
+        if estatus == "0" and loc == "0":        
+            orders = workOrder.objects.filter(WCSup__employeeID__exact=emp.employeeID).exclude(linkedOrder__isnull = False, uploaded = False )            
+        else:
+            if estatus != "0" and loc != "0":
+                orders = workOrder.objects.filter(WCSup__employeeID__exact=emp.employeeID, Status = estatus, Location = locationObject).exclude(linkedOrder__isnull = False, uploaded = False )                 
+            else:
+                if estatus != "0":
+                    orders = workOrder.objects.filter(WCSup__employeeID__exact=emp.employeeID, Status = estatus).exclude(linkedOrder__isnull = False, uploaded = False )
+                else:    
+                    orders = workOrder.objects.filter(WCSup__employeeID__exact=emp.employeeID, Location = locationObject).exclude(linkedOrder__isnull = False, uploaded = False )
+        return orders
+    else:
+        orders = workOrder.objects.filter(WCSup__employeeID__exact=0, Location__isnull=False).exclude(linkedOrder__isnull = False, uploaded = False )
+        return orders
+
 def get_list_orders(request,estatus, loc):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     per = period.objects.filter(status__in=(1,2)).first()
@@ -3801,7 +3899,7 @@ def get_list_orders(request,estatus, loc):
 
 
 
-def get_order_list(request,estatus, loc):
+def get_order_list(request,estatus, loc, superV):
     
 
     wb = xlwt.Workbook(encoding='utf-8')
@@ -3828,7 +3926,10 @@ def get_order_list(request,estatus, loc):
         ws.write(row_num, col_num, columns[col_num], font_title) # at 0 row 0 column 
     
 
-    ordenes = get_list_orders(request, estatus, loc)  
+    if superV == "False":
+        ordenes = get_list_orders(request, estatus, loc)  
+    else:
+        ordenes = get_list_orders_bySupervisor(request, estatus, loc)  
 
     for item in ordenes:
         row_num += 1
@@ -4496,7 +4597,7 @@ def delete_daily(request, id, LocID):
 
 
 
-def status_log(request, id):
+def status_log(request, id,isSupervisor):
 
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()        
     context ={}
@@ -4510,7 +4611,8 @@ def status_log(request, id):
     wo_log = woStatusLog.objects.filter(woID = wo).order_by('created_date')
     context["log"] = wo_log
     context["id"] = wo.id
-
+    context["isSupervisor"]=isSupervisor
+    
     return render(request, "order_status_log.html", context)
 
 def supervisor_appoval(request, id):
@@ -6023,7 +6125,7 @@ def add_internalPO_to_estimate(request, poID, woID, estimateID):
     return render(request, "update_po_to_estimate.html", context) 
 
 
-def order_detail(request, id):
+def order_detail(request, id,isSupervisor):
     context = {} 
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context["emp"] = emp
@@ -6033,6 +6135,8 @@ def order_detail(request, id):
 
     wo = workOrder.objects.filter(id=id).first()
     context["order"] = wo
+    
+    context["isSupervisor"] = isSupervisor
   
     return render(request, "order_detail.html", context)
 

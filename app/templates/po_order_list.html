@@ -78,8 +78,11 @@
                             <div class="row">
                                 <div class="col-lg-6">  
                                     <div class="form-outline" style="align-items: center;">                                                                               
-                                        <a class="btn btn-success" href="/create_po/{{order.id}}" role="button">Add PO</a>
-                                        <a href="/order_detail/{{order.id}}" type="button" class="btn btn-danger">Close</a> 
+                                        {%if emp.is_supervisor == False %}
+                                            <a class="btn btn-success" href="/create_po/{{order.id}}" role="button">Add PO</a>
+                                        {%endif%}
+
+                                        <a href="/order_detail/{{order.id}}/{{emp.is_supervisor}}" type="button" class="btn btn-danger">Close</a> 
                                     </div>
                                 </div>
                             </div>   
