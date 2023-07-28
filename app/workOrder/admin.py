@@ -62,4 +62,4 @@ admin.site.register(woEstimate)
 admin.site.register(woInvoice)
 admin.site.register(employeeLocation)
 admin.site.register(billingAddress)
-
+admin.site.register(DailyAudit)

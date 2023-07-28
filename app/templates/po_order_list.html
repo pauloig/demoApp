@@ -78,7 +78,7 @@
                             <div class="row">
                                 <div class="col-lg-6">  
                                     <div class="form-outline" style="align-items: center;">                                                                               
-                                        {%if emp.is_supervisor == False %}
+                                        {%if emp.is_supervisor == False and order.Status != "5" %}
                                             <a class="btn btn-success" href="/create_po/{{order.id}}" role="button">Add PO</a>
                                         {%endif%}
 

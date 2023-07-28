@@ -120,6 +120,7 @@
                     {%endfor%}
                 {%endif%}
             </div>
+          
             <div class="col-sm-1">                  
                 <a class="btn btn-danger " href="/home/">Close</a>         
             </div>
@@ -198,11 +199,15 @@
                                         <input type="text" class="form-control d-none" id="daily" name="daily" value="{{item.id}}">                                         
                                     </div> 
                                 </form>
+                        
                                     <div class="col-sm-4 pt-3">
+                                        
+                                        <a class="btn btn-success p-3 " hx-get="/payroll_audit/{{item.id}}" hx-target="#dialog">Audit Log</i></a>
                                         {% if emp.is_superAdmin  or user.is_staff  or period.status == 1%}
                                             <button type="button" class="btn btn-primary p-3" data-bs-toggle="modal" data-bs-target="#staticBackdrop">
                                                 upload daily
                                             </button> 
+                                            
                                         {%endif%}
                                         {% if item.pdfDaily != '' and item.pdfDaily != None %}                                        
                                             <a class="btn btn-primary p-3" href="/static/media/{{item.pdfDaily}}" target="_blank"> View Daily</a>  

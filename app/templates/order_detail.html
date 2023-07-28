@@ -97,11 +97,10 @@
                                     {% endif %}
                                     {% if order.uploaded and order.linkedOrder is null and isSupervisor == "False" %}                                                    
                                         <a class="btn btn-success" data-bs-toggle="tooltip" data-bs-placement="top" title="Link Order" href="/link_order_list/{{order.id}}"><i class="fa-solid fa-link fa-2x m-2" style="color: white;"></i></br> Link Order</a>                
-                                    {% endif %}
-                                    <a class="btn btn-success" data-bs-toggle="tooltip" data-bs-placement="top" title="Status Log" href="/status_log/{{order.id}}/{{isSupervisor}}"><i class="fa-solid fa-clock-rotate-left fa-2x m-2" style="color: white;"></i></br>Status Log</a> 
-                                    
-                                    
+                                    {% endif %}                                
                                 {% endif %} 
+
+                                <a class="btn btn-success" data-bs-toggle="tooltip" data-bs-placement="top" title="Status Log" href="/status_log/{{order.id}}/{{isSupervisor}}"><i class="fa-solid fa-clock-rotate-left fa-2x m-2" style="color: white;"></i></br>Status Log</a> 
                             </div>
                         </div>     
 
@@ -112,7 +111,7 @@
                 <div class="card rounded">
                     <h6 class="card-header card-header-wc" >Expenses</h6>
                     <div class="card-body">        
-                        {%if order.Status >= "2" and order.Status < "5"%} 
+                        {%if order.Status >= "2" and order.Status <= "5"%} 
                             <a class="btn btn-info" data-bs-toggle="tooltip" data-bs-placement="top" title="Internal PO" href="/po_list/{{order.id}}"><i class="fa-solid fa-cart-shopping fa-2x m-2" style="color: white;"></i></br>Internal PO</a> 
                             <a class="btn btn-info" data-bs-toggle="tooltip" data-bs-placement="top" title="External Production" href="/external_prod_list/{{order.id}}"><i class="fa-solid fa-circle-plus fa-2x m-2" style="color: white;"></i></br>Ext. Production</a>  
                         {%endif%}

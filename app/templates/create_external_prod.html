@@ -82,7 +82,7 @@
                                                 {% if external.invoice != '' and external.invoice != None %}   
                                                     <a class="btn btn-info" href="/static/media/{{external.invoice}}" target="_blank">View Invoice</a>  
                                                 {%endif%}
-                                                {%if emp.is_supervisor == False %}
+                                                {%if emp.is_supervisor == False and order.Status != "5" %}
                                                     <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#staticBackdrop">
                                                         upload Invoice
                                                     </button>
@@ -102,7 +102,7 @@
                                                 <input class="btn btn-primary" type="submit" value="Save">
                                             {%else%}
                                             
-                                            {%if emp.is_supervisor == False %}
+                                            {%if emp.is_supervisor == False and order.Status != "5" %}
                                                 <a class="btn btn-success" hx-get="/update_external_prod/{{externalProduction.id}}" hx-target="#dialog">UPDATE</a>
                                             {%endif%}
                                                 
@@ -136,8 +136,10 @@
                                                     <td width="15%" class="p-1">Price</td>
                                                     <td width="15%" class="p-1">Total</td>  
                                                     <td width="15%" class="p-1">     
-                                                        {% if emp.is_superAdmin or emp.is_admin or user.is_staff  %}                                         
-                                                            <a hx-get="/create_ext_prod_item/{{externalProduction.id}}" hx-target="#dialog"><i class="fa-solid fa-circle-plus"></i></a>
+                                                        {% if emp.is_superAdmin or emp.is_admin or user.is_staff  %}     
+                                                            {%if emp.is_supervisor == False and order.Status != "5" %}
+                                                                <a hx-get="/create_ext_prod_item/{{externalProduction.id}}" hx-target="#dialog"><i class="fa-solid fa-circle-plus"></i></a>
+                                                            {% endif %}
                                                         {%endif%}
                                                     </td>                                                 
                                                 </tr>
@@ -176,7 +178,9 @@
         <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-            <h5 class="modal-title" id="staticBackdropLabel">Upload Invoice</h5>
+                      
+                    <h5 class="modal-title" id="staticBackdropLabel">Upload Invoice</h5>
+               
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">

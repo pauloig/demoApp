@@ -58,6 +58,7 @@ urlpatterns = [
     path('location_period_list/<id>',views.location_period_list),    
     path('orders_payroll/<dailyID>/<LocID>',views.orders_payroll, name="orders_payroll"),   
     path('payroll/<perID>/<dID>/<crewID>/<LocID>',views.payroll),
+    path('payroll_audit/<id>',views.payroll_audit),
     path('update_order_daily/<woID>/<dailyID>/<LocID>',views.update_order_daily),
     path('create_daily/<pID>/<dID>/<LocID>',views.create_daily),
     path('update_daily/<daily>',views.update_daily),

@@ -140,6 +140,7 @@
                                             <td class="p-1">empID</td>
                                             <td class="p-1">Name</td>
                                             <td class="p-1">Payout</td>
+                                            <td calss="p-1">Daily</td>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -150,6 +151,10 @@
                                             <td>{{item.empID}}</td>
                                             <td>{{item.empName}}</td>
                                             <td>${{item.payout|floatformat:2|intcomma}}</td>
+                                            <td>
+                                                <a href="/static/media/{{item.pdf}}" target="_blank"> <i class="fa-solid fa-magnifying-glass" style="color: green;"></i></a> 
+                                                
+                                            </td>
                                         </tr>
                                         {%endfor%}
                                         {% if payrollTotal > 0%}

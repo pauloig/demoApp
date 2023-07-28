@@ -324,6 +324,22 @@ class DailyItem(models.Model):
         unique_together = ('DailyID','itemID')
 
 
+
+class DailyAudit(models.Model):
+    DailyID = models.ForeignKey(Daily, on_delete=models.CASCADE, db_column ='DailyID', null=False, blank=False)
+    operationDetail = models.TextField(max_length=500, null=True, blank=True)
+    operationType = models.CharField(max_length=60, blank=True, null=True)
+    created_date = models.DateTimeField(null=True, blank=True)
+    createdBy = models.CharField(max_length=60, blank=True, null=True)
+    updated_date = models.DateTimeField(null=True, blank=True)
+    updatedBy = models.CharField(max_length=60, blank=True, null=True)
+
+    def __str__(self):
+        return str(self.DailyID) + " - " + str(self.operationType) + " - " + str(self.createdBy)
+
+
+
+
 class employeeRecap(models.Model):
     Period = models.ForeignKey(period, on_delete=models.CASCADE, db_column ='Period', null=False, blank=False)
     EmployeeID = models.ForeignKey(Employee, on_delete=models.CASCADE, db_column ='EmployeeID', null=False, blank=False)

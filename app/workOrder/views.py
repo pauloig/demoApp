@@ -2619,6 +2619,13 @@ def update_order_daily(request, woID, dailyID, LocID):
         wo.save()
 
         per = crew.Period.id
+        
+        
+        
+        #Adding Audit
+        operationDetail = "Change on Selected WO - last WO: " + str(anterior) + ", New WO: " + str(wo)
+        
+        daily_audit(crew.id, operationDetail, "Insert/Update", request.user.username)
 
         return HttpResponseRedirect('/payroll/' + str(per) + '/' + crew.day.strftime("%d")  + '/'+ str(crew.crew) +'/' + str(LocID))
     else:
@@ -2667,10 +2674,34 @@ def create_daily(request, pID, dID, LocID):
 
         crew.save()
         per = crew.Period.id
+        
+        #Adding Audit
+        
+        operationDetail = "Period: " + str(per) + ", Crew: " + str(crew.crew)
+        
+        daily_audit(crew.id, operationDetail, "Insert", request.user.username)
 
         return HttpResponseRedirect('/payroll/' + str(per) + '/' + crew.day.strftime("%d")  + '/'+ str(crew.crew) +'/'+LocID)
     else:
         return HttpResponseRedirect('/payroll/0/0/0/0')
+    
+    
+def daily_audit(dailyID, opDetail, opType, createBy):
+    
+    
+    dID = Daily.objects.filter( id = dailyID).first()
+    
+    audit = DailyAudit(
+        DailyID = dID,
+        operationDetail = opDetail,
+        operationType = opType,
+        created_date = datetime.now(),
+        createdBy =  createBy
+    )
+    
+    audit.save()
+    
+    return True
 
 def update_daily(request, daily):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
@@ -2921,7 +2952,14 @@ def payroll(request, perID, dID, crewID, LocID):
                     wo = workOrder.objects.filter( id = crew.woID.id).first()
                     if wo:             
                         wo.WCSup = super
-                        wo.save()            
+                        wo.save()       
+                        
+                        
+                        #Adding Audit
+                        operationDetail = "Change on Selected Supervisor- New Supervisor: " + str(super) + ", Own Vehicle: " + str(ov) + ", Split: " + str(bool(split))
+                        
+                        daily_audit(crew.id, operationDetail, "Insert/Update", request.user.username)
+     
             
         
         return HttpResponseRedirect('/payroll/' + str(crew.Period.id) + '/' + crew.day.strftime("%d") + '/' + str(crew.crew) +'/' + str(LocID))        
@@ -3109,6 +3147,11 @@ def create_daily_emp(request, id, LocID):
         form.instance.EmployeeID = selectedEmp
         form.save()  
 
+        #Adding Audit
+        operationDetail = "Adding a Employee: " + str(selectedEmp) + ", % to pay: " + str(form.instance.per_to_pay) + ", on Call: " + str(form.instance.on_call) + ", Bonus: " + str(form.instance.bonus) + ", Start Time: " + str(startTime) + ", Lunch Start Time: " + str(lunch_startTime) + ", Lunch End Time: " + str(lunch_endTime) + ", End Time: " + str(endTime)
+        
+        daily_audit(id, operationDetail, "Insert", request.user.username)
+
         update_ptp_Emp(id, dailyID.split_paymet)             
         return HttpResponseRedirect('/payroll/' + str(dailyID.Period.id) + '/' + dailyID.day.strftime("%d") + '/' + str(dailyID.crew) +'/' + str(LocID))        
          
@@ -3146,6 +3189,11 @@ def update_daily_emp(request, id, LocID):
         form.instance.EmployeeID = selectedEmp
 
         form.save()
+        
+         #Adding Audit
+        operationDetail = "Updating a Employee: " + str(selectedEmp) + ", % to pay: " + str(obj.per_to_pay) + ", on Call: " + str(obj.on_call) + ", Bonus: " + str(obj.bonus) + ", Start Time: " + str(startTime) + ", Lunch Start Time: " + str(lunch_startTime) + ", Lunch End Time: " + str(lunch_endTime) + ", End Time: " + str(endTime)
+        
+        daily_audit(obj.DailyID.id, operationDetail, "Update", request.user.username)
 
         update_ptp_Emp(obj.DailyID.id, obj.DailyID.split_paymet) 
 
@@ -3174,10 +3222,20 @@ def delete_daily_emp(request, id, LocID):
     context["per"] = per
  
     if request.method == 'POST':
+        
+        
+         #Adding Audit
+        operationDetail = "Deleting a Employee: " + str(obj.EmployeeID) + ", % to pay: " + str(obj.per_to_pay) + ", on Call: " + str(obj.on_call) + ", Bonus: " + str(obj.bonus) + ", Start Time: " + str(obj.start_time) + ", Lunch Start Time: " + str(obj.start_lunch_time) + ", Lunch End Time: " + str(obj.end_lunch_time) + ", End Time: " + str(obj.end_time)
+        
+        daily_audit(obj.DailyID.id, operationDetail, "Delete", request.user.username)
+
+        
         obj.delete()
 
         update_ptp_Emp(obj.DailyID.id, obj.DailyID.split_paymet) 
-
+        
+        
+       
         return HttpResponseRedirect('/payroll/' + str(obj.DailyID.Period.id) + '/' + obj.DailyID.day.strftime("%d") + '/' + str(obj.DailyID.crew) +'/' + str(LocID)) 
 
    
@@ -3223,6 +3281,13 @@ def create_daily_item(request, id, LocID):
         form.instance.created_date = datetime.now()
 
         form.save()      
+        
+        #Adding Audit
+        
+        operationDetail = "Adding Item: " + str(form.instance.itemID) + ", Quantity: " + str(form.instance.quantity) + ", Total: " + str(form.instance.total)
+        
+        daily_audit(form.instance.DailyID.id, operationDetail, "Insert", request.user.username)
+        
 
         update_ptp_Emp(id, dailyID.split_paymet)
 
@@ -3260,6 +3325,12 @@ def update_daily_item(request, id, LocID):
 
         form.save()
         context["emp"] = emp    
+        
+         #Adding Audit
+        
+        operationDetail = "Updating Item: " + str(form.instance.itemID) + ", Quantity: " + str(form.instance.quantity) + ", Total: " + str(form.instance.total)
+        
+        daily_audit(form.instance.DailyID.id, operationDetail, "Update", request.user.username)
 
         update_ptp_Emp(obj.DailyID.id, obj.DailyID.split_paymet) 
 
@@ -3284,6 +3355,13 @@ def delete_daily_item(request, id, LocID):
     context["emp"] = emp
  
     if request.method == 'POST':
+        
+         #Adding Audit
+        
+        operationDetail = "Deleting Item: " + str(obj.itemID) + ", Quantity: " + str(obj.quantity) + ", Total: " + str(obj.total)
+        
+        daily_audit(obj.DailyID.id, operationDetail, "Delete", request.user.username)
+        
         obj.delete()
 
         update_ptp_Emp(obj.DailyID.id, obj.DailyID.split_paymet) 
@@ -4556,6 +4634,15 @@ def delete_daily(request, id, LocID):
  
     if request.method == 'POST':
         actual_wo = obj.woID
+        
+        #Adding Audit
+        
+        operationDetail = "Period: " + str(obj.id) + ", Crew: " + str(obj.crew)
+        
+        daily_audit(obj.id, operationDetail, "Delete", request.user.username)
+
+        
+        
         obj.delete()
 
         if actual_wo != None:
@@ -4614,6 +4701,23 @@ def status_log(request, id,isSupervisor):
     context["isSupervisor"]=isSupervisor
     
     return render(request, "order_status_log.html", context)
+
+def payroll_audit(request, id):
+
+    emp = Employee.objects.filter(user__username__exact = request.user.username).first()        
+    context ={}
+    context["emp"] = emp
+
+    per = period.objects.filter(status__in=(1,2)).first()
+    context["per"] = per
+
+    wo = Daily.objects.filter(id = id).first()
+
+    wo_log = DailyAudit.objects.filter(DailyID = wo).order_by('created_date')
+    context["log"] = wo_log
+    context["id"] = wo.id
+    
+    return render(request, "payroll_audit.html", context)
 
 def supervisor_appoval(request, id):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
@@ -4680,7 +4784,7 @@ def payroll_detail(request, id):
 
         for empI in dailyEmp:
             empTotal += validate_decimals(empI.payout)
-            dailyDetail.append({'empID': empI.EmployeeID.employeeID, 'empName':empI.EmployeeID, 'payout': empI.payout, 'day':empI.DailyID.day, 'period': empI.DailyID.Period.weekRange} )
+            dailyDetail.append({'empID': empI.EmployeeID.employeeID, 'empName':empI.EmployeeID, 'payout': empI.payout, 'day':empI.DailyID.day, 'period': empI.DailyID.Period.weekRange, 'pdf': item.pdfDaily } )
 
     #External Production
     extProduction = externalProduction.objects.filter(woID = obj)

@@ -123,7 +123,7 @@
                                                             </td>
                                                             <!--<td class="p-1">{{itemd.total}}</td>-->
                                                             <td class="p-1">                                                                            
-                                                                <a data-bs-toggle="tooltip" data-bs-placement="top" title="Estimate Preview" hx-get="/estimate_preview/{{order.id}}/{{itemd.estimateNumber}}" hx-target="#dialog"><i class="fa-solid fa-magnifying-glass" style="color: green;"></i></a>    
+                                                                <a data-bs-toggle="tooltip" data-bs-placement="top" title="Estimate Preview" hx-get="/estimate_preview/{{order.id}}/{{itemd.estimateNumber}}" hx-target="#dialog"><i class="fa-solid fa-ying-glass" style="color: green;"></i></a>    
                                                                 &nbsp; <a data-bs-toggle="tooltip" data-bs-placement="top" title="Download Estimate" href="/estimate/{{order.id}}/{{itemd.estimateNumber}}" role="button"><i class="fa-solid fa-download" style="color: green;"></i></a> 
                                                                 {% if emp.is_superAdmin  or user.is_staff %}  
                                                                     &nbsp; <a href="/update_estimate/{{order.id}}/{{itemd.estimateNumber}}"><i class="fa-solid fa-pen-to-square" style="color: green;"></i></a>
