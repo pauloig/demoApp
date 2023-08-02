@@ -88,10 +88,19 @@
                             </div>   
                             <div class="col-lg-3">                                
                                 {% if emp.is_superAdmin  or user.is_staff %}
+                                Invoice Amount
+                                <input class="form-control" type="text" name="invoiceAmount" id="invoiceAmount" value="{{selectedAmount}}">
+                                {%endif%}                 
+                            </div>                     
+                        </div>
+                        <div class="row my-4">  
+                            <div class="col-lg-12">  
+                                
+                                {% if emp.is_superAdmin  or user.is_staff %}
                                     Address
                                     <input class="form-control" type="text" name="address" id="address" value="{{selectedAddress}}">
-                                {%endif%}                                
-                            </div>                     
+                                {%endif%}           
+                            </div>
                         </div>
                         <div class="row my-4">  
                             <div class="col-lg-4">                                                              

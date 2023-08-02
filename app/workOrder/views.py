@@ -394,6 +394,7 @@ def listOrders(request):
     pid = ""
     addR = ""
     invNumber=""
+    invAmount=""
     
     """try:"""
     context={}
@@ -403,7 +404,7 @@ def listOrders(request):
         loc = request.POST.get('location') 
         pid = request.POST.get('pid')
         invNumber = request.POST.get('invoiceNumber')
-        
+        invAmount = request.POST.get('invoiceAmount')
         addR = request.POST.get('address')
         if loc == None or loc =="":
             loc = "0"
@@ -416,6 +417,7 @@ def listOrders(request):
     context["selectLoc"]=loc
     context["selectPID"]=pid
     context["selectedAddress"]=addR
+    context["selectedAmount"]=invAmount
     context["selectedInvoice"]=invNumber
 
     if emp:
@@ -438,7 +440,16 @@ def listOrders(request):
 
                     orders = workOrder.objects.filter(id__in = woInvLits ).exclude(linkedOrder__isnull = False, uploaded = False) 
                     
+                elif  invAmount !="" and invAmount != None:   
+                    #Getting the OrderList by Invoice Number
                     
+                    woInv = woInvoice.objects.filter(total = float(invAmount))
+                    woInvLits = []
+                    
+                    for i in woInv:
+                        woInvLits.append(i.woID.id)
+
+                    orders = workOrder.objects.filter(id__in = woInvLits ).exclude(linkedOrder__isnull = False, uploaded = False) 
                 else:  
                     orders = workOrder.objects.filter(id = -1)   
             else:
@@ -502,7 +513,17 @@ def listOrders(request):
                 for i in woInv:
                     woInvLits.append(i.woID.id)
                 orders = workOrder.objects.filter(id__in = woInvLits ).exclude(linkedOrder__isnull = False, uploaded = False) 
-                
+            
+            elif  invAmount !="" and invAmount != None:   
+                    #Getting the OrderList by Invoice Number
+                    
+                    woInv = woInvoice.objects.filter(total__contains = float(invAmount))
+                    woInvLits = []
+                    
+                    for i in woInv:
+                        woInvLits.append(i.woID.id)
+
+                    orders = workOrder.objects.filter(id__in = woInvLits ).exclude(linkedOrder__isnull = False, uploaded = False)     
                 
             else:  
                 orders = workOrder.objects.filter(id = -1)   
@@ -563,6 +584,9 @@ def order_list_sup(request):
     estatus = "0"
     loc = "0"
     pid = ""
+    invNumber = ""
+    invAmount = ""
+    addR=""
     
     """try:"""
     context={}
@@ -571,6 +595,11 @@ def order_list_sup(request):
         estatus = request.POST.get('status')
         loc = request.POST.get('location') 
         pid = request.POST.get('pid')
+        invNumber = request.POST.get('invoiceNumber')
+        invAmount = request.POST.get('invoiceAmount')
+        addR = request.POST.get('address')
+    
+    
         if loc == None or loc =="":
             loc = "0"
         locationObject = Locations.objects.filter(LocationID=loc).first()
@@ -581,6 +610,9 @@ def order_list_sup(request):
     context["per"]=per    
     context["selectLoc"]=loc
     context["selectPID"]=pid
+    context["selectedAddress"]=addR
+    context["selectedAmount"]=invAmount
+    context["selectedInvoice"]=invNumber
     context["sup"]='True'
 
 
@@ -588,6 +620,29 @@ def order_list_sup(request):
         if estatus == "0" and loc == "0":     
             if pid != None and pid != "":
                 orders = workOrder.objects.filter(WCSup__employeeID__exact=emp.employeeID, prismID__exact = pid).exclude(linkedOrder__isnull = False, uploaded = False)   
+            elif addR != None and addR !="":
+                orders = workOrder.objects.filter(WCSup__employeeID__exact=emp.employeeID, JobAddress__contains = addR).exclude(linkedOrder__isnull = False, uploaded = False)   
+            elif invNumber !="" and invNumber != None:
+                
+                #Getting the OrderList by Invoice Number
+                
+                woInv = woInvoice.objects.filter(invoiceNumber = invNumber)
+                woInvLits = []
+                
+                for i in woInv:
+                    woInvLits.append(i.woID.id)
+                orders = workOrder.objects.filter(WCSup__employeeID__exact=emp.employeeID, id__in = woInvLits ).exclude(linkedOrder__isnull = False, uploaded = False) 
+            
+            elif  invAmount !="" and invAmount != None:   
+                    #Getting the OrderList by Invoice Number
+                    
+                    woInv = woInvoice.objects.filter(total__contains = float(invAmount))
+                    woInvLits = []
+                    
+                    for i in woInv:
+                        woInvLits.append(i.woID.id)
+
+                    orders = workOrder.objects.filter(WCSup__employeeID__exact=emp.employeeID, id__in = woInvLits ).exclude(linkedOrder__isnull = False, uploaded = False)    
             else:     
                 orders = workOrder.objects.filter(WCSup__employeeID__exact=emp.employeeID).exclude(linkedOrder__isnull = False, uploaded = False )            
         else:
