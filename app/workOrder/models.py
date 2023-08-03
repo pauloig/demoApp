@@ -336,6 +336,21 @@ class DailyAudit(models.Model):
 
     def __str__(self):
         return str(self.DailyID) + " - " + str(self.operationType) + " - " + str(self.createdBy)
+    
+
+class payrollAudit(models.Model): 
+    Location = models.ForeignKey(Locations, on_delete=models.CASCADE, db_column ='Location', null=False, blank=False)
+    Period = models.ForeignKey(period, on_delete=models.CASCADE, db_column ='Period', null=False, blank=False)
+    day = models.DateField(null=False, blank=False)
+    operationDetail = models.TextField(max_length=1000, null=True, blank=True)
+    operationType = models.CharField(max_length=60, blank=True, null=True)
+    created_date = models.DateTimeField(null=True, blank=True)
+    createdBy = models.CharField(max_length=60, blank=True, null=True)
+    updated_date = models.DateTimeField(null=True, blank=True)
+    updatedBy = models.CharField(max_length=60, blank=True, null=True)
+
+    def __str__(self):
+        return str(self.Location) + " - " + str(self.Period) + " - " + str(self.day)
 
 
 

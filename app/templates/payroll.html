@@ -90,7 +90,7 @@
             </div>            
         </div>         
         <div class="row py-2">
-            <div class="col-sm-10">   
+            <div class="col-sm-9">   
                 {% if selectedDay > 0 %}
                     {%if emp.is_superAdmin  or user.is_staff  or period.status == 1%}  
 
@@ -121,6 +121,9 @@
                 {%endif%}
             </div>
           
+            <div class="col-sm-1">                  
+                <a class="btn btn-success " hx-get="/payroll_audit_delete/{{period.id}}/{{selectedLocation}}/{{selectedDay}}" hx-target="#dialog">Audit</i></a>       
+            </div>
             <div class="col-sm-1">                  
                 <a class="btn btn-danger " href="/home/">Close</a>         
             </div>

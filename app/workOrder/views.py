@@ -4692,10 +4692,25 @@ def delete_daily(request, id, LocID):
         
         #Adding Audit
         
-        operationDetail = "Period: " + str(obj.id) + ", Crew: " + str(obj.crew)
+        #Getting all the Payroll operations before to delete
         
-        daily_audit(obj.id, operationDetail, "Delete", request.user.username)
-
+        dAudit = DailyAudit.objects.filter(DailyID = obj.id)
+        opDetail = ""
+        for i in dAudit:
+            opDetail += "Crew: " + str(obj.crew) + ", Date: " + str(i.created_date) + ", User: " + i.createdBy + ", Operation: " + i.operationType + ", Detail: " + i.operationDetail + "\n" 
+        
+        
+        pAudit = payrollAudit(
+                                Location = obj.Location,
+                                Period = obj.Period,
+                                day = obj.day,
+                                operationDetail = opDetail,
+                                operationType = "Delete",
+                                created_date = datetime.now(),
+                                createdBy =  request.user.username
+                            )
+        
+        pAudit.save()
         
         
         obj.delete()
@@ -4773,6 +4788,30 @@ def payroll_audit(request, id):
     context["id"] = wo.id
     
     return render(request, "payroll_audit.html", context)
+
+
+def payroll_audit_delete(request, perID, LocID, dID):
+
+    emp = Employee.objects.filter(user__username__exact = request.user.username).first()        
+    context ={}
+    context["emp"] = emp
+
+    per = period.objects.filter(status__in=(1,2)).first()
+    context["per"] = per
+
+    #wo = Daily.objects.filter(id = id).first()
+
+
+    selPeriod = period.objects.filter(id = perID).first()
+    selLoc = Locations.objects.filter(LocationID = LocID).first()
+
+    wo_log = payrollAudit.objects.filter(Period = selPeriod, Location = selLoc).order_by('created_date')
+    context["log"] = wo_log
+    #context["id"] = wo.id
+    
+    return render(request, "payroll_audit.html", context)
+
+
 
 def supervisor_appoval(request, id):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
