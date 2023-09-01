@@ -68,7 +68,17 @@
                                     <input type="text" name="location" id="location" class="form-control" value="{{order.Comments}}" disabled>                                                                       
                                 </div>
                             </div>                           
-                        </div>                                                                                                     
+                        </div>             
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <div class="mb-3">
+                                    <label for="location" class="form-label">General Log</label>                                    
+                                    {% for i in general_log %}  
+                                    </br>{{i.created_date|date:'m-d-Y'}},  Status Changed To {{i.nextStatus}} , {{i.createdBy}} 
+                                    {% endfor %}                                                            
+                                </div>
+                            </div>                           
+                        </div>                                                                                              
                         <div class="row">
                             <div class="col-sm-11"></div>
                             <div class="col-sm-1">

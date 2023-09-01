@@ -6538,6 +6538,11 @@ def order_detail(request, id,isSupervisor):
     context["order"] = wo
     
     context["isSupervisor"] = isSupervisor
+
+    statusLog = woStatusLog.objects.filter(woID = wo)
+    generalLog = ""
+
+    context["general_log"] = statusLog
   
     return render(request, "order_detail.html", context)
 
@@ -7031,8 +7036,8 @@ def get_monthly_report(request, dateSelected):
 
 ### General Functions
 def vendorSubcontrator(request):
-    vendorList = vendor.objects.filter(is_active = True).only("id", "name")
-    subCList = subcontractor.objects.filter(is_active = True).only("id", "name")
+    vendorList = vendor.objects.filter(is_active = True).only("id", "name").order_by("name")
+    subCList = subcontractor.objects.filter(is_active = True).only("id", "name").order_by("name")
     
 
     vcList = []
@@ -7046,7 +7051,9 @@ def vendorSubcontrator(request):
        vcList.append({'id': "S" + str(s.id), 'name': s.name} )
 
 
-    return vcList
+    sort_list = sorted(vcList, key=lambda x: x["name"])
+
+    return sort_list
 
 def date_difference(orders):
     day_diff = []
