@@ -128,6 +128,7 @@ urlpatterns = [
     path('update_total_invoice/',views.update_total_invoice),
     path('logout/', LogoutView.as_view(next_page='/login/'), name='logout'),
     path('', include('authentication.urls')),
+    path('login_audit/',views.login_audit),
     path('home/', include('authentication.urls')),
     path('',
          LoginView.as_view

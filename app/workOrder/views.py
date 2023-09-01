@@ -45,6 +45,10 @@ def simple_upload(request):
     per = period.objects.filter(status__in=(1,2)).first()
     
 
+    opType = "Access Option"
+    opDetail = "upload Orders"
+    logInAuditLog(request, opType, opDetail)
+
     countInserted = 0
     countRejected = 0
     duplicateRejected = 0
@@ -160,6 +164,13 @@ def upload_payroll(request):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     per = period.objects.filter(status__in=(1,2)).first()
     
+
+
+    opType = "Access Option"
+    opDetail = "upload Payroll"
+    logInAuditLog(request, opType, opDetail)
+
+
     countInserted = 0
     countRejected = 0
     countUpdated = 0
@@ -397,6 +408,11 @@ def listOrders(request):
     invAmount=""
     invAmountF=""
     
+    opType = "Access Option"
+    opDetail = "Order List"
+    logInAuditLog(request, opType, opDetail)
+
+
     """try:"""
     context={}
 
@@ -604,6 +620,11 @@ def order_list_sup(request):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     per = period.objects.filter(status__in=(1,2)).first()
     
+
+    opType = "Access Option"
+    opDetail = "Orders Lists by Supervisor"
+    logInAuditLog(request, opType, opDetail)
+
     
     estatus = "0"
     loc = "0"
@@ -713,6 +734,12 @@ def truncateData(request):
 def duplicatelistOrders(request):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     orders = workOrderDuplicate.objects.all()
+
+    opType = "Access Option"
+    opDetail = "Duplicate Orders"
+    logInAuditLog(request, opType, opDetail)
+
+
     per = period.objects.filter(status__in=(1,2)).first()
     return render(request,'duplicate_order_list.html',{'orders': orders, 'emp':emp, 'per':per})
 
@@ -721,6 +748,11 @@ def checkOrder(request, pID):
     duplicateOrder = workOrderDuplicate.objects.filter(id=pID).first()
 
     orders = workOrder.objects.filter(prismID=duplicateOrder.prismID).first()
+
+    opType = "Access Option"
+    opDetail = "Check Orders"
+    logInAuditLog(request, opType, opDetail)
+
 
     per = period.objects.filter(status__in=(1,2)).first()
     return render(request,'checkOrder.html',{'order': orders, 'dupOrder': duplicateOrder, 'emp':emp, 'per':per})
@@ -733,6 +765,8 @@ def order(request, orderID):
     obj = get_object_or_404(workOrder, id = orderID)
  
     form = workOrderForm(request.POST or None, instance = obj)
+
+
 
     if form.is_valid(): 
         anterior = workOrder.objects.filter(id = orderID).first()    
@@ -944,6 +978,12 @@ def create_location(request):
     per = period.objects.filter(status__in=(1,2)).first()
     context["per"] = per
 
+
+    opType = "Access Option"
+    opDetail = "Locations Catalog"
+    logInAuditLog(request, opType, opDetail)
+
+
     form = LocationsForm(request.POST or None)
     if form.is_valid():
         form.save()
@@ -991,6 +1031,14 @@ def employee_list(request):
     per = period.objects.filter(status__in=(1,2)).first()
     context["per"] = per
  
+
+    opType = "Access Option"
+    opDetail = "Employee List"
+    logInAuditLog(request, opType, opDetail)
+
+
+
+
     context["dataset"] = Employee.objects.all()
     context["emp"]= emp
     return render(request, "employee_list.html", context)
@@ -1149,6 +1197,13 @@ def item_list(request):
     per = period.objects.filter(status__in=(1,2)).first()
     context["per"] = per
     
+
+
+    opType = "Access Option"
+    opDetail = "Item List"
+    logInAuditLog(request, opType, opDetail)
+
+
     return render(request, "item_list.html", context)
 
 
@@ -1268,6 +1323,12 @@ def internal_po_list(request):
 
     vendorList = vendorSubcontrator(request) 
     context["vendorList"] = vendorList
+
+
+    opType = "Access Option"
+    opDetail = "Internal PO List"
+    logInAuditLog(request, opType, opDetail)
+
 
     return render(request, "internal_po_list.html", context)
 
@@ -2414,6 +2475,12 @@ def period_list(request):
     per = period.objects.filter(status__in=(1,2)).first()
     context["per"] = per
     
+
+    opType = "Access Option"
+    opDetail = "Period List"
+    logInAuditLog(request, opType, opDetail)
+
+
     return render(request, "period_list.html", context)
 
 def location_period_list(request, id):
@@ -2794,6 +2861,52 @@ def daily_audit(dailyID, opDetail, opType, createBy):
     
     return True
 
+
+
+def logInAuditLog(request, opType, opDetail):
+    
+    emp = Employee.objects.filter(user__username__exact = request.user.username).first()
+    per = period.objects.filter(status__in=(1,2)).first()
+    
+    if emp:
+        Location = emp.Location
+    else:
+        Location = None
+
+  
+    if emp:
+        audit = logInAudit(
+            Location = Location,
+            Period = per,
+            EmployeeID = emp,
+            operationType = opType,
+            operationDetail = opDetail,
+            is_staff = request.user.is_staff ,
+            is_supervisor = emp.is_supervisor,
+            is_admin = emp.is_admin,
+            is_superAdmin = emp.is_superAdmin ,
+            accounts_payable = emp.accounts_payable,
+            created_date = datetime.now(),
+            createdBy =  request.user.username
+        )
+        
+        audit.save()
+    else:
+        audit = logInAudit(
+            Location = Location,
+            Period = per,
+            EmployeeID = emp,
+            operationType = opType,
+            operationDetail = opDetail,
+            is_staff = request.user.is_staff ,
+            created_date = datetime.now(),
+            createdBy =  request.user.username
+        )
+        
+        audit.save()
+
+    return True
+
 def update_daily(request, daily):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     
@@ -2907,6 +3020,12 @@ def payroll(request, perID, dID, crewID, LocID):
 
     perActual = period.objects.filter(status__in = (1,2)).first()
     context["per"] = perActual
+
+
+    opType = "Access Option"
+    opDetail = "Payroll"
+    logInAuditLog(request, opType, opDetail)
+
 
 
     if int(LocID) > 0:
@@ -4826,6 +4945,32 @@ def payroll_audit(request, id):
     return render(request, "payroll_audit.html", context)
 
 
+def login_audit(request):
+  
+    emp = Employee.objects.filter(user__username__exact = request.user.username).first()        
+    context ={}
+    context["emp"] = emp
+
+    per = period.objects.filter(status__in=(1,2)).first()
+    context["per"] = per
+
+    user = ""
+
+    if request.method == "POST":
+        user = request.POST.get('user')
+
+    if user != "":
+        wo_log = logInAudit.objects.filter(createdBy = user).order_by('created_date').reverse()
+        context["log"] = wo_log
+    else:
+        wo_log = logInAudit.objects.filter().order_by('created_date').reverse()
+        context["log"] = wo_log
+    
+    context["selectUser"] = user
+
+    return render(request, "login_audit.html", context)
+
+
 def payroll_audit_delete(request, perID, LocID, dID):
 
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()        
@@ -5142,6 +5287,14 @@ def vendor_list(request):
  
     context["vendor"] = vendor.objects.all()
     context["emp"]= emp
+
+
+    opType = "Access Option"
+    opDetail = "Vendor List"
+    logInAuditLog(request, opType, opDetail)
+
+
+
     return render(request, "vendor_list.html", context)
 
 
@@ -5190,6 +5343,14 @@ def subcontractor_list(request):
  
     context["subcontractor"] = subcontractor.objects.all()
     context["emp"]= emp
+
+
+
+    opType = "Access Option"
+    opDetail = "Subcontractor List"
+    logInAuditLog(request, opType, opDetail)
+
+
     return render(request, "subcontractor_list.html", context)
 
 def create_subcontractor(request):
@@ -5460,6 +5621,12 @@ def authorized_billing_list(request, id):
 
     payItems = DailyItem.objects.filter(DailyID__woID = wo)
     itemResume = []
+
+
+    opType = "Access Option"
+    opDetail = "Billing List"
+    logInAuditLog(request, opType, opDetail)
+
 
     try:
         for data in payItems:
@@ -6576,6 +6743,11 @@ def invoice_daily_report(request):
        context["woInvoice"] = result
        context["dateSelected"] =  dateS
        
+    
+    opType = "Access Option"
+    opDetail = "Invoice Daily Report"
+    logInAuditLog(request, opType, opDetail)
+
 
     return render(request, "invoice_daily_report.html", context)
 
@@ -6587,7 +6759,10 @@ def invoice_monthly_report(request):
     context["per"] = per
     context["emp"] = emp
 
-    
+    opType = "Access Option"
+    opDetail = "Invoice Monthly Report"
+    logInAuditLog(request, opType, opDetail)
+
 
     if request.method == 'POST':       
        dateSelected =  request.POST.get('date')

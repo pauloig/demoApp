@@ -353,6 +353,22 @@ class payrollAudit(models.Model):
         return str(self.Location) + " - " + str(self.Period) + " - " + str(self.day)
 
 
+class logInAudit(models.Model): 
+    Location = models.ForeignKey(Locations, on_delete=models.CASCADE, db_column ='Location', null=True, blank=True)
+    Period = models.ForeignKey(period, on_delete=models.CASCADE, db_column ='Period', null=True, blank=True)
+    EmployeeID = models.ForeignKey(Employee, on_delete=models.CASCADE, db_column ='EmployeeID', null=True, blank=True)
+    operationDetail = models.TextField(max_length=1000, null=True, blank=True)
+    operationType = models.CharField(max_length=60, blank=True, null=True)
+    created_date = models.DateTimeField(null=True, blank=True)
+    is_staff = models.BooleanField(default=False)
+    is_supervisor = models.BooleanField(default=False)
+    is_admin = models.BooleanField(default=False)
+    is_superAdmin = models.BooleanField(default=False)
+    accounts_payable = models.BooleanField(default=False)   
+    createdBy = models.CharField(max_length=60, blank=True, null=True)
+    updated_date = models.DateTimeField(null=True, blank=True)
+    updatedBy = models.CharField(max_length=60, blank=True, null=True)
+
 
 
 class employeeRecap(models.Model):

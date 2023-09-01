@@ -4,6 +4,7 @@ from datetime import datetime
 from django.contrib.auth import authenticate, login as login_process
 from django.contrib.auth.decorators import login_required
 from workOrder import models as woModels
+from workOrder import views as woViews
 from . import views
 
 
@@ -210,13 +211,27 @@ def login(request):
         username = request.POST.get('username')
         password = request.POST.get('password')
         user = authenticate(request, username=username, password=password)
+
+       
+
         if user is not None:
             login_process(request, user)
             state = 1
             message = ""
+
+            opType = "Log In"
+            opDetail = "Login Successfull"
+
+            woViews.logInAuditLog(request, opType, opDetail)
+
             return redirect('/home/')
         else:
             state = 2
+            opType = "Log In"
+            opDetail = "Login Failed, Username or password is incorrect - " + username + " -"
+
+            woViews.logInAuditLog(request, opType, opDetail)
+
             message = "Username or password is incorrect"
     dic = {'state': state, 'message': message}
     return render(request, 'login.html', dic)
