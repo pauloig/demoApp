@@ -111,7 +111,7 @@
                                                     {%for itemd in estimateList %}
                                                         <tr>
                                                             <td class="p-1">{{itemd.estimateNumber}}</td>
-                                                            <td class="p-1">{{itemd.created_date"M d, Y"}}</td>
+                                                            <td class="p-1">{{itemd.created_date|date:"M d, Y"}}</td>
                                                             <td class="p-1">
                                                                 {% if itemd.Status == 1%}
                                                                     Open
