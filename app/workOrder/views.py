@@ -1,4 +1,5 @@
 from ast import Try, parse
+from django.contrib.auth.decorators import login_required
 import xlwt
 from django.core.mail import send_mail, EmailMessage
 from django.core.files.base import ContentFile
@@ -38,7 +39,7 @@ from django.db.models import Sum
 
 
 
-
+@login_required(login_url='/home/')
 def simple_upload(request):
     
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
@@ -159,7 +160,7 @@ def simple_upload(request):
     return render(request,'upload.html', {'countInserted':countInserted, 'countRejected':countRejected,'duplicateRejected':duplicateRejected, 'emp': emp, 'per':per})
     
 
-
+@login_required(login_url='/home/')
 def upload_payroll(request):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     per = period.objects.filter(status__in=(1,2)).first()
@@ -395,7 +396,7 @@ def upload_payroll(request):
     return render(request,'upload_payroll.html', {'countInserted':countInserted, 'countRejected':countRejected, 'countUpdated' : countUpdated, 'emp':emp, 'per': per})
 
 
-
+@login_required(login_url='/home/')
 def listOrders(request):
     locationList = Locations.objects.all()
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
@@ -601,7 +602,7 @@ def listOrders(request):
     return render(request,'order_list.html',context)
 
    
-
+@login_required(login_url='/home/')
 def order_list_location(request, userID):
     emp = Employee.objects.filter(user__username__exact = userID).first()
     per = period.objects.filter(status__in=(1,2)).first()
@@ -613,7 +614,8 @@ def order_list_location(request, userID):
         orders = workOrder.objects.filter(Location__LocationID__exact=0, WCSup__isnull=True)
         return render(request,'order_list_location.html',
         {'orders': orders, 'emp': emp, 'per': per })
-
+    
+@login_required(login_url='/home/')
 def order_list_sup(request):  
     locationList = Locations.objects.all()
     # emp = Employee.objects.filter(user__username__exact = userID).first()
@@ -722,6 +724,7 @@ def listOrdersFilter(request):
     return render(request,'order_list.html',
     {'orders': orders})
 
+@login_required(login_url='/home/')
 def truncateData(request):
     workOrder.objects.all().delete()
     workOrderDuplicate.objects.all().delete()
@@ -731,6 +734,7 @@ def truncateData(request):
     # Employee.objects.all().delete()
     return HttpResponse('<p>Data deleted successfully</p>')
 
+@login_required(login_url='/home/')
 def duplicatelistOrders(request):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     orders = workOrderDuplicate.objects.all()
@@ -743,6 +747,7 @@ def duplicatelistOrders(request):
     per = period.objects.filter(status__in=(1,2)).first()
     return render(request,'duplicate_order_list.html',{'orders': orders, 'emp':emp, 'per':per})
 
+@login_required(login_url='/home/')
 def checkOrder(request, pID):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     duplicateOrder = workOrderDuplicate.objects.filter(id=pID).first()
@@ -757,6 +762,7 @@ def checkOrder(request, pID):
     per = period.objects.filter(status__in=(1,2)).first()
     return render(request,'checkOrder.html',{'order': orders, 'dupOrder': duplicateOrder, 'emp':emp, 'per':per})
 
+@login_required(login_url='/home/')
 def order(request, orderID):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context ={}
@@ -788,7 +794,7 @@ def order(request, orderID):
     context["emp"] = emp
     return render(request, "order.html", context)
 
-
+@login_required(login_url='/home/')
 def order_supervisor(request, orderID):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context ={}
@@ -807,6 +813,7 @@ def order_supervisor(request, orderID):
     context["emp"] = emp
     return render(request, "order_supervisor.html", context)
 
+@login_required(login_url='/home/')
 def updateDupOrder(request,pID, dupID):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     per = period.objects.filter(status__in=(1,2)).first()
@@ -881,6 +888,7 @@ def updateDupOrder(request,pID, dupID):
     except Exception as e:
         return render(request,'landing.html',{'message':'Somenthing went Wrong! ' + str(e), 'alertType':'danger', 'emp':emp, 'per':per})
 
+@login_required(login_url='/home/')
 def insertDupOrder(request, dupID):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     per = period.objects.filter(status__in=(1,2)).first()
@@ -925,6 +933,7 @@ def insertDupOrder(request, dupID):
         print(e)
         return render(request,'landing.html',{'message':'Somenthing went Wrong! ' + str(e), 'alertType':'danger','emp':emp, 'per': per})
 
+@login_required(login_url='/home/')
 def deleteDupOrder(request,pID):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     per = period.objects.filter(status__in=(1,2)).first()
@@ -937,6 +946,7 @@ def deleteDupOrder(request,pID):
     except Exception as e:
         return render(request,'landing.html',{'message':'Somenthing went Wrong!', 'alertType':'danger','emp':emp, 'per':per})
 
+@login_required(login_url='/home/')
 def create_order(request):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context ={}
@@ -972,6 +982,7 @@ def create_order(request):
     context['emp'] = emp
     return render(request, "order.html", context)
 
+@login_required(login_url='/home/')
 def create_location(request):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context ={}
@@ -995,6 +1006,7 @@ def create_location(request):
     context["emp"]=emp
     return render(request, "location.html", context)
 
+@login_required(login_url='/home/')
 def location_list(request):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context ={}
@@ -1004,7 +1016,7 @@ def location_list(request):
     context["per"] = per
          
     return render(request, "location_list.html", context)
-
+@login_required(login_url='/home/')
 def update_location(request, id):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context ={}
@@ -1024,7 +1036,7 @@ def update_location(request, id):
     context["emp"] = emp
     return render(request, "update_location.html", context)
 
-
+@login_required(login_url='/home/')
 def employee_list(request):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context ={}
@@ -1042,7 +1054,9 @@ def employee_list(request):
     context["dataset"] = Employee.objects.all()
     context["emp"]= emp
     return render(request, "employee_list.html", context)
- 
+
+
+@login_required(login_url='/home/')
 def create_employee(request):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
 
@@ -1067,6 +1081,7 @@ def create_employee(request):
     context["emp"] = emp
     return render(request, "create_employee.html", context)
 
+@login_required(login_url='/home/')
 def update_employee(request, id):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context ={}
@@ -1087,6 +1102,7 @@ def update_employee(request, id):
     context["emp"] = emp
     return render(request, "create_employee.html", context)
 
+@login_required(login_url='/home/')
 def linkOrderList(request, id):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context = {}    
@@ -1098,7 +1114,7 @@ def linkOrderList(request, id):
     context["emp"] = emp
     return render(request, "link_order_list.html", context)
 
-
+@login_required(login_url='/home/')
 def linkOrder(request, id, manualid):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context = {}    
@@ -1109,7 +1125,7 @@ def linkOrder(request, id, manualid):
     context["emp"] = emp
     return render(request, "link_order.html", context)
 
-
+@login_required(login_url='/home/')
 def updateLinkOrder(request, id, manualid):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     per = period.objects.filter(status__in=(1,2)).first()
@@ -1188,7 +1204,7 @@ def updateLinkOrder(request, id, manualid):
     except Exception as e:
         return render(request,'landing.html',{'message':'Somenthing went Wrong!' + str(e), 'alertType':'danger','emp':emp, 'per': per})
 
-
+@login_required(login_url='/home/')
 def item_list(request):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context = {}    
@@ -1206,7 +1222,7 @@ def item_list(request):
 
     return render(request, "item_list.html", context)
 
-
+@login_required(login_url='/home/')
 def create_item(request):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context ={}
@@ -1224,6 +1240,7 @@ def create_item(request):
     context["emp"]=emp
     return render(request, "create_item.html", context)
 
+@login_required(login_url='/home/')
 def update_item(request, id):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context ={}
@@ -1242,7 +1259,7 @@ def update_item(request, id):
     context["emp"] = emp
     return render(request, "update_item.html", context)
 
-
+@login_required(login_url='/home/')
 def item_price(request, id):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context = {}    
@@ -1256,6 +1273,7 @@ def item_price(request, id):
 
     return render(request, "item_price.html", context)
 
+@login_required(login_url='/home/')
 def create_item_price(request, id):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context ={}
@@ -1274,7 +1292,7 @@ def create_item_price(request, id):
     context["itemID"] = id
     return render(request, "create_item_price.html", context)
 
-
+@login_required(login_url='/home/')
 def update_item_price(request, id):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context ={}
@@ -1295,6 +1313,7 @@ def update_item_price(request, id):
     context["itemID"] = obj.item.itemID
     return render(request, "update_item_price.html", context)
 
+@login_required(login_url='/home/')
 def po_list(request, id):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context = {}    
@@ -1312,6 +1331,7 @@ def po_list(request, id):
 
     return render(request, "po_order_list.html", context)
 
+@login_required(login_url='/home/')
 def internal_po_list(request):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context = {}    
@@ -1332,7 +1352,7 @@ def internal_po_list(request):
 
     return render(request, "internal_po_list.html", context)
 
-
+@login_required(login_url='/home/')
 def update_po(request, id, woID):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context ={}
@@ -1386,6 +1406,7 @@ def update_po(request, id, woID):
     context["emp"] = emp
     return render(request, "update_po.html", context)
 
+@login_required(login_url='/home/')
 def delete_po(request, id, woID):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context ={}
@@ -1411,6 +1432,7 @@ def delete_po(request, id, woID):
    
     return render(request, "delete_po.html", context)
 
+@login_required(login_url='/home/')
 def create_po(request, id):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context ={}
@@ -1446,6 +1468,7 @@ def create_po(request, id):
     context["selectedWO"] = id
     return render(request, "create_po.html", context)
 
+@login_required(login_url='/home/')
 def estimate(request, id, estimateID):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context = {}    
@@ -1593,6 +1616,7 @@ def estimate(request, id, estimateID):
     
     return response 
 
+@login_required(login_url='/home/')
 def partial_estimate(request, id, isPartial, Status, addressID):
     context = {}    
     per = period.objects.filter(status__in=(1,2)).first()
@@ -1797,7 +1821,7 @@ def partial_estimate(request, id, isPartial, Status, addressID):
 
 
 
-
+@login_required(login_url='/home/')
 def invoice(request, id, invoiceID):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context = {}    
@@ -1973,6 +1997,7 @@ def invoice(request, id, invoiceID):
     return response   
 
 
+@login_required(login_url='/home/')
 def estimate_preview(request, id, estimateID):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context = {}    
@@ -2103,6 +2128,7 @@ def estimate_preview(request, id, estimateID):
 
     return render(request, "invoice_template_preview.html", context)
 
+@login_required(login_url='/home/')
 def invoice_preview(request, id, invoiceID):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context = {}    
@@ -2241,7 +2267,7 @@ def invoice_preview(request, id, invoiceID):
     #return render(request, "pre_invoice.html", context)
     return render(request, "invoice_template_preview.html", context)
 
-
+@login_required(login_url='/home/')
 def pre_invoice2(request, id):
 
     context = {}    
@@ -2252,6 +2278,7 @@ def pre_invoice2(request, id):
 
     return render(request, "pre_invoice2.html", context)
 
+@login_required(login_url='/home/')
 def calculate_invoice_total(request, id, invoiceID):
 
     wo = workOrder.objects.filter(id=id).first()
@@ -2314,7 +2341,7 @@ def calculate_invoice_total(request, id, invoiceID):
     
     return total   
 
-
+@login_required(login_url='/home/')
 def upload_item(request):
     countInserted = 0
     countRejected = 0
@@ -2347,7 +2374,7 @@ def upload_item(request):
                        
     return render(request,'upload_item.html', {'countInserted':countInserted, 'countRejected':countRejected })
 
-
+@login_required(login_url='/home/')
 def upload_item_price(request):
     countInserted = 0
     countRejected = 0
@@ -2386,7 +2413,7 @@ def upload_item_price(request):
                        
     return render(request,'upload_itemDetail.html', {'countInserted':countInserted, 'countRejected':countRejected })
 
-
+@login_required(login_url='/home/')
 def upload_employee(request):
     countInserted = 0
     countRejected = 0
@@ -2466,6 +2493,7 @@ def upload_employee(request):
                        
     return render(request,'upload_employee.html', {'countInserted':countInserted, 'countRejected':countRejected, 'error_detail': error_detail})
 
+@login_required(login_url='/home/')
 def period_list(request):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context = {}    
@@ -2483,6 +2511,7 @@ def period_list(request):
 
     return render(request, "period_list.html", context)
 
+@login_required(login_url='/home/')
 def location_period_list(request, id):
     
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
@@ -2654,7 +2683,7 @@ def location_period_list(request, id):
     
     return render(request, "location_period_list.html", context)
     
-
+@login_required(login_url='/home/')
 def create_period(request, perID):
     periodRange = 13 #Period Rage 14 days
     payRange = 7 #Pay Range, number of days to pay  
@@ -2697,6 +2726,7 @@ def create_period(request, perID):
 
     return True
 
+@login_required(login_url='/home/')
 def orders_payroll(request, dailyID, LocID):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     daily = Daily.objects.filter(id = dailyID).first()    
@@ -2715,6 +2745,7 @@ def orders_payroll(request, dailyID, LocID):
 
     return render(request, "orders_payroll.html", context)
 
+@login_required(login_url='/home/')
 def update_order_daily(request, woID, dailyID, LocID):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
 
@@ -2789,7 +2820,7 @@ def update_order_daily(request, woID, dailyID, LocID):
     else:
         return HttpResponseRedirect('/payroll/0/0/0/'+str(LocID))
 
-
+@login_required(login_url='/home/')
 def create_daily(request, pID, dID, LocID):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     
@@ -2843,7 +2874,7 @@ def create_daily(request, pID, dID, LocID):
     else:
         return HttpResponseRedirect('/payroll/0/0/0/0')
     
-    
+
 def daily_audit(dailyID, opDetail, opType, createBy):
     
     
@@ -2907,6 +2938,7 @@ def logInAuditLog(request, opType, opDetail):
 
     return True
 
+@login_required(login_url='/home/')
 def update_daily(request, daily):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     
@@ -3004,6 +3036,7 @@ def update_ptp_Emp(dailyID, split):
         crew.save()
     return emp_ptp
 
+@login_required(login_url='/home/')
 def payroll(request, perID, dID, crewID, LocID):
     twTitle = 'TIME WORKED'
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
@@ -3323,7 +3356,7 @@ def calculate_hours(startTime, endTime, lunch_startTime, lunch_endTime):
 
     return total_hours, regular_hours, ot_hours, double_time"""
         
-    
+@login_required(login_url='/home/')    
 def create_daily_emp(request, id, LocID):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context ={}
@@ -3371,7 +3404,7 @@ def create_daily_emp(request, id, LocID):
     context["empList"] = EmpLocation
     return render(request, "create_daily_emp.html", context)
 
-
+@login_required(login_url='/home/')
 def update_daily_emp(request, id, LocID):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context ={}    
@@ -3420,6 +3453,7 @@ def update_daily_emp(request, id, LocID):
     
     return render(request, "update_daily_emp.html", context)
 
+@login_required(login_url='/home/')
 def delete_daily_emp(request, id, LocID):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context ={}
@@ -3451,7 +3485,7 @@ def delete_daily_emp(request, id, LocID):
    
     return render(request, "delete_daily_emp.html", context)
 
-
+@login_required(login_url='/home/')
 def create_daily_item(request, id, LocID):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context ={}
@@ -3508,6 +3542,7 @@ def create_daily_item(request, id, LocID):
     context["itemList"] = itemLocation
     return render(request, "create_daily_item.html", context)
 
+@login_required(login_url='/home/')
 def update_daily_item(request, id, LocID):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context ={}
@@ -3552,6 +3587,7 @@ def update_daily_item(request, id, LocID):
 
     return render(request, "update_daily_item.html", context)
 
+@login_required(login_url='/home/')
 def delete_daily_item(request, id, LocID):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context ={}
@@ -3581,6 +3617,7 @@ def delete_daily_item(request, id, LocID):
    
     return render(request, "delete_daily_item.html", context)
 
+@login_required(login_url='/home/')
 def upload_daily(request, id, LocID):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()    
     context ={}  
@@ -3608,29 +3645,34 @@ def upload_daily(request, id, LocID):
 
 
 def recap(request, perID):
+    error= ""
     
     empList = Employee.objects.all()   
     per = period.objects.filter(status__in=(1,2)).first()
 
     for item in empList:
-        dailyEmp = DailyEmployee.objects.filter(EmployeeID = item, DailyID__Period = perID).count()
 
-        if dailyEmp > 0:
-            file = make_recap_pdf(item.employeeID,perID)
+        try:
+            dailyEmp = DailyEmployee.objects.filter(EmployeeID = item, DailyID__Period = perID).count()
 
-            empRecap = employeeRecap.objects.filter(EmployeeID = item, Period = per).first()
-            
-            if empRecap:
+            if dailyEmp > 0:
+                file = make_recap_pdf(item.employeeID,perID)
 
-                empRecap.recap = file
-                empRecap.save()
+                empRecap = employeeRecap.objects.filter(EmployeeID = item, Period = per).first()
+                
+                if empRecap:
 
-            else:
+                    empRecap.recap = file
+                    empRecap.save()
 
-                remplo = employeeRecap( Period = per,
-                                    EmployeeID = item,
-                                    recap = file )
-                remplo.save()
+                else:
+
+                    remplo = employeeRecap( Period = per,
+                                        EmployeeID = item,
+                                        recap = file )
+                    remplo.save()
+        except Exception as e:
+            error = "error "   
     
     return HttpResponseRedirect('/location_period_list/' + perID)     
 
@@ -4059,7 +4101,7 @@ def generate_recap(empID, perID):
 
     return myPdf
 
-
+@login_required(login_url='/home/')
 def send_recap(request, perID):
     empSelected =request.POST.get('Employees')
    
@@ -4086,6 +4128,7 @@ def send_recap(request, perID):
 
     return HttpResponseRedirect('/location_period_list/' + perID) 
 
+@login_required(login_url='/home/')
 def send_recap_emp(request, perID, empID):   
     per = period.objects.filter(id = perID).first()
     emp = Employee.objects.filter(employeeID = empID).first()
@@ -4110,7 +4153,7 @@ def send_recap_emp(request, perID, empID):
 
     return HttpResponseRedirect('/location_period_list/' + perID) 
 
-
+@login_required(login_url='/home/')
 def get_list_orders_bySupervisor(request,estatus, loc):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     per = period.objects.filter(status__in=(1,2)).first()
@@ -4133,6 +4176,7 @@ def get_list_orders_bySupervisor(request,estatus, loc):
         orders = workOrder.objects.filter(WCSup__employeeID__exact=0, Location__isnull=False).exclude(linkedOrder__isnull = False, uploaded = False )
         return orders
 
+@login_required(login_url='/home/')
 def get_list_orders(request,estatus, loc):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     per = period.objects.filter(status__in=(1,2)).first()
@@ -4185,8 +4229,7 @@ def get_list_orders(request,estatus, loc):
 
     return orders
 
-
-
+@login_required(login_url='/home/')
 def get_order_list(request,estatus, loc, superV):
     
 
@@ -4299,7 +4342,7 @@ def get_order_list(request,estatus, loc, superV):
     return response
     
 
-
+@login_required(login_url='/home/')
 def get_summary(request, perID):
    
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
@@ -4805,7 +4848,7 @@ def get_summary(request, perID):
 
     return response
 
-
+@login_required(login_url='/home/')
 def update_sup_daily(request, id, woid):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context ={}
@@ -4829,7 +4872,7 @@ def update_sup_daily(request, id, woid):
     context["daily"] = dailyID
     return render(request, "update_sup_daily.html", context)
 
-
+@login_required(login_url='/home/')
 def delete_daily(request, id, LocID):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context ={}
@@ -4908,7 +4951,7 @@ def delete_daily(request, id, LocID):
     return render(request, "delete_daily.html", context)
 
 
-
+@login_required(login_url='/home/')
 def status_log(request, id,isSupervisor):
 
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()        
@@ -4927,6 +4970,7 @@ def status_log(request, id,isSupervisor):
     
     return render(request, "order_status_log.html", context)
 
+@login_required(login_url='/home/')
 def payroll_audit(request, id):
 
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()        
@@ -4944,7 +4988,7 @@ def payroll_audit(request, id):
     
     return render(request, "payroll_audit.html", context)
 
-
+@login_required(login_url='/home/')
 def login_audit(request):
   
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()        
@@ -4970,7 +5014,7 @@ def login_audit(request):
 
     return render(request, "login_audit.html", context)
 
-
+@login_required(login_url='/home/')
 def payroll_audit_delete(request, perID, LocID, dID):
 
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()        
@@ -4993,7 +5037,7 @@ def payroll_audit_delete(request, perID, LocID, dID):
     return render(request, "payroll_audit.html", context)
 
 
-
+@login_required(login_url='/home/')
 def supervisor_appoval(request, id):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context ={}
@@ -5017,6 +5061,7 @@ def supervisor_appoval(request, id):
    
     return render(request, "sup_approval.html", context)
 
+@login_required(login_url='/home/')
 def close_payroll(request, id):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context ={}
@@ -5040,6 +5085,7 @@ def close_payroll(request, id):
    
     return render(request, "close_payroll.html", context)
 
+@login_required(login_url='/home/')
 def payroll_detail(request, id):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context ={}
@@ -5119,7 +5165,7 @@ def payroll_detail(request, id):
  
     return render(request, "payroll_detail.html", context)
 
-
+@login_required(login_url='/home/')
 def get_emp_list(request):
     try:
         wb = xlwt.Workbook(encoding='utf-8')
@@ -5201,6 +5247,7 @@ def get_emp_list(request):
 
     return response
 
+@login_required(login_url='/home/')
 def get_item_list(request):
 
     wb = xlwt.Workbook(encoding='utf-8')
@@ -5269,6 +5316,7 @@ def validate_decimals(value):
     except:
        return 0
 
+
 def validate_print_decimals(value): 
     try:
         if round(float(value), 2) > 0:                
@@ -5278,7 +5326,7 @@ def validate_print_decimals(value):
     except:
        return ''      
 
-
+@login_required(login_url='/home/')
 def vendor_list(request):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context ={}
@@ -5297,7 +5345,7 @@ def vendor_list(request):
 
     return render(request, "vendor_list.html", context)
 
-
+@login_required(login_url='/home/')
 def create_vendor(request):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context ={}
@@ -5315,7 +5363,7 @@ def create_vendor(request):
     context["emp"]=emp
     return render(request, "create_vendor.html", context)
 
-
+@login_required(login_url='/home/')
 def update_vendor(request, id):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context ={}
@@ -5334,7 +5382,7 @@ def update_vendor(request, id):
     context["emp"] = emp
     return render(request, "create_vendor.html", context)
 
-
+@login_required(login_url='/home/')
 def subcontractor_list(request):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context ={}
@@ -5353,6 +5401,7 @@ def subcontractor_list(request):
 
     return render(request, "subcontractor_list.html", context)
 
+@login_required(login_url='/home/')
 def create_subcontractor(request):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context ={}
@@ -5370,7 +5419,7 @@ def create_subcontractor(request):
     context["emp"]=emp
     return render(request, "create_subcontractor.html", context)
 
-
+@login_required(login_url='/home/')
 def update_subcontractor(request, id):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context ={}
@@ -5389,7 +5438,7 @@ def update_subcontractor(request, id):
     context["emp"] = emp
     return render(request, "create_subcontractor.html", context)
 
-
+@login_required(login_url='/home/')
 def external_prod_list(request, id):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context = {}    
@@ -5402,6 +5451,7 @@ def external_prod_list(request, id):
     context["emp"] = emp
     return render(request, "external_prod_list.html", context)
 
+@login_required(login_url='/home/')
 def create_external_prod(request, woID):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context ={}
@@ -5428,6 +5478,7 @@ def create_external_prod(request, woID):
     context["emp"]=emp
     return render(request, "create_external_prod.html", context)
 
+@login_required(login_url='/home/')
 def get_external_prod(request, id):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context ={}
@@ -5452,6 +5503,7 @@ def get_external_prod(request, id):
     context["emp"] = emp
     return render(request, "create_external_prod.html", context)
 
+@login_required(login_url='/home/')
 def update_external_prod(request, id):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context ={}
@@ -5486,6 +5538,7 @@ def update_external_prod(request, id):
     context["emp"] = emp
     return render(request, "update_external_prod.html", context)
 
+@login_required(login_url='/home/')
 def upload_external_prod(request, id):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()    
     context ={}  
@@ -5505,7 +5558,7 @@ def upload_external_prod(request, id):
 
     return HttpResponseRedirect("/get_external_prod/" + str(id))
 
-
+@login_required(login_url='/home/')
 def create_ext_prod_item(request, id):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context ={}
@@ -5548,7 +5601,7 @@ def create_ext_prod_item(request, id):
     context["itemList"] = itemLocation
     return render(request, "create_ext_prod_item.html", context)
 
-
+@login_required(login_url='/home/')
 def update_ext_prod_item(request, id):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context ={}
@@ -5584,7 +5637,7 @@ def update_ext_prod_item(request, id):
 
     return render(request, "update_ext_prod_item.html", context)
 
-
+@login_required(login_url='/home/')
 def delete_ext_prod_item(request, id):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context ={}
@@ -5606,7 +5659,7 @@ def delete_ext_prod_item(request, id):
    
     return render(request, "delete_ext_prod_item.html", context)
 
-
+@login_required(login_url='/home/')
 def authorized_billing_list(request, id):
     context = {} 
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
@@ -5702,6 +5755,7 @@ def authorized_billing_list(request, id):
   
     return render(request, "authorized_billing_list.html", context)
 
+@login_required(login_url='/home/')
 def create_authorized_prod_item(request, id, invoiceID, estimateID):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context ={}
@@ -5785,6 +5839,7 @@ def create_authorized_prod_item(request, id, invoiceID, estimateID):
     context["itemList"] = itemLocation
     return render(request, "create_authorized_prod_item.html", context)
 
+@login_required(login_url='/home/')
 def update_authorized_prod_item(request, id, invoiceID, estimateID):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context ={}
@@ -5857,6 +5912,7 @@ def update_authorized_prod_item(request, id, invoiceID, estimateID):
 
     return render(request, "update_authorized_prod_item.html", context)
 
+@login_required(login_url='/home/')
 def delete_authorized_prod_item(request, id, invoiceID, estimateID):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context ={}
@@ -5917,6 +5973,7 @@ def delete_authorized_prod_item(request, id, invoiceID, estimateID):
    
     return render(request, "delete_authorized_prod_item.html", context)
 
+@login_required(login_url='/home/')
 def comment_authorized_prod_item(request, id):
 
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
@@ -5943,7 +6000,7 @@ def comment_authorized_prod_item(request, id):
    
     return render(request, "comment_authorized_prod_item.html", context)
 
-
+@login_required(login_url='/home/')
 def production_transfer(request, id, invoiceID, estimateID):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context ={}
@@ -6025,7 +6082,7 @@ def production_transfer(request, id, invoiceID, estimateID):
 
     return render(request, "production_transfer.html", context)
 
-
+@login_required(login_url='/home/')
 def internal_po_transfer(request, id, invoiceID, estimateID):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context ={}
@@ -6084,7 +6141,7 @@ def internal_po_transfer(request, id, invoiceID, estimateID):
 
     return render(request, "internal_po_transfer.html", context)
 
-
+@login_required(login_url='/home/')
 def billing_list(request, id, isRestoring):
     errorMessage = ""
     try:
@@ -6261,7 +6318,7 @@ def billing_list(request, id, isRestoring):
          
     return render(request, "billing_list.html", context)
 
-
+@login_required(login_url='/home/')
 def restore_original_production(request, id):
 
     context = {} 
@@ -6279,7 +6336,7 @@ def restore_original_production(request, id):
 
     return render(request, "restore_original_production.html", context)
 
-
+@login_required(login_url='/home/')
 def update_invoice(request, id, invoiceID):
     
     context = {} 
@@ -6366,6 +6423,7 @@ def update_invoice(request, id, invoiceID):
     
     return render(request, "update_invoice.html", context)
 
+@login_required(login_url='/home/')
 def update_estimate(request, id, estimateID):
     
     context = {} 
@@ -6480,6 +6538,7 @@ def update_estimate(request, id, estimateID):
     
     return render(request, "update_estimate.html", context)
 
+@login_required(login_url='/home/')
 def add_internalPO_to_estimate(request, poID, woID, estimateID):
     
     context = {} 
@@ -6525,7 +6584,7 @@ def add_internalPO_to_estimate(request, poID, woID, estimateID):
     
     return render(request, "update_po_to_estimate.html", context) 
 
-
+@login_required(login_url='/home/')
 def order_detail(request, id,isSupervisor):
     context = {} 
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
@@ -6546,7 +6605,7 @@ def order_detail(request, id,isSupervisor):
   
     return render(request, "order_detail.html", context)
 
-
+@login_required(login_url='/home/')
 def employee_location_list(request, empID):
     
     context = {} 
@@ -6564,7 +6623,7 @@ def employee_location_list(request, empID):
   
     return render(request, "employee_location_list.html", context)
 
-
+@login_required(login_url='/home/')
 def create_employee_location(request, empID):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
 
@@ -6599,6 +6658,7 @@ def create_employee_location(request, empID):
     context["emp"] = emp
     return render(request, "create_employee_location.html", context)
 
+@login_required(login_url='/home/')
 def delete_employee_location(request, empID):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context ={}
@@ -6619,7 +6679,7 @@ def delete_employee_location(request, empID):
    
     return render(request, "delete_employee_location.html", context)
 
-
+@login_required(login_url='/home/')
 def select_billing_address(request, id, isPartial, isUpdate):
     context ={}
     
@@ -6646,6 +6706,7 @@ def select_billing_address(request, id, isPartial, isUpdate):
 
     return render(request, "select_billing_address.html", context)
 
+@login_required(login_url='/home/')
 def update_estimate_address(request, woID, addressID, estimateID):
     context ={}
     
@@ -6682,6 +6743,7 @@ def update_estimate_address(request, woID, addressID, estimateID):
 
     return HttpResponseRedirect("/update_estimate/"+ str(wo.id) + "/" + str(estimateID))   
 
+@login_required(login_url='/home/')
 def billing_address_list(request):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context ={}
@@ -6692,6 +6754,7 @@ def billing_address_list(request):
     context["emp"]= emp
     return render(request, "billing_address_list.html", context)
 
+@login_required(login_url='/home/')
 def create_billing_address(request):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context ={}
@@ -6709,7 +6772,7 @@ def create_billing_address(request):
     context["emp"]=emp
     return render(request, "create_billing_address.html", context)
 
-
+@login_required(login_url='/home/')
 def update_billing_address(request, id):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context ={}
@@ -6729,7 +6792,7 @@ def update_billing_address(request, id):
     return render(request, "create_billing_address.html", context)
 
 
-
+@login_required(login_url='/home/')
 def invoice_daily_report(request):
     context ={}
 
@@ -6756,6 +6819,7 @@ def invoice_daily_report(request):
 
     return render(request, "invoice_daily_report.html", context)
 
+@login_required(login_url='/home/')
 def invoice_monthly_report(request):
     context ={}
 
@@ -6782,8 +6846,10 @@ def invoice_monthly_report(request):
             totalMaterials = 0
             totaPO = 0
 
-            labor = DailyItem.objects.filter(invoice = str(i.invoiceNumber))
+             
             
+            """labor = DailyItem.objects.filter(invoice = str(i.invoiceNumber))
+
             for j in labor:
                 totalLabor += validate_decimals(j.total) 
 
@@ -6791,7 +6857,12 @@ def invoice_monthly_report(request):
             extProduction = externalProdItem.objects.filter(externalProdID__woID = i.woID, invoice = str(i.invoiceNumber))
 
             for ep in extProduction:
-                totalLabor += validate_decimals(ep.total)
+                totalLabor += validate_decimals(ep.total)"""
+            
+            authBilling = authorizedBilling.objects.filter(invoice = i.invoiceNumber)
+
+            for j in authBilling:
+                totalLabor += validate_decimals(j.total) 
 
             internal = internalPO.objects.filter(woID = i.woID, nonBillable = False, invoice = str(i.invoiceNumber))
            
@@ -6825,6 +6896,7 @@ def invoice_monthly_report(request):
     return render(request, "invoice_monthly_report.html", context)
 
 
+@login_required(login_url='/home/')
 def get_daily_report(request, dateSelected):
     
 
@@ -6907,6 +6979,7 @@ def get_daily_report(request, dateSelected):
 
     return response
 
+@login_required(login_url='/home/')
 def get_monthly_report(request, dateSelected):
     
 
@@ -6955,7 +7028,7 @@ def get_monthly_report(request, dateSelected):
             ws.write(row_num,2, item.woID.WCSup.first_name + ' ' + item.woID.WCSup.last_name, font_style) # at 0 row 0 column 
         else:
             ws.write(row_num, 2, '',font_style) # at 0 row 0 column 
-        ws.write(row_num, 3, '', font_style)
+        ws.write(row_num, 3, item.address, font_style)
         if item.woID.Location != None:
             ws.write(row_num, 4, item.woID.Location.name, font_style) # at 0 row 0 column 
         else:
@@ -6979,7 +7052,7 @@ def get_monthly_report(request, dateSelected):
         totalMaterials = 0
         totaPO = 0
 
-        labor = DailyItem.objects.filter(invoice = str(item.invoiceNumber))
+        """labor = DailyItem.objects.filter(invoice = str(item.invoiceNumber))
         
         for j in labor:
             totalLabor += validate_decimals(j.total) 
@@ -6988,7 +7061,14 @@ def get_monthly_report(request, dateSelected):
         extProduction = externalProdItem.objects.filter(externalProdID__woID = item.woID, invoice = str(item.invoiceNumber))
 
         for ep in extProduction:
-            totalLabor += validate_decimals(ep.total)
+            totalLabor += validate_decimals(ep.total)"""
+        
+
+        authBilling = authorizedBilling.objects.filter(invoice = item.invoiceNumber)
+
+        for j in authBilling:
+            totalLabor += validate_decimals(j.total) 
+
 
         internal = internalPO.objects.filter(woID = item.woID, nonBillable = False, invoice = str(item.invoiceNumber))
         
@@ -7035,6 +7115,7 @@ def get_monthly_report(request, dateSelected):
     return response
 
 ### General Functions
+@login_required(login_url='/home/')
 def vendorSubcontrator(request):
     vendorList = vendor.objects.filter(is_active = True).only("id", "name").order_by("name")
     subCList = subcontractor.objects.filter(is_active = True).only("id", "name").order_by("name")
@@ -7054,6 +7135,7 @@ def vendorSubcontrator(request):
     sort_list = sorted(vcList, key=lambda x: x["name"])
 
     return sort_list
+
 
 def date_difference(orders):
     day_diff = []
@@ -7076,7 +7158,7 @@ def date_difference(orders):
     
     return day_diff
 
-    
+@login_required(login_url='/home/')    
 def update_linked_orders(request):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     per = period.objects.filter(status__in=(1,2)).first()
@@ -7133,7 +7215,7 @@ def update_linked_orders(request):
     except Exception as e:
         return render(request,'landing.html',{'message':'Somenthing went Wrong!' + str(e), 'alertType':'danger','emp':emp, 'per': per})
 
-
+@login_required(login_url='/home/')
 def list_linked_orders(request):
     locationList = Locations.objects.all()
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
@@ -7176,7 +7258,7 @@ def list_linked_orders(request):
     return render(request,'order_linked_list.html',context)
 
 
-
+@login_required(login_url='/home/')
 def update_item_payout(request):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     per = period.objects.filter(status__in=(1,2)).first()
@@ -7205,7 +7287,7 @@ def update_item_payout(request):
     except Exception as e:
         return render(request,'landing.html',{'message':'Somenthing went Wrong!' + str(e), 'alertType':'danger','emp':emp, 'per': per})
 
-
+@login_required(login_url='/home/')
 def update_emp_payout(request):
     
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
@@ -7287,7 +7369,7 @@ def update_emp_payout(request):
     except Exception as e:
         return render(request,'landing.html',{'message':'Somenthing went Wrong!' + str(e), 'alertType':'danger','emp':emp, 'per': per})
 
-
+@login_required(login_url='/home/')
 def update_estimate_closed(request):
     
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
@@ -7315,7 +7397,7 @@ def update_estimate_closed(request):
         return render(request,'landing.html',{'message':'Somenthing went Wrong!' + str(e), 'alertType':'danger','emp':emp, 'per': per})
     
 
-
+@login_required(login_url='/home/')
 def update_total_invoice(request):
 
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
