@@ -1433,15 +1433,26 @@ def delete_po(request, id, woID):
     return render(request, "delete_po.html", context)
 
 @login_required(login_url='/home/')
-def create_po(request, id):
+def create_po(request, id, selectedvs):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context ={}
     per = period.objects.filter(status__in=(1,2)).first()
     context["per"] = per
 
     vendorList = vendorSubcontrator(request)
+    context['vendorList']= vendorList   
+    context['selectedvs']= selectedvs
+    context['selectedid']= id
 
-    context['vendorList']= vendorList
+    itemResult = next((i for i, item in enumerate(vendorList) if item["id"] == selectedvs), None)
+
+    if itemResult != None:
+        context['selectedvs2'] = vendorList[itemResult]
+    else:
+        context['selectedvs2'] = ""
+    
+
+
     wo = workOrder.objects.filter(id=id).first()
     form = InternalPOForm(request.POST or None, initial={'woID': wo})
     if form.is_valid():
@@ -7139,6 +7150,25 @@ def vendorSubcontrator(request):
     sort_list = sorted(vcList, key=lambda x: x["name"])
 
     return sort_list
+
+
+@login_required(login_url='/home/')
+def vendor_subcontractor_list(request,woID):
+    emp = Employee.objects.filter(user__username__exact = request.user.username).first()
+    LocID = 1  
+
+    
+    context = {}    
+    context["emp"] = emp    
+    context["selectedLocation"] = LocID
+    context["vendorList"] = vendorSubcontrator(request)
+    context["woID"] = woID
+
+    per = period.objects.filter(status__in=(1,2)).first()
+    context["per"] = per
+
+    return render(request, "vendor_subcontractor_list.html", context)
+
 
 
 def date_difference(orders):

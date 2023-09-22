@@ -15,6 +15,23 @@
                     <div class="card-body">  
                             <div class="row"> 
                                 <div class="col-lg-12">
+
+                                    <!--
+                                    <div class="mb-3">    
+                                        <label for="PID" class="form-label">Vendor - Subcontractor</label>                
+                                        <div class="input-group mb-3">                                          
+                                                                                                                               
+                                            <input type="text" class="form-control" placeholder="Select Vendor" aria-label="vendorName" id="vendorName" name="vendorName" aria-describedby="basic-addon1" value="{{selectedvs2.name}}" disabled>                                                                                                                                                          
+                                            <input type="text" class="form-control" placeholder="Select Vendor" aria-label="vendor" id="vendor" name="vendor" aria-describedby="basic-addon1" value="{{selectedvs2.id}}" hidden>                                                                                                                                                          
+                                            
+                                                                                                                                  
+                                                {% if emp.is_superAdmin  or user.is_staff  or period.status == 1%}
+                                                    <button hx-get="/vendor_subcontractor_list/{{woID}}" class="btn btn-primary py-2" hx-target="#dialog" ><i class="fa-sharp fa-solid fa-magnifying-glass"></i></button>                                                
+                                                {%endif%}
+                                            </div>                                      
+                                    </div>    
+                                    
+                                    --> 
                                     <div class="mb-3">
                                         <label for="vendor" class="form-label">Vendor - Subcontractor</label>                                    
                                         <select class="form-select" name="vendor" id="vendor"> 
@@ -28,7 +45,8 @@
 
                                             {%endfor%}
                                         </select>  
-                                    </div>                                  
+                                    </div>   
+                                                              
                                 </div>                                                                                
                             </div>                    
                             <div class="row">
