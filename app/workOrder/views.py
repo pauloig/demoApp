@@ -3768,6 +3768,7 @@ def make_recap_pdf(empID, perID):
         if contador <= 45:
             itemHtml = itemHtml + '<tr style=" height: 20px;"> '          
             itemHtml = itemHtml + ' <td style="font-family:Verdana, Geneva, sans-serif; font-weight:200; font-size:8px; border-top:1px solid #999; border-bottom:1px solid #999; border-left:1px solid #444; border-right:1px solid #999; padding-top: 3px;" width="12%" align="center"> '
+            
             if item.DailyID.Location == None:
                 itemHtml = itemHtml + '&nbsp;'
             else:
@@ -3834,7 +3835,7 @@ def make_recap_pdf(empID, perID):
             line2 = True
             itemHtml2 = itemHtml2 + ' <tr style=" height: 20px;"> '          
             itemHtml2 = itemHtml2 + ' <td style="font-family:Verdana, Geneva, sans-serif; font-weight:200; font-size:8px; border-top:1px solid #999; border-bottom:1px solid #999; border-left:1px solid #444; border-right:1px solid #999; padding-top: 3px;" width="12%" align="center"> '
-            if item.Location == None:
+            if item.DailyID.Location == None:
                 itemHtml2 = itemHtml2 + '&nbsp;'
             else:
                 itemHtml2 = itemHtml2 + item.DailyID.Location.name
