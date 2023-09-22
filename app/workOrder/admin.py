@@ -37,7 +37,8 @@ class externalProdItemAdmin(admin.ModelAdmin):
     list_display = ('id','externalProdID','itemID')
     search_fields = ('id','externalProdID__woID__prismID','externalProdID__woID__workOrderId','externalProdID__woID__PO')
 
-
+class employeeRecapAdmin(admin.ModelAdmin):
+    search_fields = ('id','Period__id')
 
 admin.site.register(workOrderDuplicate)
 admin.site.register(Locations)
@@ -51,7 +52,7 @@ admin.site.register(period)
 admin.site.register(Daily, DailyAdmin)
 admin.site.register(DailyEmployee)
 admin.site.register(DailyItem, DailyItemAdmin)
-admin.site.register(employeeRecap)
+admin.site.register(employeeRecap, employeeRecapAdmin)
 admin.site.register(woStatusLog)
 admin.site.register(vendor)
 admin.site.register(subcontractor)
