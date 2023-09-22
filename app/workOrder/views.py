@@ -3645,6 +3645,8 @@ def upload_daily(request, id, LocID):
 
 
 def recap(request, perID):
+    emp = Employee.objects.filter(user__username__exact = request.user.username).first()    
+
     error= ""
     
     empList = Employee.objects.all()   
@@ -3672,7 +3674,8 @@ def recap(request, perID):
                                         recap = file )
                     remplo.save()
         except Exception as e:
-            error = "error "   
+            return render(request,'landing.html',{'message':'Somenthing went Wrong!' + str(e), 'alertType':'danger','emp':emp, 'per': per})
+   
     
     return HttpResponseRedirect('/location_period_list/' + perID)     
 
