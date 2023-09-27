@@ -246,7 +246,7 @@
                                                             <td>${{po.total|floatformat:2|intcomma}}</td>    
                                                             <td>{% if emp.is_superAdmin  or user.is_staff %}                                     
                                                                 
-                                                                <a href="/update_po/{{po.id}}/-1"><i class="fa-solid fa-pen-to-square"  style="color: green;"></i></a>
+                                                                <a href="/update_po/{{po.id}}/-1/0"><i class="fa-solid fa-pen-to-square"  style="color: green;"></i></a>
                                                                 <a data-bs-toggle="tooltip" data-bs-placement="top" title="Transfer" hx-get="/internal_po_transfer/{{po.id}}/0/{{estimateID}}" hx-target="#dialog"><i class="fa-solid fa-right-left" style="color: green;"></i></a>
                                                             {%endif%}</td>                                                                                            
                                                         </tr>                                             

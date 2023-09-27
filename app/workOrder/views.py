@@ -1353,7 +1353,7 @@ def internal_po_list(request):
     return render(request, "internal_po_list.html", context)
 
 @login_required(login_url='/home/')
-def update_po(request, id, woID):
+def update_po(request, id, woID, selectedvs):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context ={}
     per = period.objects.filter(status__in=(1,2)).first()
@@ -1362,12 +1362,25 @@ def update_po(request, id, woID):
     context["woID"] = int(woID)
 
     context["po"] = internalPO.objects.filter(id = id).first()
+    context["id"] = id
+
 
     vendorList = vendorSubcontrator(request)
 
     context['vendorList']= vendorList
 
     obj = get_object_or_404(internalPO, id = id )
+
+    if selectedvs != "0":
+        itemResult = next((i for i, item in enumerate(vendorList) if item["id"] == selectedvs), None)
+    else:
+        itemResult = next((i for i, item in enumerate(vendorList) if item["id"] == obj.vendor), None)
+
+
+    if itemResult != None:
+        context['selectedvs2'] = vendorList[itemResult]
+    else:
+        context['selectedvs2'] = ""
 
     form = InternalPOForm(request.POST or None, instance = obj )
  
@@ -7153,7 +7166,7 @@ def vendorSubcontrator(request):
 
 
 @login_required(login_url='/home/')
-def vendor_subcontractor_list(request,woID):
+def vendor_subcontractor_list(request,woID, tipoOp, id):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     LocID = 1  
 
@@ -7163,6 +7176,8 @@ def vendor_subcontractor_list(request,woID):
     context["selectedLocation"] = LocID
     context["vendorList"] = vendorSubcontrator(request)
     context["woID"] = woID
+    context["id"] = id
+    context["tipoOp"] = tipoOp
 
     per = period.objects.filter(status__in=(1,2)).first()
     context["per"] = per

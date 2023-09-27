@@ -27,8 +27,13 @@
                                 <td>{{order.id}}</td>
                                 <td>{{order.name}}</td>
                                
-                                <td>                                    
-                                     <a href="/create_po/{{woID}}/{{order.id}}"><i class="fa-solid fa-circle-arrow-right" style="color: green;"></i></a>                                                                             
+                                
+                                <td>  
+                                    {%if tipoOp == "create_po" %}                                  
+                                        <a href="/create_po/{{woID}}/{{order.id}}"><i class="fa-solid fa-circle-arrow-right" style="color: green;"></i></a>                                                                             
+                                    {%else%}
+                                        <a href="/update_po/{{id}}/{{woID}}/{{order.id}}"><i class="fa-solid fa-circle-arrow-right" style="color: green;"></i></a>
+                                    {%endif%}
                                 </td>
                                 
                                 
