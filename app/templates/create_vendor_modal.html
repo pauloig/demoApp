@@ -1,0 +1,38 @@
+{% extends 'index.html' %} 
+{%load static%}
+
+{% block container %}
+
+<div class="container">
+    <form method='post' action="{{request.path}}" enctype="multipart/form-data">
+        {% csrf_token %}
+        <br />
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="card rounded">
+                    <h6 class="card-header card-header-wc">Create Vendor</h6>
+                    <div class="card-body">                    
+                            <div class="row">
+                                  <!-- Using the formset -->
+                                {{ form.as_p }}
+                            </div>
+                            <div class="row">
+                                <div class="col-lg-6">  
+                                    <div class="form-outline" style="align-items: center;">                                                                   
+                                        <input class="btn btn-primary" type="submit" value="Save">
+                                     
+                                        {% if tipoOP == "0"%}
+                                            <a class="btn btn-danger" href="/create_po/{{selectedWO}}/0" role="button">Close</a>
+                                        {%else%}
+                                            <a class="btn btn-danger" href="/update_po/{{poID}}/{{selectedWO}}/0" role="button">Close</a>
+                                        {%endif%}
+                                        </div>
+                                </div>
+                            </div>                                    
+                    </div>
+                </div>                 
+            </div>
+        </div>      
+    </form>
+</div>
+{% endblock %}

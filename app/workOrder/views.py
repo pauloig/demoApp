@@ -1481,6 +1481,13 @@ def create_po(request, id, selectedvs):
         poNumber = poSequence.get_next_value()        
         form.instance.poNumber = int(poNumber)
 
+        try:         
+            newFile = request.FILES['myfile']
+            form.instance.receipt = newFile
+
+        except Exception as e:
+            None
+
         form.instance.createdBy = request.user.username
         form.instance.created_date = datetime.now()
 
@@ -5392,6 +5399,35 @@ def create_vendor(request):
     return render(request, "create_vendor.html", context)
 
 @login_required(login_url='/home/')
+def create_vendor_modal(request, woID, tipoOP, poID):
+    emp = Employee.objects.filter(user__username__exact = request.user.username).first()
+    context ={}
+    per = period.objects.filter(status__in=(1,2)).first()
+    context["per"] = per
+    context["selectedWO"]=woID
+    context["tipoOP"]=tipoOP
+    context["poID"]=poID
+ 
+    form = vendorForm(request.POST or None)
+    if form.is_valid():
+        form.instance.createdBy = request.user.username
+        form.instance.created_date = datetime.now()
+        form.save()  
+
+
+        if tipoOP == "0":             
+            return HttpResponseRedirect("/create_po/" + str(woID) + '/0')
+        else:
+            return HttpResponseRedirect("/update_po/" + str(poID) + '/' + str(woID) + '/V' + str(form.instance.id))
+         
+    context['form']= form
+    context["emp"]=emp
+
+    
+    return render(request, "create_vendor_modal.html", context)
+    
+
+@login_required(login_url='/home/')
 def update_vendor(request, id):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context ={}
@@ -6863,9 +6899,17 @@ def invoice_monthly_report(request):
 
     if request.method == 'POST':       
        dateSelected =  request.POST.get('date')
+       dateSelected2 = request.POST.get('date2')
        dateS = datetime.strptime(dateSelected, '%Y-%m-%d').date()
-       result = woInvoice.objects.filter(created_date__year = datetime.strftime(dateS, '%Y'), created_date__month = datetime.strftime(dateS, '%m'))
+       dateS2 = datetime.strptime(dateSelected2, '%Y-%m-%d').date()
+       status = request.POST.get('status')
 
+       #result = woInvoice.objects.filter(created_date__year = datetime.strftime(dateS, '%Y'), created_date__month = datetime.strftime(dateS, '%m'))
+       if status == "0":
+            result = woInvoice.objects.filter(created_date__range=[dateS, dateS2])
+       else:
+            result = woInvoice.objects.filter(created_date__range=[dateS, dateS2], woID__Status = status)
+       
        resultList = []
         # Calculating Labor
 
@@ -6919,6 +6963,8 @@ def invoice_monthly_report(request):
 
        context["woInvoice"] = resultList
        context["dateSelected"] =  dateS
+       context["dateSelected2"] =  dateS2
+       context["statusSelected"] =  status
        
 
     return render(request, "invoice_monthly_report.html", context)
@@ -6961,7 +7007,7 @@ def get_daily_report(request, dateSelected):
 
     dateS = datetime.strptime(dateSelected, '%Y-%m-%d').date()
     ordenes = woInvoice.objects.filter(created_date__year = datetime.strftime(dateS, '%Y'), created_date__month = datetime.strftime(dateS, '%m'),created_date__day=datetime.strftime(dateS, '%d') )
-
+    
 
     for item in ordenes:
         row_num += 1
@@ -7008,7 +7054,7 @@ def get_daily_report(request, dateSelected):
     return response
 
 @login_required(login_url='/home/')
-def get_monthly_report(request, dateSelected):
+def get_monthly_report(request, dateSelected, dateSelected2, status):
     
 
     wb = xlwt.Workbook(encoding='utf-8')
@@ -7034,6 +7080,8 @@ def get_monthly_report(request, dateSelected):
                                 pattern: pattern solid, fore_color gray25;')
 
     dateS = datetime.strptime(dateSelected, '%Y-%m-%d').date()
+    dateS2 = datetime.strptime(dateSelected2, '%Y-%m-%d').date()
+    
                               
     ws.write_merge(3, 3, 0, 11, 'Monthly Report ' + str(datetime.strftime(dateS, '%Y')) + ' - ' + str(datetime.strftime(dateS, '%m')),font_title2)   
 
@@ -7045,9 +7093,13 @@ def get_monthly_report(request, dateSelected):
       
 
     
-    ordenes = woInvoice.objects.filter(created_date__year = datetime.strftime(dateS, '%Y'), created_date__month = datetime.strftime(dateS, '%m'))
-
-
+    #ordenes = woInvoice.objects.filter(created_date__year = datetime.strftime(dateS, '%Y'), created_date__month = datetime.strftime(dateS, '%m'))
+    
+    if status == "0":
+        ordenes = woInvoice.objects.filter(created_date__range=[dateS, dateS2])
+    else:
+        ordenes = woInvoice.objects.filter(created_date__range=[dateS, dateS2], woID__Status = status)
+       
     for item in ordenes:
         row_num += 1
         ws.write(row_num, 0, item.invoiceNumber, font_style) # at 0 row 0 column 
@@ -7141,6 +7193,45 @@ def get_monthly_report(request, dateSelected):
     wb.save(response)
 
     return response
+
+
+@login_required(login_url='/home/')
+def wo_comment_log(request, woID, isSupervisor):
+    emp = Employee.objects.filter(user__username__exact = request.user.username).first()
+    context ={}
+    per = period.objects.filter(status__in=(1,2)).first()
+    context["per"] = per
+ 
+
+    wo = workOrder.objects.filter(id=woID).first()
+    form = woCommentLogForm(request.POST or None, initial={'woID': wo})
+                            
+    if form.is_valid():
+        form.instance.createdBy = request.user.username
+        form.instance.created_date = datetime.now()
+        form.save()               
+        return HttpResponseRedirect("/order_detail/" + str(woID) + "/" + isSupervisor)
+         
+    context['form']= form
+    context["emp"]=emp
+    return render(request, "wo_comment_log.html", context)
+
+def get_wo_comment_log(request, id):
+
+    emp = Employee.objects.filter(user__username__exact = request.user.username).first()        
+    context ={}
+    context["emp"] = emp
+
+    per = period.objects.filter(status__in=(1,2)).first()
+    context["per"] = per
+
+    wo = workOrder.objects.filter(id = id).first()
+
+    wo_log = woCommentLog.objects.filter(woID = wo).order_by('created_date')
+    context["log"] = wo_log
+
+    
+    return render(request, "get_wo_comment_log.html", context)
 
 ### General Functions
 @login_required(login_url='/home/')

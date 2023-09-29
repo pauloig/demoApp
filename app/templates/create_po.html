@@ -16,16 +16,16 @@
                     <h6 class="card-header card-header-wc" >Create PO</h6>
                     <div class="card-body">
                             <div class="row"> 
-                                <div class="col-lg-6">
+                                <div class="col-lg-12">
                                     <div class="mb-3">    
                                         <label for="PID" class="form-label">Vendor - Subcontractor</label>                
                                         <div class="input-group mb-3">                                          
                                                                                                                                
                                             <input type="text" class="form-control" placeholder="Select Vendor" aria-label="vendorName" id="vendorName" name="vendorName" aria-describedby="basic-addon1" value="{{selectedvs2.name}}" disabled> 
                                             <input type="text" class="form-control" placeholder="Select Vendor" aria-label="vendor" id="vendor" name="vendor" aria-describedby="basic-addon1" value="{{selectedvs2.id}}" hidden>                                               
-                                            <button hx-get="/vendor_subcontractor_list/{{selectedid}}/create_po/0" class="btn btn-primary py-2" hx-target="#dialog" ><i class="fa-sharp fa-solid fa-magnifying-glass"></i></button>                                                
-                                               
-                                            </div>                                      
+                                            <button hx-get="/vendor_subcontractor_list/{{selectedid}}/create_po/0" class="btn btn-primary py-2" hx-target="#dialog" ><i class="fa-sharp fa-solid fa-magnifying-glass"></i></button>
+                                            <a href="/create_vendor_modal/{{selectedWO}}/0/0" type="button" class="btn btn-success"><i class="fa-sharp fa-solid fa-plus"></i></a>    
+                                        </div>                                      
                                     </div>    
                                     <!--<div class="mb-3">
                                         <label for="vendor" class="form-label">Vendor - Subcontractor</label>
@@ -42,6 +42,24 @@
                                   <!-- Using the formset -->
                                 {{ form.as_p }}
                             </div>
+                            <div class="row">
+                                <div class="col-lg-8">
+                                  <label class="form-label" for="file">Select Receipt</label>  
+                                                                    
+                                  <div class="input-group-btn">
+                                      <div class="input-group mb-3">
+                                        {% if po.receipt != '' and po.receipt != None %}   
+                                            <a class="mx-5" href="/static/media/{{po.receipt}}" target="_blank">View Actual File</a>  
+                                        {%endif%}
+                                          <input type="file" class="form-control" id="file" name="myfile" accept="application/pdf, image/png, image/jpeg">
+                                          <label class="input-group-text " for="file">Select File</label>
+                                      </div>
+                                  </div>                                
+                                </div>  
+                                <div class="col-lg-4">
+                                    
+                                </div>
+                            </div>     
                             <div class="row">
                                 <div class="col-lg-6">  
                                     <div class="form-outline" style="align-items: center;">                                       

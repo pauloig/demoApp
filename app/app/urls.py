@@ -86,6 +86,7 @@ urlpatterns = [
     path('get_item_list/',views.get_item_list),
     path('vendor_list/',views.vendor_list),
     path('create_vendor/',views.create_vendor),
+    path('create_vendor_modal/<woID>/<tipoOP>/<poID>',views.create_vendor_modal),
     path('update_vendor/<id>',views.update_vendor),
     path('subcontractor_list/',views.subcontractor_list),
     path('create_subcontractor/',views.create_subcontractor),
@@ -119,7 +120,9 @@ urlpatterns = [
     path('invoice_daily_report/',views.invoice_daily_report),
     path('invoice_monthly_report/',views.invoice_monthly_report),
     path('get_daily_report/<dateSelected>',views.get_daily_report),
-    path('get_monthly_report/<dateSelected>',views.get_monthly_report),
+    path('get_monthly_report/<dateSelected>/<dateSelected2>/<status>',views.get_monthly_report),
+    path('wo_comment_log/<woID>/<isSupervisor>',views.wo_comment_log),
+    path('get_wo_comment_log/<id>',views.get_wo_comment_log),
     #Temp URL's
     path('update_linked_orders/',views.update_linked_orders),
     path('update_item_payout/',views.update_item_payout),

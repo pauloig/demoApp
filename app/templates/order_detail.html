@@ -72,15 +72,19 @@
                         <div class="row">
                             <div class="col-sm-12">
                                 <div class="mb-3">
-                                    <label for="location" class="form-label">General Log</label>                                    
-                                    {% for i in general_log %}  
-                                    </br>{{i.created_date|date:'m-d-Y'}},  Status Changed To {{i.nextStatus}} , {{i.createdBy}} 
-                                    {% endfor %}                                                            
+                                                                                          
                                 </div>
                             </div>                           
-                        </div>                                                                                              
+                        </div>                                                                                             
                         <div class="row">
-                            <div class="col-sm-11"></div>
+                            <div class="col-sm-7">
+                                
+                            </div>
+                            <div class="col-sm-4">
+                                
+                                <button hx-get="/wo_comment_log/{{order.id}}/{{isSupervisor}}" class="btn btn-success py-2" hx-target="#dialog" > Add Comment Log</button>
+                                <button hx-get="/get_wo_comment_log/{{order.id}}" class="btn btn-primary py-2" hx-target="#dialog" > Comment Log</button>
+                            </div>
                             <div class="col-sm-1">
                                 <a href="/order_list/" type="button" class="btn btn-danger">Close</a>
                             </div>

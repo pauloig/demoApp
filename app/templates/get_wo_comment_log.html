@@ -1,0 +1,64 @@
+{% extends 'base.html' %} 
+{%load static%}
+{% block title %} Order List {% endblock %} 
+{% load humanize %}
+{% block container %}
+{% load widget_tweaks%}
+
+
+
+
+
+
+
+<div class="container">
+    <form method='post' action="{{request.path}}" class="modal-content" id="daily_item">
+        {% csrf_token %}
+        <div class="modal-header">
+            <h5>Comment Log</h5>           
+        </div>    
+        <div class="modal-body">
+            <div class="row">
+                <div class="col-sm-12 my-3">
+                    <div class="card">
+                               
+                        <div class="card-body">
+                            <div class="row">                   
+                                <div class="col-lg-12"> 
+
+                                    <table id="orders" class="table table-sm table-bordered table-striped">
+                                        <thead class="table-primary">
+                                            <tr>
+                                                <th scope="col" style="width: 40%">Date</th>
+                                                <th scope="col" style="width: 40%">Comment</th>                                                                                           
+                                                <th scope="col" style="width: 20%">User</th>                                            
+                                            </tr>              
+                                        </thead>
+                                        <tbody>                                       
+                                            {% for data in log %}
+                                                <tr>
+                                                    <td>{{data.created_date}}</td>
+                                        
+                                                    <td>{{data.comment}} </td>                                                                      
+                                                                                                
+                                                    <td>{{data.createdBy}}</td>                                                
+                                                </tr>                                             
+                                            {% endfor %}
+                                        </tbody>                              
+                                    </table>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-footer">         
+           
+            <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button> 
+        </div>
+    </form>
+</div>
+{% endblock %}

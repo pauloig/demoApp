@@ -1,7 +1,7 @@
 import re
 from types import CoroutineType
 from django import forms
-from .models import Locations, item, workOrder, workOrderDuplicate, Employee, itemPrice, internalPO, period, DailyEmployee, DailyItem, Daily, vendor, subcontractor, externalProduction, externalProdItem, authorizedBilling, employeeLocation, billingAddress
+from .models import *
 
 class LocationsForm(forms.ModelForm):
     LocationID = forms.CharField(max_length=10, widget=forms.TextInput(attrs={'class':'form-control'}))
@@ -292,7 +292,7 @@ class vendorForm(forms.ModelForm):
     contactPosition = forms.CharField(label="Contact Position",max_length=100, widget=forms.TextInput(attrs={'class':'form-control'}), required=False)
     contactPhone = forms.CharField(label="Contact Phone",max_length=50, widget=forms.TextInput(attrs={'class':'form-control'}), required=False)
     description = forms.CharField(max_length=200, widget=forms.TextInput(attrs={'class':'form-control'}), required=False)
-    is_active = forms.BooleanField(label="Is Active", required=False)
+    #is_active = forms.BooleanField(label="Is Active", required=False)
     created_date = forms.CharField(label="Created Date",max_length=200, widget=forms.TextInput(attrs={'class':'form-control'}), required=False)
     createdBy = forms.CharField(label="Created By",max_length=200, widget=forms.TextInput(attrs={'class':'form-control'}), required=False)
 
@@ -464,3 +464,18 @@ class billingAddressForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields['created_date'].disabled = True
         self.fields['createdBy'].disabled = True
+
+
+
+class woCommentLogForm(forms.ModelForm):
+
+    class Meta:
+        model = woCommentLog
+        fields = [
+           'woID',
+            'comment',
+
+        ]
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['woID'].disabled = True

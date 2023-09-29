@@ -394,6 +394,15 @@ class woStatusLog(models.Model):
         return str(self.woID) + " - " + str(self.currentStatus)
 
 
+class woCommentLog(models.Model):
+    woID = models.ForeignKey(workOrder, on_delete=models.CASCADE, db_column ='woID')
+    comment = models.TextField(max_length=500, null=True, blank=True)
+    created_date = models.DateTimeField(blank=True, null=True)
+    createdBy = models.CharField(max_length=60, blank=True, null=True)
+
+    def __str__(self):
+        return str(self.woID) 
+
 class vendor(models.Model):   
     name = models.CharField(max_length=200, blank=True, null=True)
     address = models.CharField(max_length=200, blank=True, null=True)
