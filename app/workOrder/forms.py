@@ -325,7 +325,7 @@ class subcontractorForm(forms.ModelForm):
     contactEmail = forms.EmailField(label="Contact Email",max_length=50, widget=forms.EmailInput(attrs={'class':'form-control'}), required=False)
     contactPhone = forms.CharField(label="Contact Phone",max_length=50, widget=forms.TextInput(attrs={'class':'form-control'}), required=False)
     description = forms.CharField(max_length=200, widget=forms.TextInput(attrs={'class':'form-control'}), required=False)
-    is_active = forms.BooleanField(label="Is Active", required=False)
+    #is_active = forms.BooleanField(label="Is Active", required=False)
     created_date = forms.CharField(label="Created Date",max_length=200, widget=forms.TextInput(attrs={'class':'form-control'}), required=False)
     createdBy = forms.CharField(label="Created By",max_length=200, widget=forms.TextInput(attrs={'class':'form-control'}), required=False)
 

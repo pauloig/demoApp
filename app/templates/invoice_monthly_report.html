@@ -142,6 +142,8 @@
                                             <th scope="col" class="p-1">Materials</th>
                                             <th scope="col" class="p-1">Invoice Amount</th>                                                                 
                                             <th scope="col" class="p-1">Date</th>  
+                                            <th scope="col" class="p-1">% Expenses</th>
+                                            <th scope="col" class="p-1">Balance</th>
                                             <th scope="col" class="p-1"></th>  
                                         </tr>              
                                     </thead>
@@ -153,7 +155,7 @@
                                                 <td class="p-1">{{item.createdBy}}</td>
                                                 <td class="p-1">{{item.woID.WCSup}}</td>
                                                 <td class="p-1">
-                                                   
+                                                                {{item.address}}
                                                 </td>
                                                 <td class="p-1">{{item.woID.Location}}</td>
                                                 <td class="p-1">{{item.woID.JobAddress}}</td>
@@ -169,6 +171,8 @@
                                                 <td class="p-1">{{item.materials|floatformat:2|intcomma}}</td>
                                                 <td class="p-1">{{item.total|floatformat:2|intcomma}} </td>
                                                 <td class="p-1">{{item.created_date|date:'m-d-Y'}}</td> 
+                                                <td class="p-1">{{item.per_expenses|stringformat:"d%%"}}</td> 
+                                                <td class="p-1">{{item.balance|floatformat:2|intcomma}}</td> 
                                                 <td class="p-1">
                                                     <a hx-get="/invoice_preview/{{item.woID.id}}/{{item.invoiceNumber}}" hx-target="#dialog"><i class="fa-solid fa-magnifying-glass" style="color: green;"></i></a>
                                                 </td>

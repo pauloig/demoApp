@@ -90,6 +90,7 @@ urlpatterns = [
     path('update_vendor/<id>',views.update_vendor),
     path('subcontractor_list/',views.subcontractor_list),
     path('create_subcontractor/',views.create_subcontractor),
+    path('create_subcontractor_modal/<woID>/<tipoOP>/<poID>',views.create_subcontractor_modal),
     path('update_subcontractor/<id>',views.update_subcontractor),
     path('external_prod_list/<id>',views.external_prod_list),
     path('create_external_prod/<woID>',views.create_external_prod),

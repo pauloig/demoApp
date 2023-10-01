@@ -24,7 +24,8 @@
                                             <input type="text" class="form-control" placeholder="Select Vendor" aria-label="vendorName" id="vendorName" name="vendorName" aria-describedby="basic-addon1" value="{{selectedvs2.name}}" disabled>
                                             <input type="text" class="form-control" placeholder="Select Vendor" aria-label="vendor" id="vendor" name="vendor" aria-describedby="basic-addon1" value="{{selectedvs2.id}}" hidden>                                                
                                             <button hx-get="/vendor_subcontractor_list/{{woID}}/update_po/{{id}}" class="btn btn-primary py-2" hx-target="#dialog" ><i class="fa-sharp fa-solid fa-magnifying-glass"></i></button>
-                                            <a href="/create_vendor_modal/{{woID}}/1/{{id}}" type="button" class="btn btn-success"><i class="fa-sharp fa-solid fa-plus"></i></a>      
+                                            <a href="/create_vendor_modal/{{woID}}/1/{{id}}" type="button" class="btn btn-success"><i class="fa-sharp fa-solid fa-plus"> V</i></a>      
+                                            <a href="/create_subcontractor_modal/{{woID}}/1/{{id}}" type="button" class="btn btn-success"><i class="fa-sharp fa-solid fa-plus"> S</i></a>      
                                             </div>                                      
                                     </div>    
                                     

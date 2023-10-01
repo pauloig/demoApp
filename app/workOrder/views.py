@@ -5484,6 +5484,31 @@ def create_subcontractor(request):
     return render(request, "create_subcontractor.html", context)
 
 @login_required(login_url='/home/')
+def create_subcontractor_modal(request, woID, tipoOP, poID):
+    emp = Employee.objects.filter(user__username__exact = request.user.username).first()
+    context ={}
+    per = period.objects.filter(status__in=(1,2)).first()
+    context["per"] = per
+    context["selectedWO"]=woID
+    context["tipoOP"]=tipoOP
+    context["poID"]=poID
+
+    form = subcontractorForm(request.POST or None)
+    if form.is_valid():
+        form.instance.createdBy = request.user.username
+        form.instance.created_date = datetime.now()
+        form.save()             
+
+        if tipoOP == "0":             
+            return HttpResponseRedirect("/create_po/" + str(woID) + '/0')
+        else:
+            return HttpResponseRedirect("/update_po/" + str(poID) + '/' + str(woID) + '/S' + str(form.instance.id))
+         
+    context['form']= form
+    context["emp"]=emp
+    return render(request, "create_subcontractor_modal.html", context)
+
+@login_required(login_url='/home/')
 def update_subcontractor(request, id):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context ={}
@@ -6917,6 +6942,8 @@ def invoice_monthly_report(request):
             totalLabor = 0
             totalMaterials = 0
             totaPO = 0
+            per_expenses = 0
+            balance= 0
 
              
             
@@ -6954,11 +6981,17 @@ def invoice_monthly_report(request):
             if totaPO > 0:
                 totalMaterials = totaPO + (totaPO * Decimal(str(0.10)))
 
+            if  validate_decimals(i.woID.POAmount) > 0:
+                per_expenses =  ((validate_decimals(totalLabor)  + validate_decimals(totalMaterials) )/ validate_decimals(i.woID.POAmount) ) * 100
+            else: 
+                per_expenses = 0
 
+            balance = validate_decimals(i.woID.POAmount) - (validate_decimals(totalLabor)  + validate_decimals(totalMaterials) )
 
             resultList.append({'woID': i.woID,'estimateNumber': i.estimateNumber,'invoiceNumber': i.invoiceNumber,'total': i.total,'zipCode' : i.zipCode,
                                'state' : i.state, 'city' : i.city,'address' : i.address,'description' : i.description,
-                                'Status' : i.Status, 'is_partial' : i.is_partial, 'created_date' : i.created_date,'createdBy' : i.createdBy, 'labor': validate_decimals(totalLabor),'materials': validate_decimals(totalMaterials)})
+                                'Status' : i.Status, 'is_partial' : i.is_partial, 'created_date' : i.created_date,'createdBy' : i.createdBy, 
+                                'labor': validate_decimals(totalLabor),'materials': validate_decimals(totalMaterials), 'per_expenses': validate_decimals(per_expenses), 'balance': balance })
             
 
        context["woInvoice"] = resultList
@@ -7083,10 +7116,10 @@ def get_monthly_report(request, dateSelected, dateSelected2, status):
     dateS2 = datetime.strptime(dateSelected2, '%Y-%m-%d').date()
     
                               
-    ws.write_merge(3, 3, 0, 11, 'Monthly Report ' + str(datetime.strftime(dateS, '%Y')) + ' - ' + str(datetime.strftime(dateS, '%m')),font_title2)   
+    ws.write_merge(3, 3, 0, 13, 'Monthly Report ' + str(datetime.strftime(dateS, '%Y')) + ' - ' + str(datetime.strftime(dateS, '%m')),font_title2)   
 
 
-    columns = ['Invoice', 'Entered By', 'WC Supervisor', 'Attn To', 'System','Partial / Final','PO', 'PID','Labor','Materials','Labor + Materials','Invoice Amount']
+    columns = ['Invoice', 'Entered By', 'WC Supervisor', 'Attn To', 'System','Partial / Final','PO', 'PID','Labor','Materials','Labor + Materials','Invoice Amount', 'expenses', 'Balance'  ] 
 
     for col_num in range(len(columns)):
         ws.write(row_num, col_num, columns[col_num], font_title) # at 0 row 0 column 
@@ -7131,18 +7164,10 @@ def get_monthly_report(request, dateSelected, dateSelected2, status):
         totalLabor = 0
         totalMaterials = 0
         totaPO = 0
+        per_expenses = 0
+        balance = 0
 
-        """labor = DailyItem.objects.filter(invoice = str(item.invoiceNumber))
-        
-        for j in labor:
-            totalLabor += validate_decimals(j.total) 
-
-
-        extProduction = externalProdItem.objects.filter(externalProdID__woID = item.woID, invoice = str(item.invoiceNumber))
-
-        for ep in extProduction:
-            totalLabor += validate_decimals(ep.total)"""
-        
+       
 
         authBilling = authorizedBilling.objects.filter(invoice = item.invoiceNumber)
 
@@ -7168,11 +7193,19 @@ def get_monthly_report(request, dateSelected, dateSelected2, status):
         if totaPO > 0:
             totalMaterials = totaPO + (totaPO * Decimal(str(0.10)))
 
+
+        if  validate_decimals(item.woID.POAmount) > 0:
+            per_expenses =  ((validate_decimals(totalLabor)  + validate_decimals(totalMaterials) )/ validate_decimals(item.woID.POAmount) ) * 100
+            balance = validate_decimals(item.woID.POAmount) - (validate_decimals(totalLabor)  + validate_decimals(totalMaterials) )
+        
+
         ws.write(row_num, 8, '$' + '{0:,.2f}'.format(validate_decimals(totalLabor)) , font_style)
         ws.write(row_num, 9, '$' + '{0:,.2f}'.format(validate_decimals(totalMaterials)) , font_style)
         ws.write(row_num, 10, '$' + '{0:,.2f}'.format(validate_decimals(totalLabor) + validate_decimals(totalMaterials)) , font_style)
 
         ws.write(row_num, 11, '$' + '{0:,.2f}'.format(validate_decimals(item.total)) , font_style)
+        ws.write(row_num, 12, '{0:,.2f}'.format(validate_decimals(per_expenses)) + '%' , font_style)
+        ws.write(row_num, 13, '{0:,.2f}'.format(validate_decimals(balance)) , font_style)
 
     ws.col(1).width = 5000
     ws.col(2).width = 9000
@@ -7185,6 +7218,8 @@ def get_monthly_report(request, dateSelected, dateSelected2, status):
     ws.col(9).width = 6000
     ws.col(10).width = 6000
     ws.col(11).width = 6000
+    ws.col(12).width = 3000
+    ws.col(13).width = 6000
 
     filename = 'Monthly report ' + dateSelected + '.xls'
     response = HttpResponse(content_type='application/ms-excel')
