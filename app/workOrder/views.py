@@ -4140,26 +4140,30 @@ def generate_recap(empID, perID):
 def send_recap(request, perID):
     empSelected =request.POST.get('Employees')
    
-    if empSelected != 0:
-        empList = empSelected.split(",")
-        per = period.objects.filter(id = perID).first()
-        if per:
-            empRecap = employeeRecap.objects.filter(Period = per, EmployeeID__employeeID__in = empList)
+    try:
+        if empSelected != 0:
+            empList = empSelected.split(",")
+            per = period.objects.filter(id = perID).first()
+            if per:
+                empRecap = employeeRecap.objects.filter(Period = per, EmployeeID__employeeID__in = empList)
 
-            for item in empRecap:
-                subject = 'Recap Weeks ' + per.weekRange
-                message = 'Hello ' + item.EmployeeID.last_name + ' ' + item.EmployeeID.first_name + ','
-                message += '\n \n Attached you can find the recap of the weeks ' + per.weekRange
-                message += '\n please review it and let me know if you have any question or problem.'
-                message += '\n \n best regards,'
-                emailTo = item.EmployeeID.email
-                if emailTo != None:
-                    email =  EmailMessage(subject,message, 'recaps@wiringconnection.com' ,[emailTo])
-                    email.attach_file(item.recap.path)                    
-                    email.send()
+                for item in empRecap:
+                    subject = 'Recap Weeks ' + per.weekRange
+                    message = 'Hello ' + item.EmployeeID.last_name + ' ' + item.EmployeeID.first_name + ','
+                    message += '\n \n Attached you can find the recap of the weeks ' + per.weekRange
+                    message += '\n please review it and let me know if you have any question or problem.'
+                    message += '\n \n best regards,'
+                    emailTo = item.EmployeeID.email
+                    if emailTo != None:
+                        email =  EmailMessage(subject,message, 'recaps@wiringconnection.com' ,[emailTo])
+                        email.attach_file(item.recap.path)                    
+                        email.send()
 
-                    item.mailingDate = datetime.now()
-                    item.save()
+                        item.mailingDate = datetime.now()
+                        item.save()
+    except Exception as e:
+        return render(request,'landing.html',{'message':'Somenthing went Wrong!' + str(e), 'alertType':'danger','emp':emp, 'per': per})
+   
 
     return HttpResponseRedirect('/location_period_list/' + perID) 
 
@@ -4167,24 +4171,28 @@ def send_recap(request, perID):
 def send_recap_emp(request, perID, empID):   
     per = period.objects.filter(id = perID).first()
     emp = Employee.objects.filter(employeeID = empID).first()
-    if per and emp:
-        empRecap = employeeRecap.objects.filter(Period = per, EmployeeID = emp)
+    try:
+        if per and emp:
+            empRecap = employeeRecap.objects.filter(Period = per, EmployeeID = emp)
 
-        for item in empRecap:
-            subject = 'Recap Weeks ' + per.weekRange
-            message = 'Hello ' + item.EmployeeID.last_name + ' ' + item.EmployeeID.first_name + ','
-            message += '\n \n Attached you can find the recap of the weeks ' + per.weekRange
-            message += '\n please review it and let me know if you have any question or problem.'
-            message += '\n \n best regards,'
+            for item in empRecap:
+                subject = 'Recap Weeks ' + per.weekRange
+                message = 'Hello ' + item.EmployeeID.last_name + ' ' + item.EmployeeID.first_name + ','
+                message += '\n \n Attached you can find the recap of the weeks ' + per.weekRange
+                message += '\n please review it and let me know if you have any question or problem.'
+                message += '\n \n best regards,'
 
-            emailTo = item.EmployeeID.email
-            if emailTo != None:
-                email = EmailMessage(subject,message, 'recaps@wiringconnection.com' ,[emailTo])
-                email.attach_file(item.recap.path)                
-                email.send()
+                emailTo = item.EmployeeID.email
+                if emailTo != None:
+                    email = EmailMessage(subject,message, 'recaps@wiringconnection.com' ,[emailTo])
+                    email.attach_file(item.recap.path)                
+                    email.send()
 
-                item.mailingDate = datetime.now()
-                item.save()
+                    item.mailingDate = datetime.now()
+                    item.save()
+    except Exception as e:
+        return render(request,'landing.html',{'message':'Somenthing went Wrong!' + str(e), 'alertType':'danger','emp':emp, 'per': per})
+   
 
     return HttpResponseRedirect('/location_period_list/' + perID) 
 
