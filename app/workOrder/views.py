@@ -11,6 +11,8 @@ from multiprocessing import context
 from os import WIFCONTINUED, dup
 import re
 import os
+import ssl
+import smtplib
 from telnetlib import WONT
 from unittest import TextTestResult
 from urllib import response
@@ -1796,9 +1798,11 @@ def partial_estimate(request, id, isPartial, Status, addressID):
         for l in internal:
             iItem = internalPO.objects.filter(id = l.id).first()
 
-            iItem.Status = 2
-            iItem.estimate = estimateID
-            iItem.save()
+            if validate_decimals(iItem.total) > 0:
+                iItem.Status = 2
+                iItem.estimate = estimateID
+                iItem.save()
+
     elif int(Status) == 2:
         #Update dailyItems
         dailyI = DailyItem.objects.filter(DailyID__woID = wo, estimate = estimateID)
@@ -4182,14 +4186,35 @@ def send_recap_emp(request, perID, empID):
                 message += '\n please review it and let me know if you have any question or problem.'
                 message += '\n \n best regards,'
 
-                emailTo = item.EmployeeID.email
-                if emailTo != None:
+
+                email_sender='recaps@wiringconnection.com'
+                password=''
+                emailTo = 'paulo.ismalej@gmail.com' #item.EmployeeID.email
+
+
+                email = EmailMessage(subject,message, 'recaps@wiringconnection.com' ,[emailTo])
+                '''em["From"] = email_sender
+                em["To"] = emailTo
+                em["Subject"] = subject
+                em.set_content(message)
+                '''
+
+                context = ssl.create_default_context()
+
+                with smtplib.SMTP_SSL('smtp.gmail.com',465,context = context) as smtp:
+                    smtp.login(email_sender, password)
+                    smtp.sendmail()
+
+                '''
+                    if emailTo != None:
                     email = EmailMessage(subject,message, 'recaps@wiringconnection.com' ,[emailTo])
-                    email.attach_file(item.recap.path)                
+                    #email.attach_file(item.recap.path)                
                     email.send()
 
                     item.mailingDate = datetime.now()
                     item.save()
+                '''
+                
     except Exception as e:
         return render(request,'landing.html',{'message':'Somenthing went Wrong!' + str(e), 'alertType':'danger','emp':emp, 'per': per})
    
@@ -4202,7 +4227,7 @@ def get_list_orders_bySupervisor(request,estatus, loc):
     per = period.objects.filter(status__in=(1,2)).first()
     
     locationObject = Locations.objects.filter(LocationID=loc).first() 
-   
+    #
     if emp:
         if estatus == "0" and loc == "0":        
             orders = workOrder.objects.filter(WCSup__employeeID__exact=emp.employeeID).exclude(linkedOrder__isnull = False, uploaded = False )            
