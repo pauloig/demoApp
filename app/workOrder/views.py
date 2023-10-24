@@ -13,6 +13,9 @@ import re
 import os
 import ssl
 import smtplib
+from django.conf import settings
+from smtplib import SMTP_SSL as SMTP
+from email.mime.text import MIMEText
 from telnetlib import WONT
 from unittest import TextTestResult
 from urllib import response
@@ -4171,6 +4174,31 @@ def send_recap(request, perID):
 
     return HttpResponseRedirect('/location_period_list/' + perID) 
 
+def send_email_recap(request, subject, message, destination):
+    email_sender= os.environ.get('DEFAULT_FROM_EMAIL')
+    email_pass= settings.EMAIL_HOST_PASSWORD
+    
+    SMTPserver = os.environ.get('EMAIL_HOST')
+    sender =     os.environ.get('EMAIL_HOST_USER')    
+
+    # typical values for text_subtype are plain, html, xml
+    text_subtype = 'html'
+
+    msg = MIMEText(message, text_subtype)
+    msg['Subject']= subject
+    msg['From']   = sender 
+    msg['To']   = destination
+
+    conn = SMTP(SMTPserver)
+    conn.set_debuglevel(False)
+    conn.login(email_sender, email_pass)
+    try:
+        conn.sendmail(sender, [destination], msg.as_string())
+    finally:
+        conn.quit()
+
+    
+
 @login_required(login_url='/home/')
 def send_recap_emp(request, perID, empID):   
     per = period.objects.filter(id = perID).first()
@@ -4186,37 +4214,21 @@ def send_recap_emp(request, perID, empID):
                 message += '\n please review it and let me know if you have any question or problem.'
                 message += '\n \n best regards,'
 
-
-                email_sender='recaps@wiringconnection.com'
-                password=''
-                emailTo = 'paulo.ismalej@gmail.com' #item.EmployeeID.email
-
-
-                email = EmailMessage(subject,message, 'recaps@wiringconnection.com' ,[emailTo])
-                '''em["From"] = email_sender
-                em["To"] = emailTo
-                em["Subject"] = subject
-                em.set_content(message)
-                '''
-
-                context = ssl.create_default_context()
-
-                with smtplib.SMTP_SSL('smtp.gmail.com',465,context = context) as smtp:
-                    smtp.login(email_sender, password)
-                    smtp.sendmail()
-
-                '''
-                    if emailTo != None:
+                emailTo = item.EmployeeID.email              
+                
+                if emailTo != None:
                     email = EmailMessage(subject,message, 'recaps@wiringconnection.com' ,[emailTo])
-                    #email.attach_file(item.recap.path)                
+                    email.attach_file(item.recap.path)                
                     email.send()
+
+                    #send_email_recap(request, subject, message, emailTo)
 
                     item.mailingDate = datetime.now()
                     item.save()
-                '''
+                
                 
     except Exception as e:
-        return render(request,'landing.html',{'message':'Somenthing went Wrong!' + str(e), 'alertType':'danger','emp':emp, 'per': per})
+        return render(request,'landing.html',{'message':'Somenthing went Wrong!' + str(e) + "////" + settings.EMAIL_HOST_PASSWORD + "+++", 'alertType':'danger','emp':emp, 'per': per})
    
 
     return HttpResponseRedirect('/location_period_list/' + perID) 
