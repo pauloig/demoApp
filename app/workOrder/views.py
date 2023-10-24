@@ -6989,19 +6989,6 @@ def invoice_monthly_report(request):
             totaPO = 0
             per_expenses = 0
             balance= 0
-
-             
-            
-            """labor = DailyItem.objects.filter(invoice = str(i.invoiceNumber))
-
-            for j in labor:
-                totalLabor += validate_decimals(j.total) 
-
-
-            extProduction = externalProdItem.objects.filter(externalProdID__woID = i.woID, invoice = str(i.invoiceNumber))
-
-            for ep in extProduction:
-                totalLabor += validate_decimals(ep.total)"""
             
             authBilling = authorizedBilling.objects.filter(invoice = i.invoiceNumber)
 
@@ -7026,8 +7013,16 @@ def invoice_monthly_report(request):
             if totaPO > 0:
                 totalMaterials = totaPO + (totaPO * Decimal(str(0.10)))
 
+
+            #External Production
+            """extProduction = externalProduction.objects.filter(woID = i.woID)
+            epTotal = 0 
+            for ep in extProduction:
+                epTotal += validate_decimals(ep.total_invoice)
+            """
+
             if  validate_decimals(i.woID.POAmount) > 0:
-                per_expenses =  ((validate_decimals(totalLabor)  + validate_decimals(totalMaterials) )/ validate_decimals(i.woID.POAmount) ) * 100
+                per_expenses =  ((validate_decimals(totalLabor)  + validate_decimals(totalMaterials))/ validate_decimals(i.woID.POAmount) ) * 100
             else: 
                 per_expenses = 0
 

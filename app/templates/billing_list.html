@@ -127,9 +127,17 @@
                                                                 &nbsp; <a data-bs-toggle="tooltip" data-bs-placement="top" title="Download Estimate" href="/estimate/{{order.id}}/{{itemd.estimateNumber}}" role="button"><i class="fa-solid fa-download" style="color: green;"></i></a> 
                                                                 {% if emp.is_superAdmin  or user.is_staff %}  
                                                                     &nbsp; <a href="/update_estimate/{{order.id}}/{{itemd.estimateNumber}}"><i class="fa-solid fa-pen-to-square" style="color: green;"></i></a>
-                                                                {%endif%}                                                           
+                                                                {%endif%}     
+                                                                                                                      
                                                                 {% if itemd.Status == 1 %}
-                                                                    &nbsp; <a data-bs-toggle="tooltip" data-bs-placement="top" title="Generate Invoice" href="/partial_estimate/{{order.id}}/True/2/0"><i class="fa-solid fa-circle-arrow-right" style="color: green;"></i></a>  
+                                                                     <!--&nbsp; <a data-bs-toggle="tooltip" data-bs-placement="top" title="Generate Invoice" href="/partial_estimate/{{order.id}}/True/2/0"><i class="fa-solid fa-circle-arrow-right" style="color: green;"></i></a>  -->
+                                                                    
+                                                                    
+                                                                    
+
+                                                                        <button type="button" class="btn shadow-none m-0 p-0" data-bs-toggle="modal" data-bs-target="#invoice-alert">
+                                                                            <i class="fa-solid fa-circle-arrow-right fa-lg " style="color: green;"></i>
+                                                                        </button> 
                                                                 {%endif%}
                                                             </td> 
                                                         </tr>
@@ -329,8 +337,29 @@
                                 </div>
                         </div>
                     </div>
+
                 </div>                                             
           
+
+                <!-- Modal-->
+                <div class="modal fade" id="invoice-alert" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                        <h5 class="modal-title" id="staticBackdropLabel">Generate Invoice</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <h5>Are you sure you want to Generate the Invoice?</h5>
+                        </div>
+                        <div class="modal-footer">      
+                            
+                        <a class="btn btn-primary" href="/partial_estimate/{{order.id}}/True/2/0">Generate</a>
+                        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                    </div>
+                </div>
              
     </form>
 </div>
