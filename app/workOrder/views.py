@@ -2795,6 +2795,8 @@ def update_order_daily(request, woID, dailyID, LocID):
 
     crew = Daily.objects.filter(id = dailyID).first()
     wo = workOrder.objects.filter(id = woID).first()
+    
+    anterior = None
 
     if crew and wo:
 
@@ -2847,11 +2849,13 @@ def update_order_daily(request, woID, dailyID, LocID):
 
         per = crew.Period.id
         
-        
-        
         #Adding Audit
-        operationDetail = "Change on Selected WO - last WO: " + str(anterior) + ", New WO: " + str(wo)
-        
+        if crew.woID != None:            
+            operationDetail = "Change on Selected WO - last WO: " + str(anterior) + ", New WO: " + str(wo)
+        else:
+            operationDetail = "Adding a Selected WO: " + str(wo)
+
+
         daily_audit(crew.id, operationDetail, "Insert/Update", request.user.username)
 
         return HttpResponseRedirect('/payroll/' + str(per) + '/' + crew.day.strftime("%d")  + '/'+ str(crew.crew) +'/' + str(LocID))
