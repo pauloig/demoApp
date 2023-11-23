@@ -112,6 +112,7 @@ urlpatterns = [
     path('employee_location_list/<empID>',views.employee_location_list),
     path('create_employee_location/<empID>',views.create_employee_location),
     path('delete_employee_location/<empID>',views.delete_employee_location),
+    path('pending_internal_po/<id>/<isPartial>/<isUpdate>',views.pending_internal_po),
     path('select_billing_address/<id>/<isPartial>/<isUpdate>',views.select_billing_address),
     path('billing_address_list/',views.billing_address_list),
     path('create_billing_address/',views.create_billing_address),

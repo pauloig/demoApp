@@ -7312,6 +7312,41 @@ def get_wo_comment_log(request, id):
     
     return render(request, "get_wo_comment_log.html", context)
 
+
+
+@login_required(login_url='/home/')
+def pending_internal_po(request, id, isPartial, isUpdate):
+    emp = Employee.objects.filter(user__username__exact = request.user.username).first()
+    context ={}    
+   
+    context["emp"] = emp
+
+    per = period.objects.filter(status__in=(1,2)).first()
+    context["per"] = per
+
+    wo = workOrder.objects.filter(id = id).first()
+
+    intPO = internalPO.objects.filter(woID = wo, Status=1)
+    
+    contador = 0
+
+    for i in intPO:
+        if validate_decimals(i.total) <= 0:
+            contador = contador + 1
+    
+    if contador == 0:
+        return HttpResponseRedirect('/select_billing_address/' + str(id) + '/' + str(isPartial) + '/' + str(isUpdate)) 
+
+ 
+    if request.method == 'POST':        
+        return HttpResponseRedirect('/select_billing_address/' + str(id) + '/' + str(isPartial) + '/' + str(isUpdate)) 
+
+
+    return render(request, "pending_internal_po.html", context)
+
+
+
+
 ### General Functions
 @login_required(login_url='/home/')
 def vendorSubcontrator(request):
