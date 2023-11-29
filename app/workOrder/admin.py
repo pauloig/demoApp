@@ -40,6 +40,11 @@ class externalProdItemAdmin(admin.ModelAdmin):
 class employeeRecapAdmin(admin.ModelAdmin):
     search_fields = ('id','Period__id')
 
+class DailyEmployeeAdmin(admin.ModelAdmin):
+    list_display = ('id','Status')
+    search_fields = ('id','Status')
+    list_filter = ('Status',)
+
 admin.site.register(workOrderDuplicate)
 admin.site.register(Locations)
 admin.site.register(Employee)
@@ -50,7 +55,7 @@ admin.site.register(payrollDetail)
 admin.site.register(internalPO,internalPOAdmin)
 admin.site.register(period)
 admin.site.register(Daily, DailyAdmin)
-admin.site.register(DailyEmployee)
+admin.site.register(DailyEmployee, DailyEmployeeAdmin)
 admin.site.register(DailyItem, DailyItemAdmin)
 admin.site.register(employeeRecap, employeeRecapAdmin)
 admin.site.register(woStatusLog)

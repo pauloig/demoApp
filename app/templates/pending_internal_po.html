@@ -17,6 +17,29 @@
                 <h5>There are 1 or more Internal PO with value 0 that will not be processed. Are you sure to continue?
                 </h5>
             </div>
+
+            <div class="row">
+                <div class="col-sm-12">
+                    <table  class="table table-sm table-bordered table-striped">
+                        <thead>                            
+                            <tr class="table-primary">                                                    
+                                <td width="7%" class="p-1">PO Number</td>
+                                <td width="35%" class="p-1">Product</td>
+                                <td width="7%" class="p-1">Qty.</td>                                    
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {%for item in poList %}
+                                <tr>
+                                    <td class="p-1">{{item.poNumber}}</td>
+                                    <td class="p-1">{{item.Product}}</td>
+                                    <td class="p-1">{{item.Quantity}}</td>
+                                </tr>
+                            {%endfor%}
+                        </tbody>                                                
+                    </table>
+                </div>                                           
+            </div>  
         </div>
 
         <div class="modal-footer">

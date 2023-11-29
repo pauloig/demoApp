@@ -104,6 +104,7 @@ urlpatterns = [
     path('create_authorized_prod_item/<id>/<invoiceID>/<estimateID>',views.create_authorized_prod_item),
     path('update_authorized_prod_item/<id>/<invoiceID>/<estimateID>',views.update_authorized_prod_item),
     path('delete_authorized_prod_item/<id>/<invoiceID>/<estimateID>',views.delete_authorized_prod_item),
+    path('delete_hours/<orderID>/<invoiceID>/<estimateID>',views.delete_hours),
     path('comment_authorized_prod_item/<id>',views.comment_authorized_prod_item),
     path('billing_list/<id>/<isRestoring>',views.billing_list),
     path('restore_original_production/<id>',views.restore_original_production),

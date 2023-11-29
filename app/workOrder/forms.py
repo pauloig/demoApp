@@ -259,7 +259,8 @@ class DailyEmpForm(forms.ModelForm):
             'start_lunch_time',
             'end_lunch_time',
             'end_time',
-            'total_hours'
+            'total_hours',
+            'billableHours'
         ]
 
     def __init__(self, *args, **kwargs):

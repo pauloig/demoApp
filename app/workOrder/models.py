@@ -21,6 +21,7 @@ prodStatus_choice = (
     (1, 'Open'),
     (2, 'Estimated'),
     (3, 'Invoiced'),
+    (4, 'Removed')
 )
 
 estimateStatus_choice = (
@@ -291,6 +292,10 @@ class DailyEmployee(models.Model):
     payout =  models.FloatField(null=True, blank=True)
     emp_rate = models.FloatField(blank=True, null=True) 
     production = models.FloatField(blank=True, null=True) 
+    billableHours = models.BooleanField(default=False)
+    estimate = models.CharField(max_length=50, null=True, blank=True)
+    invoice = models.CharField(max_length=50, null=True, blank=True)
+    Status = models.IntegerField(default=1, choices = prodStatus_choice)     
     created_date = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):

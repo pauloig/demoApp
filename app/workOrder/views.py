@@ -519,7 +519,13 @@ def listOrders(request):
                         orders = workOrder.objects.filter(Status = estatus, Location = emp.Location).exclude(linkedOrder__isnull = False, uploaded = False )     
                     else:
                         if estatus != "0":                              
-                            orders = workOrder.objects.filter(Status = estatus, Location__LocationID__in = locationList).exclude(linkedOrder__isnull = False, uploaded = False ) 
+                            #orders = workOrder.objects.filter(Status = estatus, Location__LocationID__in = locationList).exclude(linkedOrder__isnull = False, uploaded = False ) 
+                            #If estatus is 1 get all the locations
+                            if estatus == "1":
+                                orders = workOrder.objects.filter(Status = estatus).exclude(linkedOrder__isnull = False, uploaded = False ) 
+                            else:
+                                orders = workOrder.objects.filter(Status = estatus, Location__LocationID__in = locationList).exclude(linkedOrder__isnull = False, uploaded = False ) 
+
                         else:                             
                             orders = workOrder.objects.filter(Location__LocationID__in = locationList).exclude(linkedOrder__isnull = False, uploaded = False ) 
             else:
@@ -1607,6 +1613,38 @@ def estimate(request, id, estimateID):
         
         itemHtml = itemHtml + ' </tr> '
 
+
+
+    #Adding Billable Hours
+    bill = DailyEmployee.objects.filter(DailyID__woID =wo, billableHours = True, estimate = estimateID).exclude(Status=4)
+    
+
+    totalHours = 0
+    totalHoursRate =  0
+
+    for b in bill:
+        totalHours +=  validate_decimals(b.total_hours) 
+        #Calculating Regular Hours
+        totalHoursRate += (validate_decimals(b.regular_hours) * validate_decimals(b.EmployeeID.hourly_rate))
+
+        #Calculating OT Hours
+        totalHoursRate += (validate_decimals(b.ot_hour) * (validate_decimals(b.EmployeeID.hourly_rate)* 1.5))
+
+        #Calculating OT Hours
+        totalHoursRate += (validate_decimals(b.double_time) * (validate_decimals(b.EmployeeID.hourly_rate)* 2))
+
+    total += Decimal(totalHoursRate) 
+
+    if totalHours > 0:
+        itemHtml = itemHtml + ' <tr> '
+        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="20%" align="center"> </td> '
+        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px; padding-left: 2px;" width="43%" align="left"> Hours </td> '
+        itemHtml = itemHtml +  ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> ' + '{0:,.2f}'.format(float(totalHours)) + ' </td>'
+        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="13%" align="center"> </td> '
+        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> ' + '{0:,.2f}'.format(float(totalHoursRate)) + ' </td>'
+        itemHtml = itemHtml + ' </tr> '
+
+
     #Add Partial or final Text
     itemHtml = itemHtml + ' <tr> '
     itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="20%" align="center"> </td> '
@@ -1775,6 +1813,20 @@ def partial_estimate(request, id, isPartial, Status, addressID):
             dItem.estimate = estimateID
             dItem.save()
         
+
+        #Update daily Employees
+        dailyE = DailyEmployee.objects.filter(DailyID__woID = wo, Status = 1, billableHours = True)
+
+        for e in dailyE:
+            
+            if e.total_hours > 0:
+                dEmp = DailyEmployee.objects.filter(id = e.id).first()
+                
+                dEmp.Status = 2
+                dEmp.estimate = estimateID
+                dEmp.save()
+        
+
         #Update externalProdItem
         epItem = externalProdItem.objects.filter(externalProdID__woID = wo, Status = 1)
 
@@ -1817,6 +1869,19 @@ def partial_estimate(request, id, isPartial, Status, addressID):
             dItem.invoice = invoiceID
             dItem.save()
         
+
+        #Update daily Employees
+        dailyE = DailyEmployee.objects.filter(DailyID__woID = wo, estimate = estimateID).exclude(Status=4)
+
+        for e in dailyE:
+            
+            if e.total_hours > 0:
+                dEmp = DailyEmployee.objects.filter(id = e.id).first()
+                
+                dEmp.Status = 3
+                dEmp.invoice = invoiceID
+                dEmp.save()
+
         #Update externalProdItem
         epItem = externalProdItem.objects.filter(externalProdID__woID = wo, estimate = estimateID)
 
@@ -1966,6 +2031,38 @@ def invoice(request, id, invoiceID):
         itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> $'  + '{0:,.2f}'.format(float(totaPO)) + '</td>'
         
         itemHtml = itemHtml + ' </tr> '
+
+    
+    #Adding Billable Hours
+
+    bill = DailyEmployee.objects.filter(DailyID__woID =wo, billableHours = True, invoice = invoiceID).exclude(Status=4)
+    
+
+    totalHours = 0
+    totalHoursRate =  0
+
+    for b in bill:
+        totalHours +=  validate_decimals(b.total_hours) 
+        #Calculating Regular Hours
+        totalHoursRate += (validate_decimals(b.regular_hours) * validate_decimals(b.EmployeeID.hourly_rate))
+
+        #Calculating OT Hours
+        totalHoursRate += (validate_decimals(b.ot_hour) * (validate_decimals(b.EmployeeID.hourly_rate)* 1.5))
+
+        #Calculating OT Hours
+        totalHoursRate += (validate_decimals(b.double_time) * (validate_decimals(b.EmployeeID.hourly_rate)* 2))
+
+    total += Decimal(totalHoursRate) 
+
+    if totalHours > 0:
+        itemHtml = itemHtml + ' <tr> '
+        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="20%" align="center"> </td> '
+        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px; padding-left: 2px;" width="43%" align="left"> Hours </td> '
+        itemHtml = itemHtml +  ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> ' + '{0:,.2f}'.format(float(totalHours)) + ' </td>'
+        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="13%" align="center"> </td> '
+        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> ' + '{0:,.2f}'.format(float(totalHoursRate)) + ' </td>'
+        itemHtml = itemHtml + ' </tr> '
+
 
     #Add Partial or final Text
     itemHtml = itemHtml + ' <tr> '
@@ -2141,6 +2238,41 @@ def estimate_preview(request, id, estimateID):
         itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> $'  + '{0:,.2f}'.format(float(totaPO2)) + '</td>'
         
         itemHtml = itemHtml + ' </tr> '
+    
+    #Adding Billable Hours
+
+    if int(str(estimateID)) == 0:
+        bill = DailyEmployee.objects.filter(DailyID__woID =wo, billableHours = True, Status = 1)        
+    else:
+        bill = DailyEmployee.objects.filter(DailyID__woID =wo, billableHours = True, estimate = estimateID).exclude(Status=4)
+    
+
+    totalHours = 0
+    totalHoursRate =  0
+
+    for b in bill:
+        totalHours +=  validate_decimals(b.total_hours) 
+        #Calculating Regular Hours
+        totalHoursRate += (validate_decimals(b.regular_hours) * validate_decimals(b.EmployeeID.hourly_rate))
+
+        #Calculating OT Hours
+        totalHoursRate += (validate_decimals(b.ot_hour) * (validate_decimals(b.EmployeeID.hourly_rate)* 1.5))
+
+        #Calculating OT Hours
+        totalHoursRate += (validate_decimals(b.double_time) * (validate_decimals(b.EmployeeID.hourly_rate)* 2))
+    
+    total += Decimal(totalHoursRate) 
+
+    if totalHours > 0:
+        itemHtml = itemHtml + ' <tr> '
+        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="20%" align="center"> </td> '
+        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px; padding-left: 2px;" width="43%" align="left"> Hours </td> '
+        itemHtml = itemHtml +  ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> ' + '{0:,.2f}'.format(float(totalHours)) + ' </td>'
+        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="13%" align="center"> </td> '
+        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> ' + '{0:,.2f}'.format(float(totalHoursRate)) + ' </td>'
+        itemHtml = itemHtml + ' </tr> '
+
+
 
     #Add Partial or final Text
     itemHtml = itemHtml + ' <tr> '
@@ -2276,6 +2408,38 @@ def invoice_preview(request, id, invoiceID):
         itemHtml = itemHtml + ' </tr> '
 
 
+    #Adding Billable Hours
+
+    bill = DailyEmployee.objects.filter(DailyID__woID =wo, billableHours = True, invoice = invoiceID).exclude(Status=4)
+    
+
+    totalHours = 0
+    totalHoursRate =  0
+
+    for b in bill:
+        totalHours +=  validate_decimals(b.total_hours) 
+        #Calculating Regular Hours
+        totalHoursRate += (validate_decimals(b.regular_hours) * validate_decimals(b.EmployeeID.hourly_rate))
+
+        #Calculating OT Hours
+        totalHoursRate += (validate_decimals(b.ot_hour) * (validate_decimals(b.EmployeeID.hourly_rate)* 1.5))
+
+        #Calculating OT Hours
+        totalHoursRate += (validate_decimals(b.double_time) * (validate_decimals(b.EmployeeID.hourly_rate)* 2))
+
+
+    total += Decimal(totalHoursRate) 
+
+    if totalHours > 0:
+        itemHtml = itemHtml + ' <tr> '
+        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="20%" align="center"> </td> '
+        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px; padding-left: 2px;" width="43%" align="left"> Hours </td> '
+        itemHtml = itemHtml +  ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> ' + '{0:,.2f}'.format(float(totalHours)) + ' </td>'
+        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="13%" align="center"> </td> '
+        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> ' + '{0:,.2f}'.format(float(totalHoursRate)) + ' </td>'
+        itemHtml = itemHtml + ' </tr> '
+
+
     #Add Partial or final Text
     itemHtml = itemHtml + ' <tr> '
     itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="20%" align="center"> </td> '
@@ -2373,6 +2537,27 @@ def calculate_invoice_total(request, id, invoiceID):
             #total = total + int(round(float(totaPO)))
         #else:
         total = total + totaPO
+
+
+    #Adding Billable Hours
+
+    bill = DailyEmployee.objects.filter(DailyID__woID =wo, billableHours = True, invoice = invoiceID).exclude(Status=4)
+
+    totalHours = 0
+    totalHoursRate =  0
+
+    for b in bill:
+        totalHours +=  validate_decimals(b.total_hours) 
+        #Calculating Regular Hours
+        totalHoursRate += (validate_decimals(b.regular_hours) * validate_decimals(b.EmployeeID.hourly_rate))
+
+        #Calculating OT Hours
+        totalHoursRate += (validate_decimals(b.ot_hour) * (validate_decimals(b.EmployeeID.hourly_rate)* 1.5))
+
+        #Calculating OT Hours
+        totalHoursRate += (validate_decimals(b.double_time) * (validate_decimals(b.EmployeeID.hourly_rate)* 2))
+       
+    total += Decimal(totalHoursRate) 
 
     woInv.total = total
     woInv.save()
@@ -6112,6 +6297,74 @@ def delete_authorized_prod_item(request, id, invoiceID, estimateID):
     return render(request, "delete_authorized_prod_item.html", context)
 
 @login_required(login_url='/home/')
+def delete_hours(request, orderID, invoiceID, estimateID):
+    emp = Employee.objects.filter(user__username__exact = request.user.username).first()
+    context ={}
+
+    per = period.objects.filter(status__in=(1,2)).first()
+    context["per"] = per  
+    context["emp"] = emp
+
+    wo = workOrder.objects.filter(id = orderID).first()
+ 
+    if request.method == 'POST':
+        if int(invoiceID) == 0 and int(estimateID) == 0:
+            return HttpResponseRedirect("/billing_list/" + str(orderID) + "/False") 
+        elif int(invoiceID) > 0:           
+            
+            
+            #Billable Hours
+
+            bill = DailyEmployee.objects.filter(DailyID__woID =wo, billableHours = True, invoice = invoiceID)
+
+            for b in  bill:
+                bObject = DailyEmployee.objects.filter(id = b.id).first()
+                bObject.Status = 4
+                bObject.save()
+
+            invoiceO = woInvoice.objects.filter(woID = wo, invoiceNumber = int(invoiceID)).first()  
+            invoiceO.Status = 3
+            invoiceO.save() 
+
+            calculate_invoice_total(request, orderID, int(invoiceID))
+
+
+            estimateO = woEstimate.objects.filter(woID = wo, estimateNumber = invoiceO.estimateNumber ).first()  
+            if estimateO:
+                #estimateO.Status = 3
+                estimateO.save() 
+            
+            return HttpResponseRedirect("/update_invoice/" + str(orderID) + "/"  + invoiceID)
+            
+        elif int(estimateID) > 0:            
+            
+            #Billable Hours
+
+            bill = DailyEmployee.objects.filter(DailyID__woID =wo, billableHours = True, estimate = estimateID)
+
+            for b in  bill:
+                bObject = DailyEmployee.objects.filter(id = b.id).first()
+                bObject.Status = 4
+                bObject.save()
+
+            invoiceO = woInvoice.objects.filter(woID = wo, estimateNumber = int(estimateID)).first()            
+            if invoiceO:
+                invoiceO.Status = 3
+                invoiceO.save() 
+
+                calculate_invoice_total(request, orderID, invoiceO.invoiceNumber )
+                
+            estimateO = woEstimate.objects.filter(woID = wo, estimateNumber = int(estimateID) ).first()  
+            if estimateO:
+                #estimateO.Status = 3
+                estimateO.save() 
+        
+            return HttpResponseRedirect("/update_estimate/" + str(orderID) + "/"  + estimateID)  
+
+   
+    return render(request, "delete_hours.html", context)
+
+@login_required(login_url='/home/')
 def comment_authorized_prod_item(request, id):
 
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
@@ -6486,6 +6739,7 @@ def update_invoice(request, id, invoiceID):
 
     wo = workOrder.objects.filter(id=id).first()
     context["order"] = wo
+    context["orderID"] = id
     
 
     payItems = DailyItem.objects.filter(DailyID__woID = wo, invoice = invoiceID)
@@ -6551,6 +6805,28 @@ def update_invoice(request, id, invoiceID):
     #Getting Partial Estimates
     openEstimate = woEstimate.objects.filter(woID = wo, Status = 1).count()
 
+    #Adding Billable Hours
+
+    bill = DailyEmployee.objects.filter(DailyID__woID =wo, billableHours = True, invoice = invoiceID).exclude(Status=4)
+
+    totalHours = 0
+    totalHoursRate =  0
+
+    for b in bill:
+        totalHours +=  validate_decimals(b.total_hours) 
+        #Calculating Regular Hours
+        totalHoursRate += (validate_decimals(b.regular_hours) * validate_decimals(b.EmployeeID.hourly_rate))
+
+        #Calculating OT Hours
+        totalHoursRate += (validate_decimals(b.ot_hour) * (validate_decimals(b.EmployeeID.hourly_rate)* 1.5))
+
+        #Calculating OT Hours
+        totalHoursRate += (validate_decimals(b.double_time) * (validate_decimals(b.EmployeeID.hourly_rate)* 2))
+       
+
+    billableHours = [{'Description': 'Billable Hours', 'TotalHours': totalHours, 'totalHoursRate':totalHoursRate}]
+    context["billableHours"]=billableHours
+
     
     context["openEstimate"] = openEstimate > 0
     context["itemCount"] = len(itemFinal)
@@ -6562,8 +6838,7 @@ def update_invoice(request, id, invoiceID):
     return render(request, "update_invoice.html", context)
 
 @login_required(login_url='/home/')
-def update_estimate(request, id, estimateID):
-    
+def update_estimate(request, id, estimateID):    
     context = {} 
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context["emp"] = emp
@@ -6573,7 +6848,7 @@ def update_estimate(request, id, estimateID):
 
     wo = workOrder.objects.filter(id=id).first()
     context["order"] = wo
-    
+    context["orderID"] = id
 
     payItems = DailyItem.objects.filter(DailyID__woID = wo, estimate = estimateID)
     itemResume = []
@@ -6637,6 +6912,29 @@ def update_estimate(request, id, estimateID):
 
     #Getting Partial Estimates
     openEstimate = woEstimate.objects.filter(woID = wo, Status = 1).count()
+
+
+    #Adding Billable Hours
+
+    bill = DailyEmployee.objects.filter(DailyID__woID =wo, billableHours = True, estimate = estimateID).exclude(Status=4)
+
+    totalHours = 0
+    totalHoursRate =  0
+
+    for b in bill:
+        totalHours +=  validate_decimals(b.total_hours) 
+        #Calculating Regular Hours
+        totalHoursRate += (validate_decimals(b.regular_hours) * validate_decimals(b.EmployeeID.hourly_rate))
+
+        #Calculating OT Hours
+        totalHoursRate += (validate_decimals(b.ot_hour) * (validate_decimals(b.EmployeeID.hourly_rate)* 1.5))
+
+        #Calculating OT Hours
+        totalHoursRate += (validate_decimals(b.double_time) * (validate_decimals(b.EmployeeID.hourly_rate)* 2))
+       
+
+    billableHours = [{'Description': 'Billable Hours', 'TotalHours': totalHours, 'totalHoursRate':totalHoursRate}]
+    context["billableHours"]=billableHours
     
     #Getting Internal PO's to be added to Estimate and Invoice
     
@@ -7328,11 +7626,13 @@ def pending_internal_po(request, id, isPartial, isUpdate):
 
     intPO = internalPO.objects.filter(woID = wo, Status=1)
     
-    contador = 0
+    poList = []
 
+    contador = 0
     for i in intPO:
         if validate_decimals(i.total) <= 0:
             contador = contador + 1
+            poList.append({'poNumber':i.poNumber, 'Product':i.product, 'Quantity': i.quantity})
     
     if contador == 0:
         return HttpResponseRedirect('/select_billing_address/' + str(id) + '/' + str(isPartial) + '/' + str(isUpdate)) 
@@ -7341,6 +7641,7 @@ def pending_internal_po(request, id, isPartial, isUpdate):
     if request.method == 'POST':        
         return HttpResponseRedirect('/select_billing_address/' + str(id) + '/' + str(isPartial) + '/' + str(isUpdate)) 
 
+    context["poList"] = poList
 
     return render(request, "pending_internal_po.html", context)
 
