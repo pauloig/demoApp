@@ -521,8 +521,11 @@ def listOrders(request):
                         if estatus != "0":                              
                             #orders = workOrder.objects.filter(Status = estatus, Location__LocationID__in = locationList).exclude(linkedOrder__isnull = False, uploaded = False ) 
                             #If estatus is 1 get all the locations
+
+                            LocationExclude = Locations.objects.all().exclude(LocationID__in = locationList )
+
                             if estatus == "1":
-                                orders = workOrder.objects.filter(Status = estatus).exclude(linkedOrder__isnull = False, uploaded = False ) 
+                                orders = workOrder.objects.filter(Status = estatus).exclude(linkedOrder__isnull = False, uploaded = False , Location__in = LocationExclude ) 
                             else:
                                 orders = workOrder.objects.filter(Status = estatus, Location__LocationID__in = locationList).exclude(linkedOrder__isnull = False, uploaded = False ) 
 
@@ -6931,10 +6934,33 @@ def update_estimate(request, id, estimateID):
 
         #Calculating OT Hours
         totalHoursRate += (validate_decimals(b.double_time) * (validate_decimals(b.EmployeeID.hourly_rate)* 2))
-       
 
     billableHours = [{'Description': 'Billable Hours', 'TotalHours': totalHours, 'totalHoursRate':totalHoursRate}]
     context["billableHours"]=billableHours
+
+
+    #Adding Billable Hours Not Included
+
+    billNI = DailyEmployee.objects.filter(DailyID__woID =wo, billableHours = True, Status = 1)
+
+    totalHoursNI = 0
+    totalHoursRateNI =  0
+
+    for bn in billNI:
+        totalHoursNI +=  validate_decimals(bn.total_hours) 
+        #Calculating Regular Hours
+        totalHoursRateNI += (validate_decimals(bn.regular_hours) * validate_decimals(bn.EmployeeID.hourly_rate))
+
+        #Calculating OT Hours
+        totalHoursRateNI += (validate_decimals(bn.ot_hour) * (validate_decimals(bn.EmployeeID.hourly_rate)* 1.5))
+
+        #Calculating OT Hours
+        totalHoursRateNI += (validate_decimals(bn.double_time) * (validate_decimals(bn.EmployeeID.hourly_rate)* 2))
+       
+
+
+    billableHoursNI = [{'Description': 'Billable Hours', 'TotalHours': totalHoursNI, 'totalHoursRate':totalHoursRateNI}]
+    context["billableHoursNI"]=billableHoursNI
     
     #Getting Internal PO's to be added to Estimate and Invoice
     
@@ -7019,6 +7045,57 @@ def add_internalPO_to_estimate(request, poID, woID, estimateID):
         return HttpResponseRedirect("/update_estimate/" + str(wo.id) + '/' + str(woEst.estimateNumber)) 
     
     return render(request, "update_po_to_estimate.html", context) 
+
+@login_required(login_url='/home/')
+def add_hours_to_estimate(request, woID, estimateID):
+    
+    context = {} 
+    emp = Employee.objects.filter(user__username__exact = request.user.username).first()
+    context["emp"] = emp
+
+    per = period.objects.filter(status__in=(1,2)).first()
+    context["per"] = per
+
+    wo = workOrder.objects.filter(id = woID).first()
+    context["order"] = wo
+    
+    woInv = woInvoice.objects.filter(woID = wo, estimateNumber = estimateID).first() 
+    woEst = woEstimate.objects.filter(woID = wo, estimateNumber = estimateID).first() 
+    
+    if woInv:
+        context["invoiceNumber"] = woInv.invoiceNumber
+    else:
+        context["invoiceNumber"] = 0
+        
+    if woEst: 
+        context["estimateNumber"] = woEst.estimateNumber
+    else:
+        context["estimateNumber"] = 0
+
+    if request.method == 'POST':
+        #Update Hours PO
+        internal = DailyEmployee.objects.filter(DailyID__woID =wo, billableHours = True).exclude(Status=4)
+        
+        for i in internal:
+
+            bill = DailyEmployee.objects.filter(id = i.id).first()
+        
+            status = 2
+            
+            if woInv:
+                bill.invoice = woInv.invoiceNumber
+                status = 3
+            
+            if woEst: 
+                bill.estimate = woEst.estimateNumber
+                
+            bill.Status = status
+            bill.save()
+
+
+        return HttpResponseRedirect("/update_estimate/" + str(wo.id) + '/' + str(woEst.estimateNumber)) 
+    
+    return render(request, "update_hours_to_estimate.html", context) 
 
 @login_required(login_url='/home/')
 def order_detail(request, id,isSupervisor):
