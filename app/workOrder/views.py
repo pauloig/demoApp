@@ -425,6 +425,8 @@ def listOrders(request):
             
             for i in locaList:
                 locationList.append({'LocationID': i.LocationID.LocationID, 'name': i.LocationID.name} )
+        else:
+            locationList = Locations.objects.all()
     else:
         locationList = Locations.objects.all()
 
