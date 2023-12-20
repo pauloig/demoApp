@@ -403,7 +403,9 @@ def upload_payroll(request):
 
 @login_required(login_url='/home/')
 def listOrders(request):
-    locationList = Locations.objects.all()
+    
+    
+
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     per = period.objects.filter(status__in=(1,2)).first()
     estatus = "0"
@@ -414,6 +416,18 @@ def listOrders(request):
     invAmount=""
     invAmountF=""
     
+    if emp:
+        if emp.is_admin:
+            locaList = employeeLocation.objects.filter(employeeID = emp)
+                
+            locationList = []
+            locationList.append({'LocationID': emp.Location.LocationID, 'name':emp.Location.name })
+            
+            for i in locaList:
+                locationList.append({'LocationID': i.LocationID.LocationID, 'name': i.LocationID.name} )
+    else:
+        locationList = Locations.objects.all()
+
     opType = "Access Option"
     opDetail = "Order List"
     logInAuditLog(request, opType, opDetail)
@@ -513,7 +527,47 @@ def listOrders(request):
                     
             if emp.Location!= None:
                 if estatus == "0" and loc == "0":                     
-                    orders = workOrder.objects.filter(Location__LocationID__in = locationList).exclude(linkedOrder__isnull = False, uploaded = False) 
+                    #orders = workOrder.objects.filter(Location__LocationID__in = locationList).exclude(linkedOrder__isnull = False, uploaded = False) 
+                    if pid != None and pid != "":
+                        orders = workOrder.objects.filter(prismID__exact = pid, Location__LocationID__in = locationList).exclude(linkedOrder__isnull = False, uploaded = False)    
+                    elif addR != None and addR !="":
+                        orders = workOrder.objects.filter(JobAddress__contains = addR, Location__LocationID__in = locationList).exclude(linkedOrder__isnull = False, uploaded = False)   
+                    elif invNumber !="" and invNumber != None:
+                        
+                        #Getting the OrderList by Invoice Number
+                        
+                        woInv = woInvoice.objects.filter(invoiceNumber = invNumber)
+                        woInvLits = []
+                        
+                        for i in woInv:
+                            woInvLits.append(i.woID.id)
+
+                        orders = workOrder.objects.filter(id__in = woInvLits, Location__LocationID__in = locationList ).exclude(linkedOrder__isnull = False, uploaded = False) 
+                        
+                    elif  invAmount !="" and invAmount != None and invAmountF !="" and invAmountF != None:      
+                        #Getting the OrderList by Invoice Number
+                        
+                        woInv = woInvoice.objects.filter(total__gte = float(invAmount), total__lte = float(invAmount))
+                        woInvLits = []
+                        
+                        for i in woInv:
+                            woInvLits.append(i.woID.id)
+
+                        orders = workOrder.objects.filter(id__in = woInvLits, Location__LocationID__in = locationList ).exclude(linkedOrder__isnull = False, uploaded = False) 
+                        
+                    elif  invAmount !="" and invAmount != None:   
+                        #Getting the OrderList by Invoice Number
+                        
+                        woInv = woInvoice.objects.filter(total = float(invAmount))
+                        woInvLits = []
+                        
+                        for i in woInv:
+                            woInvLits.append(i.woID.id)
+
+                        orders = workOrder.objects.filter(id__in = woInvLits, Location__LocationID__in = locationList ).exclude(linkedOrder__isnull = False, uploaded = False) 
+                    else:  
+                        orders = workOrder.objects.filter(id = -1)   
+
                 else:
                     if estatus != "0" and loc != "0":                          
                         orders = workOrder.objects.filter(Status = estatus, Location = emp.Location).exclude(linkedOrder__isnull = False, uploaded = False )     
@@ -530,9 +584,11 @@ def listOrders(request):
                                 orders = workOrder.objects.filter(Status = estatus, Location__LocationID__in = locationList).exclude(linkedOrder__isnull = False, uploaded = False ) 
 
                         else:                             
-                            orders = workOrder.objects.filter(Location__LocationID__in = locationList).exclude(linkedOrder__isnull = False, uploaded = False ) 
+                            orders = workOrder.objects.filter(Location__LocationID__in = locationList).exclude(linkedOrder__isnull = False, uploaded = False )                             
+                            
             else:
                 orders = None
+
             context["orders"]=orders
             if orders != None:
                 context["day_diff"]=date_difference(orders)
@@ -2003,7 +2059,12 @@ def invoice(request, id, invoiceID):
         if data.total != None and data.total != "":
             itemHtml = itemHtml + ' <tr> '
             itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="20%" align="center"> </td> '
-            itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px; padding-left: 2px;" width="43%" align="left">' + str(vendorList[vendorSel]["name"]) + '</td> '
+            
+            if vendorSel != None:
+                itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px; padding-left: 2px;" width="43%" align="left">' + str(vendorList[vendorSel]["name"]) + '</td> '
+            else:
+                itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px; padding-left: 2px;" width="43%" align="left"> NA </td> '
+
             itemHtml = itemHtml +  ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center">' + str(data.quantity) + '</td> '
             itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="13%" align="center"> </td> '
             
