@@ -402,10 +402,7 @@ def upload_payroll(request):
 
 
 @login_required(login_url='/home/')
-def listOrders(request):
-    
-    
-
+def listOrders(request):   
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     per = period.objects.filter(status__in=(1,2)).first()
     estatus = "0"
@@ -460,6 +457,31 @@ def listOrders(request):
     context["selectedAmount"]=invAmount
     context["selectedAmountF"]=invAmountF
     context["selectedInvoice"]=invNumber
+
+    if pid == None or pid =="":
+        context["selectPIDd"]="-1"
+    else:
+        context["selectPIDd"]=pid
+
+    if addR == None or addR == "":
+        context["selectedAddressd"]="-1"
+    else:
+        context["selectedAddressd"]=addR   
+
+    if invAmount == None or invAmount == "":
+        context["selectedAmountd"]="-1"
+    else:
+        context["selectedAmountd"]=invAmount
+
+    if invAmountF == None or invAmountF == "":
+        context["selectedAmountFd"]="-1"
+    else:
+        context["selectedAmountFd"]=invAmountF
+
+    if invNumber == None or invNumber == "":
+        context["selectedInvoiced"]="-1"
+    else:
+        context["selectedInvoiced"]=invNumber
 
     if emp:
         if emp.is_superAdmin:                
@@ -736,6 +758,32 @@ def order_list_sup(request):
     context["selectedAmountF"]=invAmountF
     context["selectedInvoice"]=invNumber
     context["sup"]='True'
+
+
+    if pid == None or pid =="":
+        context["selectPIDd"]="-1"
+    else:
+        context["selectPIDd"]=pid
+
+    if addR == None or addR == "":
+        context["selectedAddressd"]="-1"
+    else:
+        context["selectedAddressd"]=addR   
+
+    if invAmount == None or invAmount == "":
+        context["selectedAmountd"]="-1"
+    else:
+        context["selectedAmountd"]=invAmount
+
+    if invAmountF == None or invAmountF == "":
+        context["selectedAmountFd"]="-1"
+    else:
+        context["selectedAmountFd"]=invAmountF
+
+    if invNumber == None or invNumber == "":
+        context["selectedInvoiced"]="-1"
+    else:
+        context["selectedInvoiced"]=invNumber
 
 
     if emp:
@@ -2199,6 +2247,197 @@ def invoice(request, id, invoiceID):
 
 
 @login_required(login_url='/home/')
+def download_estimate_preview(request, id, estimateID):
+    emp = Employee.objects.filter(user__username__exact = request.user.username).first()
+    context = {}    
+    per = period.objects.filter(status__in=(1,2)).first()
+    context["per"] = per
+
+    wo = workOrder.objects.filter(id=id).first()
+
+    context["order"] = wo
+    context["emp"] = emp
+
+    context["estimate"] = True
+    isPartial = ""
+
+    itemResume = []
+
+    woEst = woEstimate.objects.filter(woID = wo, estimateNumber = estimateID).first()
+    context["woEstimate"] = woEst
+
+    if int(str(estimateID)) == 0:
+        authBilling = authorizedBilling.objects.filter(woID = wo, Status = 1)
+        isPartial = ""
+    else:
+        authBilling = authorizedBilling.objects.filter(woID = wo, estimate = estimateID)
+        
+        if woEst.is_partial:
+            isPartial = "*****  PARTIAL *****"
+        else:
+            isPartial = "***** FINAL *****"
+
+    for data in authBilling:
+        if data.quantity > 0:
+            itemResume.append({'item':data.itemID.item.itemID, 'name': data.itemID.item.name, 'quantity': data.quantity, 'price':data.itemID.price, 'amount':data.total,'Encontrado':False})
+
+
+    itemHtml = ''
+    total = 0 
+    linea = 0
+    try:        
+        itemResumeS = sorted(itemResume, key=lambda d: d['item']) 
+        for data in itemResumeS:
+            linea = linea + 1
+            amount = 0
+           
+            amount = Decimal(str(data['quantity'])) * Decimal(str(data['price']))
+            total = total + amount
+           
+            itemHtml = itemHtml + " <tr>"
+            itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="20%" align="center"> ' + str(data['item']) + '</td> '
+            itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px; padding-left: 2px;" width="43%" align="left">    ' + data['name']  + '</td> '
+            itemHtml = itemHtml +  ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center">' + str(data['quantity']) + '</td> '
+            itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="13%" align="center"> $' + '{0:,.2f}'.format(float(data['price'])) + '</td> '
+            itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> $' + '{0:,.2f}'.format(data['amount']) + '</td> '
+            itemHtml = itemHtml + ' </tr> '          
+    except Exception as e:
+        itemHtml = itemHtml + str(e)
+        print(str(e))
+
+    # obtengo las internal PO
+    if int(str(estimateID)) == 0:
+        internal = internalPO.objects.filter(woID = wo, nonBillable = False, Status = 1)
+    else:
+        internal = internalPO.objects.filter(woID = wo, nonBillable = False, estimate = estimateID)
+
+    totaPO = 0
+    for data in internal:
+        linea = linea + 1
+        if data.total != None and data.total != "":
+            
+            if data.isAmountRounded:
+                amount = int(round(float(str(data.total))))  
+            else:
+                amount = Decimal(str(data.total)) 
+        else:
+            amount = 0
+
+        # Sum all the Internal PO's
+        totaPO += amount
+        
+
+    if totaPO > 0:
+        totaPO2 = totaPO + (totaPO * Decimal(str(0.10)))
+        
+        #if data.isAmountRounded:
+            #total = total + int(round(float(totaPO2)))
+        #else:
+        total = total + totaPO2
+        
+        itemHtml = itemHtml + ' <tr> '
+        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="20%" align="center">NS005 </td> '
+        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px; padding-left: 2px;" width="43%" align="left"> Materials and Fees Pass-through </td> '
+        
+        if data.isAmountRounded:
+            itemHtml = itemHtml +  ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center">'  + '{0:,.2f}'.format(int(round(float(totaPO)))) + '</td>'
+        else:
+            itemHtml = itemHtml +  ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center">'  + '{0:,.2f}'.format(float(totaPO)) + '</td>'
+        
+        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="13%" align="center">$1.10 </td> '
+        
+        #if data.isAmountRounded:
+        #    itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> $'  + '{0:,.2f}'.format(int(round(float(totaPO2)))) + '</td>'
+        #else:
+        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> $'  + '{0:,.2f}'.format(float(totaPO2)) + '</td>'
+        
+        itemHtml = itemHtml + ' </tr> '
+    
+    #Adding Billable Hours
+
+    if int(str(estimateID)) == 0:
+        bill = DailyEmployee.objects.filter(DailyID__woID =wo, billableHours = True, Status = 1)        
+    else:
+        bill = DailyEmployee.objects.filter(DailyID__woID =wo, billableHours = True, estimate = estimateID).exclude(Status=4)
+    
+
+    totalHours = 0
+    totalHoursRate =  0
+
+    for b in bill:
+        totalHours +=  validate_decimals(b.total_hours) 
+        #Calculating Regular Hours
+        totalHoursRate += (validate_decimals(b.regular_hours) * validate_decimals(b.EmployeeID.hourly_rate))
+
+        #Calculating OT Hours
+        totalHoursRate += (validate_decimals(b.ot_hour) * (validate_decimals(b.EmployeeID.hourly_rate)* 1.5))
+
+        #Calculating OT Hours
+        totalHoursRate += (validate_decimals(b.double_time) * (validate_decimals(b.EmployeeID.hourly_rate)* 2))
+    
+    total += Decimal(totalHoursRate) 
+
+    if totalHours > 0:
+        itemHtml = itemHtml + ' <tr> '
+        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="20%" align="center"> </td> '
+        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px; padding-left: 2px;" width="43%" align="left"> Hours </td> '
+        itemHtml = itemHtml +  ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> ' + '{0:,.2f}'.format(float(totalHours)) + ' </td>'
+        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="13%" align="center"> </td> '
+        itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> ' + '{0:,.2f}'.format(float(totalHoursRate)) + ' </td>'
+        itemHtml = itemHtml + ' </tr> '
+
+
+
+    #Add Partial or final Text
+    itemHtml = itemHtml + ' <tr> '
+    itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="20%" align="center"> </td> '
+    itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px; padding-left: 2px;" width="43%" align="left"> ' + isPartial + ' </td> '
+    itemHtml = itemHtml +  ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> </td>'
+    itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="13%" align="center"> </td> '
+    itemHtml = itemHtml + ' <td style="border-left:1px solid #444; border-right:1px solid #444; padding-top: 3px;" width="12%" align="center"> </td>'
+    itemHtml = itemHtml + ' </tr> '
+   
+    for i in range(21-linea):     
+        itemHtml = itemHtml + '<tr>'
+        itemHtml = itemHtml + '<td style="border-left:1px solid #444; border-right:1px solid #444;" width="20%" align="center">&nbsp;</td> '
+        itemHtml = itemHtml + '<td style="border-left:1px solid #444; border-right:1px solid #444;" width="43%" align="center">&nbsp;</td> '
+        itemHtml = itemHtml + '<td style="border-left:1px solid #444; border-right:1px solid #444;" width="12%" align="center">&nbsp;</td> '
+        itemHtml = itemHtml + '<td style="border-left:1px solid #444; border-right:1px solid #444;" width="13%" align="center">&nbsp;</td> '
+        itemHtml = itemHtml + '<td style="border-left:1px solid #444; border-right:1px solid #444;" width="12%" align="center">&nbsp;</td> '
+        itemHtml = itemHtml + '</tr> '
+
+    context["estimateID"] = estimateID    
+    context["itemPrice"] = itemHtml
+    context["total"] = total
+
+    template_path = 'invoice_template_preview.html'
+    context["estimateID"] = estimateID
+    template= get_template(template_path)
+
+    wo2 = workOrder.objects.filter(id=id).first()
+    fileName = "estimate-" + str(estimateID) + ".pdf"
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename=' + fileName
+
+    context["order"] = wo2
+
+    html = template.render(context)
+
+    pisa_status = pisa.CreatePDF(
+        html, dest=response)
+
+
+    if pisa_status.err:
+        return HttpResponse('We had some errors <pre>' + html + '</pre>')
+    
+    return response 
+
+
+
+    #return render(request, "invoice_template_preview.html", context)
+
+@login_required(login_url='/home/')
 def estimate_preview(request, id, estimateID):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context = {}    
@@ -2363,6 +2602,7 @@ def estimate_preview(request, id, estimateID):
     context["total"] = total
 
     return render(request, "invoice_template_preview.html", context)
+
 
 @login_required(login_url='/home/')
 def invoice_preview(request, id, invoiceID):
@@ -4489,15 +4729,50 @@ def send_recap_emp(request, perID, empID):
     return HttpResponseRedirect('/location_period_list/' + perID) 
 
 @login_required(login_url='/home/')
-def get_list_orders_bySupervisor(request,estatus, loc):
+def get_list_orders_bySupervisor(request,estatus, loc,pid,addR,invNumber,invAmount,invAmountF):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     per = period.objects.filter(status__in=(1,2)).first()
     
     locationObject = Locations.objects.filter(LocationID=loc).first() 
     #
     if emp:
-        if estatus == "0" and loc == "0":        
-            orders = workOrder.objects.filter(WCSup__employeeID__exact=emp.employeeID).exclude(linkedOrder__isnull = False, uploaded = False )            
+        if estatus == "0" and loc == "0":     
+            if pid != None and pid != "-1":
+                orders = workOrder.objects.filter(WCSup__employeeID__exact=emp.employeeID, prismID__exact = pid).exclude(linkedOrder__isnull = False, uploaded = False)   
+            elif addR != None and addR !="-1":
+                orders = workOrder.objects.filter(WCSup__employeeID__exact=emp.employeeID, JobAddress__contains = addR).exclude(linkedOrder__isnull = False, uploaded = False)   
+            elif invNumber !="-1" and invNumber != None:
+                
+                #Getting the OrderList by Invoice Number
+                
+                woInv = woInvoice.objects.filter(invoiceNumber = invNumber)
+                woInvLits = []
+                
+                for i in woInv:
+                    woInvLits.append(i.woID.id)
+                orders = workOrder.objects.filter(WCSup__employeeID__exact=emp.employeeID, id__in = woInvLits ).exclude(linkedOrder__isnull = False, uploaded = False) 
+            elif  invAmount !="-1" and invAmount != None and invAmountF !="-1" and invAmountF != None:   
+                    #Getting the OrderList by Invoice Number
+                    
+                    woInv = woInvoice.objects.filter(total__gte = float(invAmount), total__lte = float(invAmountF))
+                    woInvLits = []
+                    
+                    for i in woInv:
+                        woInvLits.append(i.woID.id)
+
+                    orders = workOrder.objects.filter(WCSup__employeeID__exact=emp.employeeID, id__in = woInvLits ).exclude(linkedOrder__isnull = False, uploaded = False)  
+            elif  invAmount !="-1" and invAmount != None:   
+                    #Getting the OrderList by Invoice Number
+                    
+                    woInv = woInvoice.objects.filter(total__contains = float(invAmount))
+                    woInvLits = []
+                    
+                    for i in woInv:
+                        woInvLits.append(i.woID.id)
+
+                    orders = workOrder.objects.filter(WCSup__employeeID__exact=emp.employeeID, id__in = woInvLits ).exclude(linkedOrder__isnull = False, uploaded = False)    
+            else:     
+                orders = workOrder.objects.filter(WCSup__employeeID__exact=emp.employeeID).exclude(linkedOrder__isnull = False, uploaded = False )            
         else:
             if estatus != "0" and loc != "0":
                 orders = workOrder.objects.filter(WCSup__employeeID__exact=emp.employeeID, Status = estatus, Location = locationObject).exclude(linkedOrder__isnull = False, uploaded = False )                 
@@ -4506,23 +4781,59 @@ def get_list_orders_bySupervisor(request,estatus, loc):
                     orders = workOrder.objects.filter(WCSup__employeeID__exact=emp.employeeID, Status = estatus).exclude(linkedOrder__isnull = False, uploaded = False )
                 else:    
                     orders = workOrder.objects.filter(WCSup__employeeID__exact=emp.employeeID, Location = locationObject).exclude(linkedOrder__isnull = False, uploaded = False )
-        return orders
+        
+        return orders           
     else:
         orders = workOrder.objects.filter(WCSup__employeeID__exact=0, Location__isnull=False).exclude(linkedOrder__isnull = False, uploaded = False )
         return orders
 
 @login_required(login_url='/home/')
-def get_list_orders(request,estatus, loc):
+def get_list_orders(request,estatus, loc, pid,addR,invNumber,invAmount,invAmountF):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     per = period.objects.filter(status__in=(1,2)).first()
+
+    if loc == None or loc =="":
+        loc = "0"
 
     locationObject = Locations.objects.filter(LocationID=loc).first()    
     
 
     if emp:
-        if emp.is_superAdmin:     
-            if estatus == "0" and loc == "0":   
-                orders = workOrder.objects.exclude(linkedOrder__isnull = False, uploaded = False )        
+        if emp.is_superAdmin:                
+            if estatus == "0" and loc == "0":                   
+                if pid != None and pid != "-1":
+                    orders = workOrder.objects.filter(prismID__exact = pid).exclude(linkedOrder__isnull = False, uploaded = False)    
+                elif addR != None and addR !="-1":
+                    orders = workOrder.objects.filter(JobAddress__contains = addR).exclude(linkedOrder__isnull = False, uploaded = False)   
+                elif invNumber !="-1" and invNumber != None:                    
+                    #Getting the OrderList by Invoice Number                    
+                    woInv = woInvoice.objects.filter(invoiceNumber = invNumber)
+                    woInvLits = []
+                    
+                    for i in woInv:
+                        woInvLits.append(i.woID.id)
+                    orders = workOrder.objects.filter(id__in = woInvLits ).exclude(linkedOrder__isnull = False, uploaded = False)                    
+                elif  invAmount !="-1" and invAmount != None and invAmountF !="-1" and invAmountF != None:      
+                    #Getting the OrderList by Invoice Number                    
+                    woInv = woInvoice.objects.filter(total__gte = float(invAmount), total__lte = float(invAmount))
+                    woInvLits = []
+                    
+                    for i in woInv:
+                        woInvLits.append(i.woID.id)
+
+                    orders = workOrder.objects.filter(id__in = woInvLits ).exclude(linkedOrder__isnull = False, uploaded = False)                     
+                elif  invAmount !="-1" and invAmount != None:   
+                    #Getting the OrderList by Invoice Number
+                    
+                    woInv = woInvoice.objects.filter(total = float(invAmount))
+                    woInvLits = []
+                    
+                    for i in woInv:
+                        woInvLits.append(i.woID.id)
+
+                    orders = workOrder.objects.filter(id__in = woInvLits ).exclude(linkedOrder__isnull = False, uploaded = False) 
+                else:  
+                    orders = workOrder.objects.filter(id = -1)   
             else:
                 if estatus != "0" and loc != "0":
                     orders = workOrder.objects.filter(Status = estatus, Location = locationObject).exclude(linkedOrder__isnull = False, uploaded = False )     
@@ -4531,13 +4842,130 @@ def get_list_orders(request,estatus, loc):
                         orders = workOrder.objects.filter(Status = estatus).exclude(linkedOrder__isnull = False, uploaded = False ) 
                     else:
                         orders = workOrder.objects.filter(Location = locationObject).exclude(linkedOrder__isnull = False, uploaded = False ) 
+            
+            #context["day_diff"]=date_difference(orders)
+            ordenes=orders
+            return ordenes                                    
+        
+        if emp.is_admin:  
+            context["perfil"]="Admin"  
+            
+            locaList = employeeLocation.objects.filter(employeeID = emp)
+                
+            locationList = []
+            locationList.append(emp.Location.LocationID)
+            
+            for i in locaList:
+                locationList.append(i.LocationID.LocationID)
+                    
+            if emp.Location!= None:
+                if estatus == "0" and loc == "0":                                         
+                    if pid != None and pid != "":
+                        orders = workOrder.objects.filter(prismID__exact = pid, Location__LocationID__in = locationList).exclude(linkedOrder__isnull = False, uploaded = False)    
+                    elif addR != None and addR !="":
+                        orders = workOrder.objects.filter(JobAddress__contains = addR, Location__LocationID__in = locationList).exclude(linkedOrder__isnull = False, uploaded = False)   
+                    elif invNumber !="" and invNumber != None:                
+                        #Getting the OrderList by Invoice Number                        
+                        woInv = woInvoice.objects.filter(invoiceNumber = invNumber)
+                        woInvLits = []                        
+                        for i in woInv:
+                            woInvLits.append(i.woID.id)
+                        orders = workOrder.objects.filter(id__in = woInvLits, Location__LocationID__in = locationList ).exclude(linkedOrder__isnull = False, uploaded = False) 
+                        
+                    elif  invAmount !="" and invAmount != None and invAmountF !="" and invAmountF != None:      
+                        #Getting the OrderList by Invoice Number                        
+                        woInv = woInvoice.objects.filter(total__gte = float(invAmount), total__lte = float(invAmount))
+                        woInvLits = []
+                        
+                        for i in woInv:
+                            woInvLits.append(i.woID.id)
+
+                        orders = workOrder.objects.filter(id__in = woInvLits, Location__LocationID__in = locationList ).exclude(linkedOrder__isnull = False, uploaded = False)                         
+                    elif  invAmount !="" and invAmount != None:   
+                        #Getting the OrderList by Invoice Number
+                        
+                        woInv = woInvoice.objects.filter(total = float(invAmount))
+                        woInvLits = []
+                        
+                        for i in woInv:
+                            woInvLits.append(i.woID.id)
+
+                        orders = workOrder.objects.filter(id__in = woInvLits, Location__LocationID__in = locationList ).exclude(linkedOrder__isnull = False, uploaded = False) 
+                    else:  
+                        orders = workOrder.objects.filter(id = -1)   
+
+                else:
+                    if estatus != "0" and loc != "0":                          
+                        orders = workOrder.objects.filter(Status = estatus, Location = emp.Location).exclude(linkedOrder__isnull = False, uploaded = False )     
+                    else:
+                        if estatus != "0":                                                          
+                            #If estatus is 1 get all the locations
+
+                            LocationExclude = Locations.objects.all().exclude(LocationID__in = locationList )
+
+                            if estatus == "1":
+                                orders = workOrder.objects.filter(Status = estatus).exclude(linkedOrder__isnull = False, uploaded = False , Location__in = LocationExclude ) 
+                            else:
+                                orders = workOrder.objects.filter(Status = estatus, Location__LocationID__in = locationList).exclude(linkedOrder__isnull = False, uploaded = False ) 
+
+                        else:                             
+                            orders = workOrder.objects.filter(Location__LocationID__in = locationList).exclude(linkedOrder__isnull = False, uploaded = False )                             
+                            
+            else:
+                orders = None
+            
             ordenes=orders
             return ordenes
-            
 
-    if request.user.is_staff:
+            """if orders != None:
+                context["day_diff"]=date_difference(orders)
+            else:
+                context["day_diff"] = None"""
+
+
+
+    if request.user.is_staff:        
         if estatus == "0" and loc == "0":    
-            orders = workOrder.objects.exclude(linkedOrder__isnull = False, uploaded = False )  
+            
+            if pid != None and pid != "-1":
+                orders = workOrder.objects.filter(prismID__exact = pid).exclude(linkedOrder__isnull = False, uploaded = False)    
+            elif addR != None and addR !="-1":
+                orders = workOrder.objects.filter(JobAddress__contains = addR).exclude(linkedOrder__isnull = False, uploaded = False)   
+            elif invNumber !="-1" and invNumber != None:
+                
+                #Getting the OrderList by Invoice Number
+                
+                woInv = woInvoice.objects.filter(invoiceNumber = invNumber)
+                woInvLits = []
+                
+                for i in woInv:
+                    woInvLits.append(i.woID.id)
+                orders = workOrder.objects.filter(id__in = woInvLits ).exclude(linkedOrder__isnull = False, uploaded = False) 
+                
+            elif  invAmount !="-1" and invAmount != None and invAmountF !="-1" and invAmountF != None:      
+                    #Getting the OrderList by Invoice Number
+                    
+                    woInv = woInvoice.objects.filter(total__gte = float(invAmount), total__lte = float(invAmountF))
+                    woInvLits = []
+                    
+                    for i in woInv:
+                        woInvLits.append(i.woID.id)
+
+                    orders = workOrder.objects.filter(id__in = woInvLits ).exclude(linkedOrder__isnull = False, uploaded = False)  
+            elif  invAmount !="-1" and invAmount != None:   
+                    #Getting the OrderList by Invoice Number
+                    
+                    woInv = woInvoice.objects.filter(total__contains = float(invAmount))
+                    woInvLits = []
+                    
+                    for i in woInv:
+                        woInvLits.append(i.woID.id)
+
+                    orders = workOrder.objects.filter(id__in = woInvLits ).exclude(linkedOrder__isnull = False, uploaded = False)     
+                
+            else:  
+                orders = workOrder.objects.filter(id = -1)   
+        
         else:
             if estatus != "0" and loc != "0":
                 orders = workOrder.objects.filter(Status = estatus, Location = locationObject).exclude(linkedOrder__isnull = False, uploaded = False )  
@@ -4546,11 +4974,14 @@ def get_list_orders(request,estatus, loc):
                     orders = workOrder.objects.filter(Status = estatus).exclude(linkedOrder__isnull = False, uploaded = False )  
                 else:
                     orders = workOrder.objects.filter(Location = locationObject).exclude(linkedOrder__isnull = False, uploaded = False )  
-        ordenes=orders        
+      
+
+        #context["day_diff"]=date_difference(orders)
+        ordenes=orders
         return ordenes
+        
 
-
-    # orders = workOrder.objects.filter(Location__isnull=True, WCSup__isnull=True)
+    
     if estatus == "0" and loc == "0":   
         orders = workOrder.objects.filter(WCSup__isnull=True).exclude(linkedOrder__isnull = False, uploaded = False )
     else:
@@ -4565,7 +4996,7 @@ def get_list_orders(request,estatus, loc):
     return orders
 
 @login_required(login_url='/home/')
-def get_order_list(request,estatus, loc, superV):
+def get_order_list(request,estatus, loc,pid,addR,invNumber,invAmount,invAmountF,superV):
     
 
     wb = xlwt.Workbook(encoding='utf-8')
@@ -4593,16 +5024,16 @@ def get_order_list(request,estatus, loc, superV):
     
 
     if superV == "False":
-        ordenes = get_list_orders(request, estatus, loc)  
+        ordenes = get_list_orders(request, estatus, loc,pid,addR,invNumber,invAmount,invAmountF)  
     else:
-        ordenes = get_list_orders_bySupervisor(request, estatus, loc)  
+        ordenes = get_list_orders_bySupervisor(request, estatus, loc,pid,addR,invNumber,invAmount,invAmountF)  
 
     for item in ordenes:
         row_num += 1
         ws.write(row_num, 0, item.prismID, font_style) # at 0 row 0 column 
         ws.write(row_num, 1, item.workOrderId, font_style) # at 0 row 0 column 
         ws.write(row_num, 2, item.PO, font_style) # at 0 row 0 column 
-        ws.write(row_num, 3, item.POAmount, font_style) # at 0 row 0 column 
+        ws.write(row_num, 3, "$" + str(item.POAmount), font_style) # at 0 row 0 column 
 
         dailys = Daily.objects.filter(woID = item)
         dailyDetail = []
@@ -4634,10 +5065,10 @@ def get_order_list(request,estatus, loc, superV):
         else:
             balance_per = 0
 
-        ws.write(row_num, 4, empTotal, font_style)
-        ws.write(row_num, 5, poTotal,  font_style)
-        ws.write(row_num, 6, totalExp,  font_style)
-        ws.write(row_num, 7, balance,  font_style)
+        ws.write(row_num, 4, "$" + str(empTotal), font_style)
+        ws.write(row_num, 5, "$" + str(poTotal),  font_style)
+        ws.write(row_num, 6, "$" + str(totalExp),  font_style)
+        ws.write(row_num, 7, "$" + str(balance),  font_style)
         ws.write(row_num, 8, balance_per,  font_style)
 
         ws.write(row_num, 9, item.Status, font_style) # at 0 row 0 column 

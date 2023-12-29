@@ -103,8 +103,8 @@
                         <div class="row my-4">  
                             <div class="col-lg-4">                                                              
                                 <div class="form-outline" style="align-items: center;">
-                                    <input class="btn btn-primary" type="submit" value="Search">                            
-                                    <a class="btn btn-primary" href="/get_order_list/{{selectEstatus}}/{{selectLoc}}/True" role="button">Download</a>  
+                                    <input class="btn btn-primary" type="submit" value="Search">                                                                
+                                    <a class="btn btn-primary" href="/get_order_list/{{selectEstatus}}/{{selectLoc}}/{{selectPIDd}}/{{selectedAddressd}}/{{selectedInvoiced}}/{{selectedAmountd}}/{{selectedAmountFd}}/True" role="button">Download</a>  
                                     {% if emp.is_superAdmin  or user.is_staff %}
                                         <a class="btn btn-success" href="/create_order/" role="button">Create New</a>                                    
                                     {%endif%}
@@ -132,15 +132,19 @@
                                 <table id="orders" class="table table-sm table-bordered table-striped">
                                     <thead class="table-primary">
                                         <tr>
-                                            <th scope="col" class="p-1">Order</th>
-                                            <th scope="col">PO Amount</th>    
-                                            <th scope="col">Status</th>
-                                            <th scope="col">Location</th>
-                                            <th scope="col">Sup</th>
-                                            <th scope="col">upload Date</th>
-                                            <th scope="col">WC Sup</th>
-                                            <th scope="col">Job Name</th>
-                                            <th scope="col">Job Address</th>
+                                            <th scope="col" class="p-1">Order</th>                                            
+                                            <!--  <th scope="col" class="p-1">work Order Id</th>
+                                             <th scope="col" class="p-1">PO</th>-->
+                                             <th scope="col" class="p-1">PO Amount</th>    
+                                             <th scope="col" class="p-1">Status</th>
+                                             <th scope="col" class="p-1">Location</th>
+                                             <th scope="col" class="p-1">Sup.</th>
+                                             <th scope="col" class="p-1">created Date</th>
+                                             <th scope="col" class="p-1">last Update</th>
+                                             <th scope="col" class="p-1">days</th>
+                                             <th scope="col" class="p-1">Issue By</th>
+                                             <th scope="col" class="p-1">Job Name</th>
+                                             <th scope="col" class="p-1">Job Address</th> 
                                             <th scope="col"></th>
                                         </tr>              
                                     </thead>
@@ -165,12 +169,16 @@
                                                     {% if order.Status == "5" %}
                                                         <td>Invoiced</td>
                                                     {% endif %}
-                                                    <td>{{order.Location}}</td>
-                                                    <td>{{order.WCSup}}</td>
-                                                    <td>{{order.UploadDate}}</td>
-                                                    <td>{{order.WCSup}}</td>
-                                                    <td>{{order.JobName}}</td>
-                                                    <td>{{order.JobAddress}}</td>
+                                                    <td class="p-1">{{order.Location}}</td>
+                                                    <td class="p-1">{{order.WCSup}}</td>
+                                                    <td class="p-1">{{order.created_date|date:'Y-m-d H:i'}}</td> 
+                                                    <td class="p-1">{{order.UploadDate}}</td>      
+                                                    <td class="p-1">
+                                                                {{order.days}}
+                                                    </td>              
+                                                    <td class="p-1">{{order.IssuedBy}}</td>
+                                                    <td class="p-1">{{order.JobName}}</td>
+                                                    <td class="p-1">{{order.JobAddress}}</td>
                         
                                                     <td class="p-1">
                                                         <div class="d-flex justify-content-center align-items-center">

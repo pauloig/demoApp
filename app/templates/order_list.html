@@ -112,7 +112,7 @@
                             <div class="col-lg-4">                                                              
                                 <div class="form-outline" style="align-items: center;">
                                     <input class="btn btn-primary" type="submit" value="Search">                            
-                                    <a class="btn btn-primary" href="/get_order_list/{{selectEstatus}}/{{selectLoc}}/False" role="button">Download</a>  
+                                    <a class="btn btn-primary" href="/get_order_list/{{selectEstatus}}/{{selectLoc}}/{{selectPIDd}}/{{selectedAddressd}}/{{selectedInvoiced}}/{{selectedAmountd}}/{{selectedAmountFd}}/False" role="button">Download</a>  
                                     {% if emp.is_superAdmin  or user.is_staff %}
                                         <a class="btn btn-success" href="/create_order/" role="button">Create New</a>                                    
                                     {%endif%}

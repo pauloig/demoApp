@@ -248,6 +248,10 @@
                                 {%if itemCount > 0%}
                                 <a class="btn btn-success" hx-get="/estimate_preview/{{order.id}}/0"
                                     hx-target="#dialog">Estimate Preview</a>
+                                    <a class="btn btn-success" data-bs-toggle="tooltip" data-bs-placement="top"
+                                    title="Download Estimate"
+                                    href="/download_estimate_preview/{{order.id}}/0"
+                                    role="button">Download Estimate</a>                                    
                                 {%endif%}
                                 {%if order.Status == "2" and openEstimate and itemCount > 0 %}
                                 <a class="btn btn-primary" href="/partial_estimate/{{order.id}}/True/1/0">Add to Open
