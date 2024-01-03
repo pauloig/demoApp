@@ -833,10 +833,21 @@ def order_list_sup(request):
                 else:    
                     orders = workOrder.objects.filter(WCSup__employeeID__exact=emp.employeeID, Location = locationObject).exclude(linkedOrder__isnull = False, uploaded = False )
         context["orders"]=orders
+        if orders != None:
+            context["day_diff"]=date_difference(orders)
+        else:
+            context["day_diff"] = None
+
         return render(request,'order_list_sup.html',context)
     else:
         orders = workOrder.objects.filter(WCSup__employeeID__exact=0, Location__isnull=False).exclude(linkedOrder__isnull = False, uploaded = False )
         context["orders"]=orders
+
+        if orders != None:
+            context["day_diff"]=date_difference(orders)
+        else:
+            context["day_diff"] = None
+
         return render(request,'order_list_sup.html',context)
 
 def listOrdersFilter(request):

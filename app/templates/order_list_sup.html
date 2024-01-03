@@ -149,8 +149,12 @@
                                         </tr>              
                                     </thead>
                                     <tbody>                                       
-                                        {% for order in orders %}
-                                                <tr>
+                                        {% for order in day_diff %}
+                                            <tr                                                                                         
+                                                {%if order.days > 8%}
+                                                    style = "background: yellow;"
+                                                {%endif%}
+                                            >
                                                     <td class="p-1">{{order.prismID}} - {{order.workOrderId}} - {{order.PO}} </td>
                                                     <td>${{order.POAmount|floatformat:2|intcomma}}</td>
                                                     <!-- <td>{{order.Status}}</td> -->
