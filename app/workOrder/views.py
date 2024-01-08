@@ -787,51 +787,64 @@ def order_list_sup(request):
 
 
     if emp.is_manager:
-        if estatus == "0" and loc == "0":     
-            if pid != None and pid != "":
-                orders = workOrder.objects.filter(prismID__exact = pid).exclude(linkedOrder__isnull = False, uploaded = False)   
-            elif addR != None and addR !="":
-                orders = workOrder.objects.filter(JobAddress__contains = addR).exclude(linkedOrder__isnull = False, uploaded = False)   
-            elif invNumber !="" and invNumber != None:
+
+        locaList = employeeLocation.objects.filter(employeeID = emp)
                 
-                #Getting the OrderList by Invoice Number
-                
-                woInv = woInvoice.objects.filter(invoiceNumber = invNumber)
-                woInvLits = []
-                
-                for i in woInv:
-                    woInvLits.append(i.woID.id)
-                orders = workOrder.objects.filter(id__in = woInvLits ).exclude(linkedOrder__isnull = False, uploaded = False) 
-            elif  invAmount !="" and invAmount != None and invAmountF !="" and invAmountF != None:   
+        locationList = []
+        locationList.append(emp.Location.LocationID)
+        
+        for i in locaList:
+            locationList.append(i.LocationID.LocationID)
+
+        if emp.Location!= None:
+            if estatus == "0" and loc == "0":                   
+                if pid != None and pid != "":
+                    orders = workOrder.objects.filter(prismID__exact = pid, Location__LocationID__in = locationList).exclude(linkedOrder__isnull = False, uploaded = False)   
+                elif addR != None and addR !="":
+                    orders = workOrder.objects.filter(JobAddress__contains = addR, Location__LocationID__in = locationList).exclude(linkedOrder__isnull = False, uploaded = False)   
+                elif invNumber !="" and invNumber != None:
+                    
                     #Getting the OrderList by Invoice Number
                     
-                    woInv = woInvoice.objects.filter(total__gte = float(invAmount), total__lte = float(invAmountF))
+                    woInv = woInvoice.objects.filter(invoiceNumber = invNumber)
                     woInvLits = []
                     
                     for i in woInv:
                         woInvLits.append(i.woID.id)
+                    orders = workOrder.objects.filter(id__in = woInvLits, Location__LocationID__in = locationList ).exclude(linkedOrder__isnull = False, uploaded = False) 
+                elif  invAmount !="" and invAmount != None and invAmountF !="" and invAmountF != None:   
+                        #Getting the OrderList by Invoice Number
+                        
+                        woInv = woInvoice.objects.filter(total__gte = float(invAmount), total__lte = float(invAmountF))
+                        woInvLits = []
+                        
+                        for i in woInv:
+                            woInvLits.append(i.woID.id)
 
-                    orders = workOrder.objects.filter(id__in = woInvLits ).exclude(linkedOrder__isnull = False, uploaded = False)  
-            elif  invAmount !="" and invAmount != None:   
-                    #Getting the OrderList by Invoice Number
-                    
-                    woInv = woInvoice.objects.filter(total__contains = float(invAmount))
-                    woInvLits = []
-                    
-                    for i in woInv:
-                        woInvLits.append(i.woID.id)
+                        orders = workOrder.objects.filter(id__in = woInvLits , Location__LocationID__in = locationList).exclude(linkedOrder__isnull = False, uploaded = False)  
+                elif  invAmount !="" and invAmount != None:   
+                        #Getting the OrderList by Invoice Number
+                        
+                        woInv = woInvoice.objects.filter(total__contains = float(invAmount))
+                        woInvLits = []
+                        
+                        for i in woInv:
+                            woInvLits.append(i.woID.id)
 
-                    orders = workOrder.objects.filter(id__in = woInvLits ).exclude(linkedOrder__isnull = False, uploaded = False)    
-            else:     
-                orders = workOrder.objects.filter().exclude(linkedOrder__isnull = False, uploaded = False )            
-        else:
-            if estatus != "0" and loc != "0":
-                orders = workOrder.objects.filter(Status = estatus, Location = locationObject).exclude(linkedOrder__isnull = False, uploaded = False )                 
+                        orders = workOrder.objects.filter(id__in = woInvLits, Location__LocationID__in = locationList ).exclude(linkedOrder__isnull = False, uploaded = False)    
+                else:     
+                    orders = workOrder.objects.filter(Location__LocationID__in = locationList).exclude(linkedOrder__isnull = False, uploaded = False )            
             else:
-                if estatus != "0":
-                    orders = workOrder.objects.filter(Status = estatus).exclude(linkedOrder__isnull = False, uploaded = False )
-                else:    
-                    orders = workOrder.objects.filter(Location = locationObject).exclude(linkedOrder__isnull = False, uploaded = False )
+                if estatus != "0" and loc != "0":
+                    orders = workOrder.objects.filter(Status = estatus, Location = locationObject).exclude(linkedOrder__isnull = False, uploaded = False )                 
+                else:
+                    if estatus != "0":
+                        orders = workOrder.objects.filter(Status = estatus, Location__LocationID__in = locationList).exclude(linkedOrder__isnull = False, uploaded = False )
+                    else:    
+                        orders = workOrder.objects.filter(Location = locationObject).exclude(linkedOrder__isnull = False, uploaded = False )
+        else:
+            orders = None    
+        
         context["orders"]=orders
         if orders != None:
             context["day_diff"]=date_difference(orders)
