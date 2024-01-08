@@ -45,6 +45,16 @@ class DailyEmployeeAdmin(admin.ModelAdmin):
     search_fields = ('id','Status')
     list_filter = ('Status',)
 
+class woInvoiceAdmin(admin.ModelAdmin):
+    list_display = ('id','woID','estimateNumber','invoiceNumber','Status')
+    search_fields = ('id','Status','invoiceNumber')
+    list_filter = ('Status',)
+
+class woEstimateAdmin(admin.ModelAdmin):
+    list_display = ('id','woID','estimateNumber','Status')
+    search_fields = ('id','Status','estimateNumber')
+    list_filter = ('Status',)
+
 admin.site.register(workOrderDuplicate)
 admin.site.register(Locations)
 admin.site.register(Employee)
@@ -64,8 +74,8 @@ admin.site.register(subcontractor)
 admin.site.register(externalProduction, externalProductionAdmin)
 admin.site.register(externalProdItem, externalProdItemAdmin)
 admin.site.register(authorizedBilling, authorizedBillingAdmin)
-admin.site.register(woEstimate)
-admin.site.register(woInvoice)
+admin.site.register(woEstimate, woEstimateAdmin)
+admin.site.register(woInvoice, woInvoiceAdmin)
 admin.site.register(employeeLocation)
 admin.site.register(billingAddress)
 admin.site.register(DailyAudit)
