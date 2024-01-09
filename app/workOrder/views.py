@@ -710,8 +710,8 @@ def order_list_location(request, userID):
         {'orders': orders, 'emp': emp, 'per': per })
     
 @login_required(login_url='/home/')
-def order_list_sup(request):  
-    locationList = Locations.objects.all()
+def order_list_sup(request):      
+
     # emp = Employee.objects.filter(user__username__exact = userID).first()
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     per = period.objects.filter(status__in=(1,2)).first()
@@ -721,7 +721,15 @@ def order_list_sup(request):
     opDetail = "Orders Lists by Supervisor"
     logInAuditLog(request, opType, opDetail)
 
+    locaList = employeeLocation.objects.filter(employeeID = emp)
+                
+    locationList = []
+    locationList.append({'LocationID': emp.Location.LocationID, 'name':emp.Location.name })
     
+    for i in locaList:
+        locationList.append({'LocationID': i.LocationID.LocationID, 'name': i.LocationID.name} )
+
+
     estatus = "0"
     loc = "0"
     pid = ""
@@ -4812,7 +4820,67 @@ def get_list_orders_bySupervisor(request,estatus, loc,pid,addR,invNumber,invAmou
     
     locationObject = Locations.objects.filter(LocationID=loc).first() 
     #
-    if emp:
+    if emp.is_manager:
+
+        locaList = employeeLocation.objects.filter(employeeID = emp)
+                
+        locationList = []
+        locationList.append(emp.Location.LocationID)
+        
+        for i in locaList:
+            locationList.append(i.LocationID.LocationID)
+
+        if emp.Location!= None:
+            if estatus == "0" and loc == "0":     
+                if pid != None and pid != "-1":
+                    orders = workOrder.objects.filter(prismID__exact = pid, Location__LocationID__in = locationList).exclude(linkedOrder__isnull = False, uploaded = False)   
+                elif addR != None and addR !="-1":
+                    orders = workOrder.objects.filter(JobAddress__contains = addR, Location__LocationID__in = locationList).exclude(linkedOrder__isnull = False, uploaded = False)   
+                elif invNumber !="-1" and invNumber != None:
+                    
+                    #Getting the OrderList by Invoice Number
+                    
+                    woInv = woInvoice.objects.filter(invoiceNumber = invNumber)
+                    woInvLits = []
+                    
+                    for i in woInv:
+                        woInvLits.append(i.woID.id)
+                    orders = workOrder.objects.filter(id__in = woInvLits, Location__LocationID__in = locationList ).exclude(linkedOrder__isnull = False, uploaded = False) 
+                elif  invAmount !="-1" and invAmount != None and invAmountF !="-1" and invAmountF != None:   
+                        #Getting the OrderList by Invoice Number
+                        
+                        woInv = woInvoice.objects.filter(total__gte = float(invAmount), total__lte = float(invAmountF))
+                        woInvLits = []
+                        
+                        for i in woInv:
+                            woInvLits.append(i.woID.id)
+
+                        orders = workOrder.objects.filter(id__in = woInvLits, Location__LocationID__in = locationList ).exclude(linkedOrder__isnull = False, uploaded = False)  
+                elif  invAmount !="-1" and invAmount != None:   
+                        #Getting the OrderList by Invoice Number
+                        
+                        woInv = woInvoice.objects.filter(total__contains = float(invAmount))
+                        woInvLits = []
+                        
+                        for i in woInv:
+                            woInvLits.append(i.woID.id)
+
+                        orders = workOrder.objects.filter(id__in = woInvLits, Location__LocationID__in = locationList ).exclude(linkedOrder__isnull = False, uploaded = False)    
+                else:     
+                    orders = workOrder.objects.filter(Location__LocationID__in = locationList).exclude(linkedOrder__isnull = False, uploaded = False )            
+            else:
+                if estatus != "0" and loc != "0":
+                    orders = workOrder.objects.filter(Status = estatus, Location = locationObject).exclude(linkedOrder__isnull = False, uploaded = False )                 
+                else:
+                    if estatus != "0":
+                        orders = workOrder.objects.filter(Status = estatus, Location__LocationID__in = locationList).exclude(linkedOrder__isnull = False, uploaded = False )
+                    else:    
+                        orders = workOrder.objects.filter(Location = locationObject).exclude(linkedOrder__isnull = False, uploaded = False )
+        else:
+            orders = None
+
+        return orders  
+    elif emp.is_supervisor:
         if estatus == "0" and loc == "0":     
             if pid != None and pid != "-1":
                 orders = workOrder.objects.filter(WCSup__employeeID__exact=emp.employeeID, prismID__exact = pid).exclude(linkedOrder__isnull = False, uploaded = False)   
