@@ -116,27 +116,27 @@ def home(request):
         if emp.is_superAdmin  or request.user.is_staff:
             totalOrders = woModels.workOrder.objects.all().count()
             totPayroll, totInvoice, totPerc = calculate_payroll(0)
-            s1 = woModels.workOrder.objects.filter(Status=1).count()
+            s1 = woModels.workOrder.objects.filter(Status=1).exclude(linkedOrder__isnull = False, uploaded = False).count()
             if s1 > 0:
                 OrderStatus.append('Not Started')
                 OrderStatusValues.append(s1)
                 status.append({'status':'Not Started', 'total': s1})
-            s2 = woModels.workOrder.objects.filter(Status=2).count()
+            s2 = woModels.workOrder.objects.filter(Status=2).exclude(linkedOrder__isnull = False, uploaded = False).count()
             if s2 > 0:
                 OrderStatus.append('Work in Progress')
                 OrderStatusValues.append(s2)
                 status.append({'status':'Work in Progress', 'total': s2})
-            s3 = woModels.workOrder.objects.filter(Status=3).count()
+            s3 = woModels.workOrder.objects.filter(Status=3).exclude(linkedOrder__isnull = False, uploaded = False).count()
             if s3 > 0:
                 OrderStatus.append('Pending Docs')
                 OrderStatusValues.append(s3)
                 status.append({'status':'Pending Docs', 'total': s3})
-            s4 = woModels.workOrder.objects.filter(Status=4).count()
+            s4 = woModels.workOrder.objects.filter(Status=4).exclude(linkedOrder__isnull = False, uploaded = False).count()
             if s4 > 0:
                 OrderStatus.append('Pending Revised WO')
                 OrderStatusValues.append(s4)
                 status.append({'status':'Pending Revised WO', 'total': s4})        
-            s5 = woModels.workOrder.objects.filter(Status=5).count()
+            s5 = woModels.workOrder.objects.filter(Status=5).exclude(linkedOrder__isnull = False, uploaded = False).count()
             if s5 > 0:
                 OrderStatus.append('Invoiced')
                 OrderStatusValues.append(s5)
@@ -145,27 +145,27 @@ def home(request):
             if emp.Location!= None:
                 totalOrders = woModels.workOrder.objects.filter(Location = emp.Location).count()
                 totPayroll, totInvoice, totPerc = calculate_payroll(emp.Location.LocationID)
-                s1 = woModels.workOrder.objects.filter(Status=1, Location = emp.Location).count()
+                s1 = woModels.workOrder.objects.filter(Status=1, Location = emp.Location).exclude(linkedOrder__isnull = False, uploaded = False).count()
                 if s1 > 0:
                     OrderStatus.append('Not Started')
                     OrderStatusValues.append(s1)
                     status.append({'status':'Not Started', 'total': s1})
-                s2 = woModels.workOrder.objects.filter(Status=2, Location = emp.Location).count()
+                s2 = woModels.workOrder.objects.filter(Status=2, Location = emp.Location).exclude(linkedOrder__isnull = False, uploaded = False).count()
                 if s2 > 0:
                     OrderStatus.append('Work in Progress')
                     OrderStatusValues.append(s2)
                     status.append({'status':'Work in Progress', 'total': s2})
-                s3 = woModels.workOrder.objects.filter(Status=3, Location = emp.Location).count()
+                s3 = woModels.workOrder.objects.filter(Status=3, Location = emp.Location).exclude(linkedOrder__isnull = False, uploaded = False).count()
                 if s3 > 0:
                     OrderStatus.append('Pending Docs')
                     OrderStatusValues.append(s3)
                     status.append({'status':'Pending Docs', 'total': s3})
-                s4 = woModels.workOrder.objects.filter(Status=4, Location = emp.Location).count()
+                s4 = woModels.workOrder.objects.filter(Status=4, Location = emp.Location).exclude(linkedOrder__isnull = False, uploaded = False).count()
                 if s4 > 0:
                     OrderStatus.append('Pending Revised WO')
                     OrderStatusValues.append(s4)
                     status.append({'status':'Pending Revised WO', 'total': s4})
-                s5 = woModels.workOrder.objects.filter(Status=5, Location = emp.Location).count()
+                s5 = woModels.workOrder.objects.filter(Status=5, Location = emp.Location).exclude(linkedOrder__isnull = False, uploaded = False).count()
                 if s5 > 0:
                     OrderStatus.append('Invoiced')
                     OrderStatusValues.append(s5)

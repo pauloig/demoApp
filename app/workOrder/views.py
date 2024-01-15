@@ -5216,7 +5216,21 @@ def get_order_list(request,estatus, loc,pid,addR,invNumber,invAmount,invAmountF,
         ws.write(row_num, 7, "$" + str(balance),  font_style)
         ws.write(row_num, 8, balance_per,  font_style)
 
-        ws.write(row_num, 9, item.Status, font_style) # at 0 row 0 column 
+       
+
+        if item.Status == "1":
+             ws.write(row_num, 9, "Not Started", font_style) 
+        elif item.Status == "2":
+             ws.write(row_num, 9, "Work in Progress", font_style) 
+        elif item.Status == "3":
+             ws.write(row_num, 9, "Pending Docs", font_style)
+        elif item.Status == "4":
+             ws.write(row_num, 9, "Pending Revised WO", font_style)
+        elif item.Status == "5":
+             ws.write(row_num, 9, "Invoiced", font_style)
+        else:
+             ws.write(row_num, 9, "", font_style)
+
         
         if item.Location != None:
             ws.write(row_num, 10, item.Location.name, font_style) # at 0 row 0 column 
@@ -5441,8 +5455,8 @@ def get_summary(request, perID):
                         sumQty = 0
                         sumInvoice = 0
                         for z in items:
-                            if validate_decimals(z.itemID.price) != None:
-                                lineInv = validate_decimals(z.quantity) * validate_decimals(z.itemID.price)
+                            if validate_decimals(z.price) != None:
+                                lineInv = validate_decimals(z.quantity) * validate_decimals(z.price)
                             else:
                                 lineInv = 0
                             sumInvoice += validate_decimals(lineInv)
@@ -5645,7 +5659,7 @@ def get_summary(request, perID):
         
        
         if validate_decimals(payTotalTotal) > 0 and validate_decimals(invoice) > 0:
-            ws3.write_merge(8, 8, 5, 6, str(round((validate_decimals(payTotalTotal)*100) / validate_decimals(invoice),2)) + '%', font_title3)  
+            ws3.write_merge(8, 8, 5, 6, str(round((validate_decimals(payTotalTotal)*100) / validate_decimals(InvoiceGeneral),2)) + '%', font_title3)  
         else:    
             ws3.write_merge(8, 8, 5, 6, '0%', font_title3)            
 
