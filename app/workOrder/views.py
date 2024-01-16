@@ -1953,45 +1953,54 @@ def partial_estimate(request, id, isPartial, Status, addressID):
 
     elif int(Status) == 2:
         est = woEstimate.objects.filter(woID = wo, Status = 1).first()
-        estimateID = est.estimateNumber
-
-
-        pre = Sequence("invoice")
-        invoiceID = str(pre.get_next_value())
-
-        if est.is_partial == False:
-            log = woStatusLog( 
-                                woID = wo,
-                                currentStatus = 4,
-                                nextStatus = 5,
-                                createdBy = request.user.username,
-                                created_date = datetime.now()
-                                )
-            log.save()        
         
-            wo.Status=5        
-            wo.UploadDate = datetime.now()
-            wo.save()    
+        if est:
+            estimateID = est.estimateNumber        
 
-            
-        #creating the Invoice
-        invoiceObject = woInvoice(
-            woID = wo,
-            estimateNumber = estimateID,
-            invoiceNumber = invoiceID,
-            Status = 1,
-            zipCode = est.zipCode,
-            state = est.state,
-            city = est.city,
-            address = est.address,
-            description = est.description,
-            is_partial = est.is_partial,
-            created_date = datetime.now(),
-            createdBy = request.user.username
-        )
-        invoiceObject.save()
+            #Validate if Estimate does have an Invoice
+            InvCount = woInvoice.objects.filter(estimateNumber = estimateID).count()
 
-        
+            if InvCount == 0:
+                pre = Sequence("invoice")
+                invoiceID = str(pre.get_next_value())
+
+                if est.is_partial == False:
+                    log = woStatusLog( 
+                                        woID = wo,
+                                        currentStatus = 4,
+                                        nextStatus = 5,
+                                        createdBy = request.user.username,
+                                        created_date = datetime.now()
+                                        )
+                    log.save()        
+                
+                    wo.Status=5        
+                    wo.UploadDate = datetime.now()
+                    wo.save()    
+
+                    
+                #creating the Invoice
+                invoiceObject = woInvoice(
+                    woID = wo,
+                    estimateNumber = estimateID,
+                    invoiceNumber = invoiceID,
+                    Status = 1,
+                    zipCode = est.zipCode,
+                    state = est.state,
+                    city = est.city,
+                    address = est.address,
+                    description = est.description,
+                    is_partial = est.is_partial,
+                    created_date = datetime.now(),
+                    createdBy = request.user.username
+                )
+                invoiceObject.save()
+            else:
+                estimateID = 0
+                invoiceID = 0
+        else:
+            estimateID = 0
+            invoiceID = 0
 
     
 
@@ -2053,66 +2062,69 @@ def partial_estimate(request, id, isPartial, Status, addressID):
                 iItem.save()
 
     elif int(Status) == 2:
-        #Update dailyItems
-        dailyI = DailyItem.objects.filter(DailyID__woID = wo, estimate = estimateID)
 
-        for i in dailyI:
-            dItem = DailyItem.objects.filter(id = i.id).first()
+        if int(invoiceID) > 0:
 
-            dItem.Status = 3
-            dItem.invoice = invoiceID
-            dItem.save()
-        
+            #Update dailyItems
+            dailyI = DailyItem.objects.filter(DailyID__woID = wo, estimate = estimateID)
 
-        #Update daily Employees
-        dailyE = DailyEmployee.objects.filter(DailyID__woID = wo, estimate = estimateID).exclude(Status=4)
+            for i in dailyI:
+                dItem = DailyItem.objects.filter(id = i.id).first()
 
-        for e in dailyE:
+                dItem.Status = 3
+                dItem.invoice = invoiceID
+                dItem.save()
             
-            if e.total_hours > 0:
-                dEmp = DailyEmployee.objects.filter(id = e.id).first()
+
+            #Update daily Employees
+            dailyE = DailyEmployee.objects.filter(DailyID__woID = wo, estimate = estimateID).exclude(Status=4)
+
+            for e in dailyE:
                 
-                dEmp.Status = 3
-                dEmp.invoice = invoiceID
-                dEmp.save()
+                if e.total_hours > 0:
+                    dEmp = DailyEmployee.objects.filter(id = e.id).first()
+                    
+                    dEmp.Status = 3
+                    dEmp.invoice = invoiceID
+                    dEmp.save()
 
-        #Update externalProdItem
-        epItem = externalProdItem.objects.filter(externalProdID__woID = wo, estimate = estimateID)
+            #Update externalProdItem
+            epItem = externalProdItem.objects.filter(externalProdID__woID = wo, estimate = estimateID)
 
-        for j in epItem:
-            eItem = externalProdItem.objects.filter(id = j.id).first()
+            for j in epItem:
+                eItem = externalProdItem.objects.filter(id = j.id).first()
 
-            eItem.Status = 3
-            eItem.invoice = invoiceID
-            eItem.save()
+                eItem.Status = 3
+                eItem.invoice = invoiceID
+                eItem.save()
 
-        #Update authorizedItem
-        authItem = authorizedBilling.objects.filter(woID = wo, estimate = estimateID)
+            #Update authorizedItem
+            authItem = authorizedBilling.objects.filter(woID = wo, estimate = estimateID)
 
-        for k in authItem:
-            aItem = authorizedBilling.objects.filter(id = k.id).first()
+            for k in authItem:
+                aItem = authorizedBilling.objects.filter(id = k.id).first()
 
-            aItem.Status = 3
-            aItem.invoice = invoiceID
-            aItem.save()
-        
-        #Update Internal PO
-        internal = internalPO.objects.filter(woID = wo, estimate = estimateID)
+                aItem.Status = 3
+                aItem.invoice = invoiceID
+                aItem.save()
+            
+            #Update Internal PO
+            internal = internalPO.objects.filter(woID = wo, estimate = estimateID)
 
-        for l in internal:
-            iItem = internalPO.objects.filter(id = l.id).first()
+            for l in internal:
+                iItem = internalPO.objects.filter(id = l.id).first()
 
-            iItem.Status = 3
-            iItem.invoice = invoiceID
-            iItem.save()
-        
+                iItem.Status = 3
+                iItem.invoice = invoiceID
+                iItem.save()
+            
 
-        est = woEstimate.objects.filter(woID = wo, estimateNumber = estimateID).first()       
-        est.Status = 2
-        est.save()
+            est = woEstimate.objects.filter(woID = wo, estimateNumber = estimateID).first()       
+            est.Status = 2
+            est.save()
 
 
-        calculate_invoice_total(request,wo.id,int(invoiceID))
+            calculate_invoice_total(request,wo.id,int(invoiceID))
         
     return HttpResponseRedirect("/billing_list/" + str(id)+ "/False") 
 
