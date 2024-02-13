@@ -89,6 +89,10 @@
                                                 <a class="btn btn-warning" hx-get="/delete_po/{{po.id}}/{{woID}}" hx-target="#dialog">Remove</a>
                                             {%endif%}                                            
                                         {%endif%}
+
+                                        {%if po.Status == 2%}                                     
+                                            <a class="btn btn-warning" hx-get="/unlink_po/{{po.id}}/{{woID}}" hx-target="#dialog">unlink</a>
+                                        {%endif%}  
                                     </div>
                                 </div>
                             </div>                                    

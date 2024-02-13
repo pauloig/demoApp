@@ -43,6 +43,7 @@ urlpatterns = [
     path('po_list/<id>',views.po_list),
     path('internal_po_list/',views.internal_po_list),
     path('update_po/<id>/<woID>/<selectedvs>',views.update_po),
+    path('unlink_po/<id>/<woID>',views.unlink_po),
     path('delete_po/<id>/<woID>',views.delete_po),
     path('create_po/<id>/<selectedvs>',views.create_po),
     path('add_internalPO_to_estimate/<poID>/<woID>/<estimateID>',views.add_internalPO_to_estimate),

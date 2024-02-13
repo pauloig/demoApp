@@ -1624,6 +1624,38 @@ def update_po(request, id, woID, selectedvs):
     context["emp"] = emp
     return render(request, "update_po.html", context)
 
+
+@login_required(login_url='/home/')
+def unlink_po(request, id, woID):
+    emp = Employee.objects.filter(user__username__exact = request.user.username).first()
+    context ={}
+
+    per = period.objects.filter(status__in=(1,2)).first()
+    context["per"] = per
+
+    context["woID"] = int(woID)
+
+    obj = get_object_or_404(internalPO, id = id)
+ 
+    context["form"] = obj
+    context["emp"] = emp
+ 
+    if request.method == 'POST':
+        obj.Status = 1
+        obj.estimate = None
+        obj.invoice = None
+        obj.save()
+
+        if int(woID) > 0:
+            return HttpResponseRedirect("/po_list/" + str(woID))
+        else:
+            return HttpResponseRedirect("/internal_po_list/") 
+
+   
+    return render(request, "unlink_po.html", context)
+
+
+
 @login_required(login_url='/home/')
 def delete_po(request, id, woID):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()

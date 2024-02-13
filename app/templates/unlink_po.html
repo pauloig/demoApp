@@ -1,0 +1,27 @@
+{% extends 'base.html' %} 
+{%load static%}
+{% load humanize %}
+{% block container %}
+
+<div class="container">
+    <form method='post' action="{{request.path}}" class="modal-content" id="remove_po">
+        {% csrf_token %}
+
+        <div class="modal-header">
+            <h5>Remove Internal PO</h5>           
+        </div>              
+       
+        <div class="modal-body">
+            <div class="row">        
+              <h5>Are you sure you want to Unlink this Internal PO?</h5>
+            </div>          
+        </div>
+        
+        <div class="modal-footer">          
+            <button type="submit" class="btn btn-primary" form="remove_po">unlink</button>
+            <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancel</button> 
+        </div>
+   
+    </form>
+</div>
+{% endblock %}
