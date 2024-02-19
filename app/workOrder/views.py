@@ -1576,6 +1576,19 @@ def update_po(request, id, woID, selectedvs):
 
     obj = get_object_or_404(internalPO, id = id )
 
+    # To Unlink the PO 
+    if obj.invoice != None:
+        woInv = woInvoice.objects.filter(invoiceNumber = obj.invoice).first()
+
+        if woInv:
+            if woInv.is_partial:
+                context['unlink']= True
+            else:
+                context['unlink']= False
+    else:
+
+        context['unlink']= False
+
     if selectedvs != "0":
         itemResult = next((i for i, item in enumerate(vendorList) if item["id"] == selectedvs), None)
     else:
@@ -1641,10 +1654,15 @@ def unlink_po(request, id, woID):
     context["emp"] = emp
  
     if request.method == 'POST':
+
+        invoiceID = obj.invoice
+
         obj.Status = 1
         obj.estimate = None
         obj.invoice = None
         obj.save()
+
+        calculate_invoice_total(request,woID,int(invoiceID))
 
         if int(woID) > 0:
             return HttpResponseRedirect("/po_list/" + str(woID))
