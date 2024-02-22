@@ -1576,6 +1576,8 @@ def update_po(request, id, woID, selectedvs):
 
     obj = get_object_or_404(internalPO, id = id )
 
+    
+
     # To Unlink the PO 
     if obj.invoice != None:
         woInv = woInvoice.objects.filter(invoiceNumber = obj.invoice).first()
@@ -1601,6 +1603,12 @@ def update_po(request, id, woID, selectedvs):
         context['selectedvs2'] = ""
 
     form = InternalPOForm(request.POST or None, instance = obj )
+
+    if request.user.is_staff:
+        form = InternalPOFormAdmin(request.POST or None, instance = obj )
+    else:
+        form = InternalPOForm(request.POST or None, instance = obj )
+
  
     if form.is_valid():
         vendor = request.POST.get('vendor') 
@@ -1722,7 +1730,13 @@ def create_po(request, id, selectedvs):
 
 
     wo = workOrder.objects.filter(id=id).first()
-    form = InternalPOForm(request.POST or None, initial={'woID': wo})
+    
+    if request.user.is_staff:
+        form = InternalPOFormAdmin(request.POST or None, initial={'woID': wo})
+    else:
+        form = InternalPOForm(request.POST or None, initial={'woID': wo})
+    
+    
     if form.is_valid():
         vendor = request.POST.get('vendor') 
         
@@ -8135,6 +8149,346 @@ def invoice_monthly_report(request):
        
 
     return render(request, "invoice_monthly_report.html", context)
+
+@login_required(login_url='/home/')
+def payroll_employee_report(request, empID):
+    context ={}
+
+    emp = Employee.objects.filter(user__username__exact = request.user.username).first()    
+    per = period.objects.filter(status__in=(1,2)).first()
+
+    locationList = Locations.objects.filter()
+    
+
+    context["per"] = per
+    context["emp"] = emp
+    context["location"] = locationList
+
+    opType = "Access Option"
+    opDetail = "Invoice Monthly Report"
+    logInAuditLog(request, opType, opDetail)
+
+    employeeID = empID
+
+    if request.method == 'POST':       
+       dateSelected =  request.POST.get('date')
+       dateSelected2 = request.POST.get('date2')
+       dateS = datetime.strptime(dateSelected, '%Y-%m-%d').date()
+       dateS2 = datetime.strptime(dateSelected2, '%Y-%m-%d').date()       
+       location = request.POST.get('location')
+       employeeID = request.POST.get('employee')
+                         
+       
+       
+
+       """resultList.append({'woID': i.woID,'estimateNumber': i.estimateNumber,'invoiceNumber': i.invoiceNumber,'total': i.total,'zipCode' : i.zipCode,
+                            'state' : i.state, 'city' : i.city,'address' : i.address,'description' : i.description,
+                            'Status' : i.Status, 'is_partial' : i.is_partial, 'created_date' : i.created_date,'createdBy' : i.createdBy, 
+                            'labor': validate_decimals(totalLabor),'materials': validate_decimals(totalMaterials), 'per_expenses': validate_decimals(per_expenses), 'balance': balance })"""
+        
+       resultList = get_summary_by_employee(request,dateSelected, dateSelected2, empID, location, 0)
+
+       context["woInvoice"] = resultList
+       context["dateSelected"] =  dateS
+       context["dateSelected2"] =  dateS2
+       context["locationSelected"] =  location
+
+    if employeeID != "0":
+        empSel = Employee.objects.filter(employeeID = employeeID ).first()
+        
+        if empSel:
+            context["selectedEmployeeID"] = employeeID
+            context["selectedEmployeeName"] = empSel.first_name + " " + empSel.last_name
+    else:
+        context["selectedEmployeeName"] = ""
+        context["selectedEmployeeID"] = 0
+       
+
+    return render(request, "payroll_employee_report.html", context)
+
+
+@login_required(login_url='/home/')
+def get_summary_by_employee(request,dateSelected, dateSelected2, empID, LocationID, Tipo):  
+
+    resultList = []
+
+    
+
+
+    if LocationID == "0":
+        loca = Locations.objects.all().order_by("LocationID")
+    else:        
+        loca = Locations.objects.filter(LocationID = LocationID)
+        
+    locList = []
+    for empLoc in loca:
+        locList.append(empLoc.LocationID)
+
+    wb = xlwt.Workbook(encoding='utf-8')
+    ws = wb.add_sheet('Summary', cell_overwrite_ok = True) 
+
+    # Sheet header, first row
+    row_num = 7
+
+    font_title = xlwt.XFStyle()
+    font_title.font.bold = True
+    font_title = xlwt.easyxf('font: bold on, color black;\
+                     borders: top_color black, bottom_color black, right_color black, left_color black,\
+                              left thin, right thin, top thin, bottom thin;\
+                     pattern: pattern solid, fore_color light_blue;')
+
+    font_style =  xlwt.XFStyle()                    
+
+
+    columns = ['Location', 'Date', 'Eid', 'Name', 'RT','OT','DT','TT','RT$','OT$','Bonus', 'Production','own vehicle', 'on call', 'payroll','Supervisor','PID','Address']
+
+    for col_num in range(len(columns)):
+        ws.write(row_num, col_num, columns[col_num], font_title) # at 0 row 0 column 
+
+    
+    try:
+
+        dateS = datetime.strptime(dateSelected, '%Y-%m-%d').date()
+        dateS2 = datetime.strptime(dateSelected2, '%Y-%m-%d').date()
+
+        per = period.objects.filter(id = 31).first()
+        dailyList = Daily.objects.filter(day__range=[dateS, dateS2] , Location__LocationID__in = locList).order_by('Location')
+        
+
+        for item in dailyList:        
+        
+            if empID == "0":               
+                demp = DailyEmployee.objects.filter(DailyID=item ).order_by()    
+            else:
+                empL = Employee.objects.filter(employeeID = empID).first()
+                demp = DailyEmployee.objects.filter(DailyID=item, EmployeeID = empL).order_by()    
+
+            empLines = 0    
+            
+
+            for i in demp:
+                itemProd = 0
+                rtPrice = 0
+                otPrice = 0
+                dtPrice = 0     
+                ttp = 0
+                ov = 0
+                bonus = 0
+                on_call = 0
+                InvoiceGeneral = 0
+                
+            
+                if validate_decimals(i.payout) > 0:                
+                    row_num += 1
+                    
+
+                    ws.write(row_num,0,item.Location.name, font_style)
+                    ws.write(row_num,1,item.day.strftime("%m/%d/%Y"), font_style)
+                    ws.write(row_num,2,i.EmployeeID.employeeID, font_style)
+                    ws.write(row_num,3,i.EmployeeID.last_name + ' ' +i.EmployeeID.first_name, font_style)
+
+                    itemProd = DailyItem.objects.filter(DailyID = i.DailyID).count()
+                    
+                    if itemProd <= 0:                    
+                
+                        ws.write(row_num,4,validate_print_decimals(i.regular_hours), font_style)
+                        ws.write(row_num,5,validate_print_decimals(i.ot_hour), font_style)
+                        ws.write(row_num,6,validate_print_decimals(i.double_time), font_style)
+                        ws.write(row_num,7,validate_print_decimals(i.total_hours), font_style)
+
+                        if validate_decimals(i.EmployeeID.hourly_rate) != None:
+                            rtPrice = (validate_decimals(i.regular_hours) * float(validate_decimals(i.EmployeeID.hourly_rate)))
+                            otPrice = ((validate_decimals(i.ot_hour) * (float(validate_decimals(i.EmployeeID.hourly_rate))*1.5)))
+                            dtPrice = ((validate_decimals(i.double_time) * (float(validate_decimals(i.EmployeeID.hourly_rate))*2)))
+
+                            ws.write(row_num,8,validate_print_decimals(rtPrice), font_style)
+                            ws.write(row_num,9,validate_print_decimals(otPrice + dtPrice), font_style)
+                        else:
+                            ws.write(row_num,8,'', font_style)
+                            ws.write(row_num,9,'', font_style)
+                    else:
+                        ws.write(row_num,4,'', font_style)
+                        ws.write(row_num,5,'', font_style)
+                        ws.write(row_num,6,'', font_style)
+                        ws.write(row_num,7,'', font_style)
+                        ws.write(row_num,8,'', font_style)
+                        ws.write(row_num,9,'', font_style)
+
+                    ws.write(row_num,10,validate_print_decimals(i.bonus), font_style)
+                    if itemProd > 0:  
+                        di = DailyItem.objects.filter(DailyID = i.DailyID)          
+                        t = 0
+                        for j in di:
+                            t += validate_decimals(j.total)
+
+                        if validate_decimals(item.own_vehicle) != None:
+                            ov = validate_decimals((((t * validate_decimals(item.own_vehicle)) / 100) * validate_decimals(i.per_to_pay)) /100)
+                        else:
+                            ov = 0
+
+                        ttp = (t * validate_decimals(i.per_to_pay)) /100
+                        ws.write(row_num,round(11,2),validate_print_decimals(ttp), font_style)
+                        ws.write(row_num,12,validate_print_decimals(ov), font_style)
+                    else:
+                        ws.write(row_num,11,'', font_style)
+                        ws.write(row_num,12,'', font_style)
+
+                    if validate_decimals(i.bonus) != None:
+                        bonus = validate_decimals(i.bonus)
+                    
+                    if validate_decimals(i.on_call) != None:
+                        on_call = validate_decimals(i.on_call)
+
+
+                    payTotal = validate_decimals(i.payout) #validate_decimals(rtPrice + otPrice + dtPrice + bonus + ttp + ov + on_call)
+                    ws.write(row_num,13,validate_print_decimals(i.on_call), font_style)
+                    ws.write(row_num,14,validate_print_decimals(payTotal), font_style)
+                    if item.woID.WCSup != None:
+                        superV = item.woID.WCSup.last_name + ' ' + item.woID.WCSup.first_name
+                        ws.write(row_num,15,item.woID.WCSup.last_name + ' ' + item.woID.WCSup.first_name, font_style)
+                    else:
+                        superV = ""
+
+                    ws.write(row_num,16,item.woID.prismID, font_style)
+                    ws.write(row_num,17,item.woID.JobAddress, font_style)
+
+                    empLines += 1
+                    
+                    # se agregan las columnas de items
+                    if empLines == 1:
+                        items = DailyItem.objects.filter(DailyID = i.DailyID)
+                        col_item =  0
+                        itemNumber = 0
+
+                        for z in items:                            
+                            col_item += 1
+                            itemNumber += 1
+                            try:
+                                ws.write(7,17 + col_item,'Item'+str(itemNumber), font_title)   
+                                ws.write(7,18 + col_item,'Qty'+str(itemNumber), font_title)                                                         
+                            except Exception as e:
+                                ws.write(7,17 + col_item,'Item', font_title)                             
+                            
+                            ws.write(row_num,17 + col_item,z.itemID.item.itemID, font_style)
+                        
+                            col_item += 1                                          
+                            
+                            ws.write(row_num,17 + col_item,z.quantity, font_style)                            
+                           
+
+                    resultList.append({'Location':item.Location.name,'Date':item.day.strftime("%m/%d/%Y"),'Eid':i.EmployeeID.employeeID,
+                                       'Name':i.EmployeeID.last_name + ' ' +i.EmployeeID.first_name,
+                                       'Production':validate_print_decimals(ttp),
+                                       'Payroll':validate_print_decimals(payTotal),
+                                       'Supervisor':superV,
+                                       'PID':item.woID.prismID,
+                                       'Address':item.woID.JobAddress})
+        
+        sumItem = 0            
+        for x in dailyList:
+
+            if empID == "0":
+                items = DailyItem.objects.filter(DailyID = x).count()                           
+            else:
+                
+                empIt = DailyEmployee.objects.filter(DailyID = x, EmployeeID__employeeID = empID).first()
+
+                if empIt:
+                    items = DailyItem.objects.filter(DailyID = x).count()
+                else:
+                    items = 0
+
+            if items > sumItem:
+                    sumItem = items            
+       
+        ws.write(7,18 + sumItem*2,'Item Totals', font_title)   
+        ws.write(7,19 + sumItem*2,'Invoice', font_title)                   
+                
+                 
+        
+
+        row_num=7
+        
+        for x in dailyList:
+            demp = DailyEmployee.objects.filter(DailyID=x).order_by()    
+            empLines = 0    
+
+            for y in demp:
+                empLines += 1
+            
+                if validate_decimals(y.payout) > 0:                
+                    row_num += 1
+                    if empLines == 1:
+                        items = DailyItem.objects.filter(DailyID = x)
+                        sumQty = 0
+                        sumInvoice = 0
+                        for z in items:
+                            if validate_decimals(z.price) != None:
+                                lineInv = validate_decimals(z.quantity) * validate_decimals(z.price)
+                            else:
+                                lineInv = 0
+                            sumInvoice += validate_decimals(lineInv)
+                            sumQty += validate_decimals(z.quantity)
+
+                        if sumQty > 0:
+                            InvoiceGeneral += validate_decimals(sumInvoice)
+                            ws.write(row_num,18 + sumItem*2,validate_decimals(sumQty), font_style)   
+                            ws.write(row_num,19 + sumItem*2,validate_decimals(sumInvoice), font_style)     
+        
+
+        ws.col(0).width = 3000
+        ws.col(2).width = 1500
+        ws.col(3).width = 5000
+        ws.col(4).width = 1000
+        ws.col(5).width = 1000
+        ws.col(6).width = 1000
+        ws.col(7).width = 1000
+        ws.col(8).width = 1000
+        ws.col(9).width = 1000
+        ws.col(10).width = 1700                                      
+        ws.col(11).width = 3500
+        ws.col(12).width = 3000
+        ws.col(13).width = 1700
+        ws.col(14).width = 2200
+        ws.col(15).width = 5000
+        ws.col(17).width = 11500
+        
+    except Exception as e:
+        ws.write(0,0,str(e), font_style)        
+    
+    
+
+    if Tipo == 0:
+        return resultList
+    
+
+    filename = 'Payroll Summary ' + str(empID) + '.xls'    
+    response = HttpResponse(content_type='application/ms-excel')
+    response['Content-Disposition'] = 'attachment; filename=' + filename 
+
+    wb.save(response)
+
+    return response
+    #else:
+    #    return summaryList
+
+
+
+@login_required(login_url='/home/')
+def employee_list_pay_report(request):
+    emp = Employee.objects.filter(user__username__exact = request.user.username).first()
+    LocID = 1  
+    
+    context = {}    
+    context["emp"] = emp    
+    context["selectedLocation"] = LocID
+    employeeList = Employee.objects.filter(is_active = True)
+    context["employeeList"] = employeeList 
+
+    per = period.objects.filter(status__in=(1,2)).first()
+    context["per"] = per
+
+    return render(request, "employee_list_pay_report.html", context)
 
 
 @login_required(login_url='/home/')

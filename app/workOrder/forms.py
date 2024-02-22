@@ -161,6 +161,48 @@ class InternalPOForm(forms.ModelForm):
     quantity = forms.CharField(label="Quantity",max_length=200, widget=forms.TextInput(attrs={'class':'form-control'}), required=False)
     total = forms.CharField(label="Total",max_length=200, widget=forms.TextInput(attrs={'class':'form-control'}), required=False)
     #isAmountRounded = forms.BooleanField(label="Is Amount Rounded",required=False)
+    #nonBillable = forms.BooleanField(label="Non-Billable",required=False)
+
+    class Meta:
+        model = internalPO
+        fields = [
+            'poNumber',
+            'woID',
+            'supervisor',
+            'pickupEmployee',
+            'product',
+            'quantity',
+            'total',
+            'isAmountRounded',            
+            'created_date',
+            'createdBy',
+            'Status',
+            'transferFromPO',
+            'transfer_date',
+            'transferBy'         
+        ]
+
+
+    def __init__(self, *args, **kwargs):      
+        super().__init__(*args, **kwargs)
+        self.fields['poNumber'].disabled = True
+        self.fields['woID'].disabled = True
+        self.fields['createdBy'].disabled = True
+        self.fields['created_date'].disabled = True
+        self.fields['Status'].disabled = True
+        self.fields['transferFromPO'].disabled = True
+        self.fields['transfer_date'].disabled = True
+        self.fields['transferBy'].disabled = True
+ 
+
+class InternalPOFormAdmin(forms.ModelForm):   
+    #poNumber = forms.IntegerField(label = "PO Number", widget=forms.TextInput(attrs={'class':'form-control'}), required=False)
+    supervisor = forms.ModelChoiceField(queryset=Employee.objects.filter(is_active=True, is_supervisor = True), widget=forms.Select(attrs={'class': 'form-control'}), required=False)
+    pickupEmployee = forms.ModelChoiceField(queryset=Employee.objects.filter(is_active=True), widget=forms.Select(attrs={'class': 'form-control'}), required=False)
+    product = forms.CharField(label="Product",max_length=200, widget=forms.TextInput(attrs={'class':'form-control'}), required=False)
+    quantity = forms.CharField(label="Quantity",max_length=200, widget=forms.TextInput(attrs={'class':'form-control'}), required=False)
+    total = forms.CharField(label="Total",max_length=200, widget=forms.TextInput(attrs={'class':'form-control'}), required=False)
+    #isAmountRounded = forms.BooleanField(label="Is Amount Rounded",required=False)
     nonBillable = forms.BooleanField(label="Non-Billable",required=False)
 
     class Meta:
@@ -193,8 +235,7 @@ class InternalPOForm(forms.ModelForm):
         self.fields['Status'].disabled = True
         self.fields['transferFromPO'].disabled = True
         self.fields['transfer_date'].disabled = True
-        self.fields['transferBy'].disabled = True
- 
+        self.fields['transferBy'].disabled = True 
         
 
 

@@ -1,0 +1,51 @@
+{% extends 'base.html' %} 
+{%load static%}
+{% block title %} Order List {% endblock %} 
+{% load humanize %}
+{% block container %}
+
+<div class="container">
+    <form method='post' enctype="multipart/form-data" class="modal-content">
+        {% csrf_token %}
+
+        <div class="modal-header">
+            <h5>EMPLOYEES LIST</h5>           
+        </div>              
+       
+        <div class="modal-body">
+
+            <table id="orders" class="table table-sm table-bordered table-striped">
+                <thead class="table-primary">
+                    <tr>
+                        <th scope="col" style="width: 7%">EID</th>
+                        <th scope="col" style="width: 20%">First Name</th>
+                        <th scope="col" style="width: 20%">Last Name</th>                                
+                        <th scope="col" style="width: 10%">Location</th>                                                     
+                        <th scope="col" style="width: 3%"></th>
+                    </tr>              
+                </thead>
+                <tbody>   
+                   
+                    {% for data in employeeList %}                                
+                        <tr>
+                            <td>{{data.employeeID}}</td>
+                            <td>{{data.first_name}}</td>
+                            <td>{{data.last_name}}</td>                                    
+                            <td>{{data.Location}}</td>                                                                  
+                            <td> 
+                                <a href="/payroll_employee_report/{{data.employeeID}}"><i class="fa-solid fa-circle-arrow-right" style="color: green;"></i></a>                                
+                        </tr>                                             
+                    {% endfor %}
+                </tbody>                              
+            </table>
+
+
+            
+        </div>
+        
+        <div class="modal-footer">                      
+            <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button> 
+        </div>
+    </form>
+</div>
+{% endblock %}
