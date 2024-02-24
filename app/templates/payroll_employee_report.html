@@ -19,8 +19,13 @@
                                 <div class="mb-3">
                                     <label for="employee" class="form-label">Employee</label>                
                                         <div class="input-group mb-3">   
-                                            <input type="text" class="form-control" placeholder="Select Employee" aria-label="employeeName" id="employeeName" name="employeeName" aria-describedby="basic-addon1" value="{{selectedEmployeeName}}" required disabled> 
-                                            <input type="text" class="form-control" placeholder="Select Employee" aria-label="employee" id="employee" name="employee" aria-describedby="basic-addon1" value="{{selectedEmployeeID}}" hidden>                                               
+                                            {% if post %}
+                                            <input type="text" class="form-control" placeholder="Select Employee" aria-label="employeeName" id="employeeName" name="employeeName" aria-describedby="basic-addon1" value="" required disabled> 
+                                            <input type="text" class="form-control" placeholder="Select Employee" aria-label="employee" id="employee" name="employee" aria-describedby="basic-addon1" value="" hidden>                          
+                                            {% else %}
+                                                <input type="text" class="form-control" placeholder="Select Employee" aria-label="employeeName" id="employeeName" name="employeeName" aria-describedby="basic-addon1" value="{{selectedEmployeeName}}" required disabled> 
+                                                <input type="text" class="form-control" placeholder="Select Employee" aria-label="employee" id="employee" name="employee" aria-describedby="basic-addon1" value="{{selectedEmployeeID}}" hidden>                                                                                               
+                                            {% endif %}
                                             <button hx-get="/employee_list_pay_report/" class="btn btn-primary py-2" hx-target="#dialog" ><i class="fa-sharp fa-solid fa-magnifying-glass"></i></button>                                            
                                         </div>
                                 </div>
@@ -52,17 +57,19 @@
                                     <label for="PID" class="form-label">Location</label>                
                                         <div class="input-group mb-3">   
                                             <select class="form-select" aria-label="Default select example" name="location" id="location">                                                
-                                                {%if locationSelected == "0" %}
+                                                <!--{%if locationSelected == "0" %}
                                                     <option value ="0" selected>Location</option>
                                                 {%else%}
                                                     <option value ="0">Location</option>
-                                                {%endif%}
+                                                {%endif%}-->
+                                                <option value ="0" selected>Location</option>
                                                 {% for data in location %}
-                                                    {%if data.LocationID|slugify == locationSelected%}                              
+                                                    <!--{%if data.LocationID|slugify == locationSelected%}                              
                                                         <option value="{{data.LocationID}}" selected>{{data.name}}</option>
                                                     {%else%}
                                                         <option value="{{data.LocationID}}">{{data.name}}</option>
-                                                    {%endif%}
+                                                    {%endif%}-->
+                                                    <option value="{{data.LocationID}}">{{data.name}}</option>
                                                 {% endfor %}     
                                             </select>
                                         </div> 
@@ -98,7 +105,7 @@
         <div class="row">
             <div class="col-sm-12 my-3">
                 <div class="card">
-                    <h6 class="card-header card-header-wc" >Payroll Report From {{dateSelected|date:'m-d-Y'}} To {{dateSelected2|date:'m-d-Y'}}  - 
+                    <h6 class="card-header card-header-wc" >Payroll Report From {{dateSelected|date:'m-d-Y'}} To {{dateSelected2|date:'m-d-Y'}}  -  {{locationSelected}} - {{selectedEmployeeName}}
                     {%if statusSelected == "0"%} 
                         All Status
                     {%endif%}

@@ -8,17 +8,61 @@
     <form method='post' enctype="multipart/form-data">
         {% csrf_token %}
         
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="card">
+                    <h6 class="card-header card-header-wc" >Filters</h6>
+                    <div class="card-body">
+                        <div class="row"> 
+                            <div class="col-lg-5">
+                                <div class="mb-3">
+                                    <label for="employee" class="form-label">Status</label>                
+                                        <div class="input-group mb-3">   
+                                            <select class="form-select" aria-label="Default select example" name="status" id="status">                                                                                           
+                                                <option value ="-1" selected>Select an Option</option>
+                                                <option value ="0" >All PO</option>
+                                                <option value ="1" >Open</option>
+                                                <option value ="2" >estimated</option>
+                                                <option value ="3" >Invoiced</option>
+                                            </select>
+                                            <!--<button type="submit" class="btn btn-primary py-2"><i class="fa-sharp fa-solid fa-magnifying-glass"></i></button> -->
+                                        </div>
+                                </div>                                                                
+                            </div>    
+                        </div> 
+                        <div class="row">
+                            
+                            <div class="col-lg-5">                                                              
+                                <div class="form-outline" style="align-items: center;">
+                                    <input class="btn btn-primary" type="submit" value="Search">     
+                                    
+                                    <!--<a class="btn btn-primary" href="/get_summary_by_employee/{{dateSelected|date:'Y-m-d'}}/{{dateSelected2|date:'Y-m-d'}}/{{selectedEmployeeID}}/{{locationSelected}}/1" role="button">Download</a>-->
+                                    
+                                    <a href="/" type="button" class="btn btn-danger">Close</a>                             
+                                </div>
+                            </div>
+                            <div class="col-lg-1">  
+                                
+                            </div>
+                        </div> 
+                        
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <br />
         <div class="row">
             <div class="col-lg-12">
                 <div class="card rounded">
                     <h6 class="card-header card-header-wc" >Internal PO List</h6>
-                    <div class="card-body">                                           
+                    <div class="card-body">  
+                                                          
                             <div class="row">
                                 <div class="col-lg-6">  
                                     <div class="form-outline" style="align-items: center;">                                                                               
-                                        <a href="/home/" type="button" class="btn btn-danger">Close</a> 
+                                        <!--<a href="/home/" type="button" class="btn btn-danger">Close</a> -->
                                     </div>
                                 </div>
                             </div>   
@@ -29,6 +73,7 @@
                                         <tr>
                                             <th scope="col">PO</th>                                            
                                             <th scope="col">Vendor</th>
+                                            <th scope="col">Status</th>
                                             <th scope="col">Supervisor</th>
                                             <th scope="col">Pick up Employee</th>
                                             <th scope="col">Product</th>  
@@ -49,6 +94,16 @@
                                                         {%endif%}
                                                     {%endfor%}
                                                 </td>
+                                                <td>
+                                                    {% if po.Status == 1 %}
+                                                        Open
+                                                    {%elif po.Status == 2%}
+                                                        Estimated
+                                                    {%elif po.Status == 3%}
+                                                        Invoiced
+                                                    {%endif%}
+                                                </td>
+                                                
                                                 <td>{{po.supervisor}}</td>
                                                 <td>{{po.pickupEmployee}}</td>
                                                 <td>{{po.product}}</td>

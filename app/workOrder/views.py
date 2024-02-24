@@ -1543,16 +1543,26 @@ def internal_po_list(request):
     per = period.objects.filter(status__in=(1,2)).first()
     context["per"] = per
 
-    context["po"] = internalPO.objects.all().order_by('-id')
+    
     context["emp"] = emp
 
     vendorList = vendorSubcontrator(request) 
     context["vendorList"] = vendorList
 
+    
 
     opType = "Access Option"
     opDetail = "Internal PO List"
     logInAuditLog(request, opType, opDetail)
+
+
+    if request.method == 'POST':       
+        poStatus =  request.POST.get('status')
+
+        if poStatus != "0":
+            context["po"] = internalPO.objects.filter(Status=poStatus).order_by('-id')
+        else:
+            context["po"] = internalPO.objects.all().order_by('-id')
 
 
     return render(request, "internal_po_list.html", context)
@@ -1579,17 +1589,34 @@ def update_po(request, id, woID, selectedvs):
     
 
     # To Unlink the PO 
-    if obj.invoice != None:
-        woInv = woInvoice.objects.filter(invoiceNumber = obj.invoice).first()
+    if obj.Status == 2:
+        if obj.estimate != None:
+            woEst = woEstimate.objects.filter(estimateNumber = obj.estimate).first()        
 
-        if woInv:
-            if woInv.is_partial:
+            if woEst:               
                 context['unlink']= True
             else:
                 context['unlink']= False
-    else:
+        else:
+            context['unlink']= False
 
-        context['unlink']= False
+    elif obj.Status == 3:
+        if obj.invoice != None:
+            woInv = woInvoice.objects.filter(invoiceNumber = obj.invoice).first()                    
+            if woInv:
+
+                # validate if thw WO has a Final Invoice
+                finalInv = woInvoice.objects.filter(woID = obj.woID,is_partial = False).count()
+
+                if woInv.is_partial and finalInv == 0:
+                    context['unlink']= True
+                else:
+                    context['unlink']= False
+        else:
+
+            context['unlink']= False
+
+
 
     if selectedvs != "0":
         itemResult = next((i for i, item in enumerate(vendorList) if item["id"] == selectedvs), None)
@@ -1600,11 +1627,9 @@ def update_po(request, id, woID, selectedvs):
     if itemResult != None:
         context['selectedvs2'] = vendorList[itemResult]
     else:
-        context['selectedvs2'] = ""
+        context['selectedvs2'] = ""    
 
-    form = InternalPOForm(request.POST or None, instance = obj )
-
-    if request.user.is_staff:
+    if request.user.is_staff or emp.is_superAdmin:
         form = InternalPOFormAdmin(request.POST or None, instance = obj )
     else:
         form = InternalPOForm(request.POST or None, instance = obj )
@@ -1663,14 +1688,26 @@ def unlink_po(request, id, woID):
  
     if request.method == 'POST':
 
-        invoiceID = obj.invoice
 
-        obj.Status = 1
-        obj.estimate = None
-        obj.invoice = None
-        obj.save()
+        if obj.Status == 2:
+            estimateID = obj.estimate
+            obj.Status = 1
+            obj.estimate = None
+            obj.invoice = None
+            obj.save()
 
-        calculate_invoice_total(request,woID,int(invoiceID))
+            calculate_estimate_total(request,woID,int(estimateID))
+
+        elif obj.Status == 3:
+            invoiceID = obj.invoice
+
+            obj.Status = 1
+            obj.estimate = None
+            obj.invoice = None
+            obj.save()
+
+
+            calculate_invoice_total(request,woID,int(invoiceID))
 
         if int(woID) > 0:
             return HttpResponseRedirect("/po_list/" + str(woID))
@@ -1731,7 +1768,7 @@ def create_po(request, id, selectedvs):
 
     wo = workOrder.objects.filter(id=id).first()
     
-    if request.user.is_staff:
+    if request.user.is_staff or emp.is_superAdmin:
         form = InternalPOFormAdmin(request.POST or None, initial={'woID': wo})
     else:
         form = InternalPOForm(request.POST or None, initial={'woID': wo})
@@ -3030,6 +3067,91 @@ def calculate_invoice_total(request, id, invoiceID):
     woInv.save()
     
     return total   
+
+@login_required(login_url='/home/')
+def calculate_estimate_total(request, id, estimateID):
+
+    wo = workOrder.objects.filter(id=id).first()
+
+    itemResume = []
+
+    authBilling = authorizedBilling.objects.filter(woID = wo, estimate = estimateID)
+
+    woEst = woEstimate.objects.filter(woID = wo, estimateNumber = estimateID).first()
+
+    for data in authBilling:
+        if data.quantity > 0:
+            itemResume.append({'item':data.itemID.item.itemID, 'name': data.itemID.item.name, 'quantity': data.quantity, 'price':data.itemID.price, 'amount':data.total,'Encontrado':False})
+    
+    total = 0 
+    linea = 0
+
+    try:
+        itemResumeS = sorted(itemResume, key=lambda d: d['item']) 
+        for data in itemResumeS:
+            linea = linea + 1
+            amount = 0
+            
+            amount = Decimal(str(data['quantity'])) * Decimal(str(data['price']))
+            total = total + amount         
+    except Exception as e:
+        print(e)
+
+
+    # obtengo las internal PO
+    internal = internalPO.objects.filter(woID = wo, nonBillable = False, estimate = estimateID)
+    totaPO = 0
+    
+    vendorList = vendorSubcontrator(request)
+    
+    for data in internal:
+        linea = linea + 1
+        if data.total != None and data.total != "":
+            if data.isAmountRounded:
+                amount = int(round(float(str(data.total)))) 
+            else:
+                amount = Decimal(str(data.total))
+        else:
+            amount = 0
+
+        total = total + amount
+        totaPO += amount
+        
+                
+    if totaPO > 0:
+        totaPO = totaPO * Decimal(str(0.10))
+        
+        #if data.isAmountRounded:
+            #total = total + int(round(float(totaPO)))
+        #else:
+        total = total + totaPO
+
+
+    #Adding Billable Hours
+
+    bill = DailyEmployee.objects.filter(DailyID__woID =wo, billableHours = True, estimate = estimateID).exclude(Status=4)
+
+    totalHours = 0
+    totalHoursRate =  0
+
+    for b in bill:
+        totalHours +=  validate_decimals(b.total_hours) 
+        #Calculating Regular Hours
+        totalHoursRate += (validate_decimals(b.regular_hours) * validate_decimals(b.EmployeeID.hourly_rate))
+
+        #Calculating OT Hours
+        totalHoursRate += (validate_decimals(b.ot_hour) * (validate_decimals(b.EmployeeID.hourly_rate)* 1.5))
+
+        #Calculating OT Hours
+        totalHoursRate += (validate_decimals(b.double_time) * (validate_decimals(b.EmployeeID.hourly_rate)* 2))
+       
+    total += Decimal(totalHoursRate) 
+
+    woEst.total = total
+    woEst.save()
+    
+    return total   
+
 
 @login_required(login_url='/home/')
 def upload_item(request):
@@ -8169,6 +8291,7 @@ def payroll_employee_report(request, empID):
     logInAuditLog(request, opType, opDetail)
 
     employeeID = empID
+    context["post"] = False
 
     if request.method == 'POST':       
        dateSelected =  request.POST.get('date')
@@ -8192,6 +8315,7 @@ def payroll_employee_report(request, empID):
        context["dateSelected"] =  dateS
        context["dateSelected2"] =  dateS2
        context["locationSelected"] =  location
+       context["post"] = True
 
     if employeeID != "0":
         empSel = Employee.objects.filter(employeeID = employeeID ).first()
@@ -8410,7 +8534,13 @@ def get_summary_by_employee(request,dateSelected, dateSelected2, empID, Location
         row_num=7
         
         for x in dailyList:
-            demp = DailyEmployee.objects.filter(DailyID=x).order_by()    
+            if empID == "0":               
+                demp = DailyEmployee.objects.filter(DailyID=x ).order_by()    
+            else:
+                empL = Employee.objects.filter(employeeID = empID).first()
+                demp = DailyEmployee.objects.filter(DailyID=x, EmployeeID = empL).order_by()    
+
+            #demp = DailyEmployee.objects.filter(DailyID=x).order_by()    
             empLines = 0    
 
             for y in demp:
