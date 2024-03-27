@@ -432,6 +432,8 @@ class subcontractor(models.Model):
     contactPhone = models.CharField(max_length=50, blank=True, null=True)
     description = models.CharField(max_length=200, blank=True, null=True)
     is_active = models.BooleanField(default=True)
+    pay70Percent = models.BooleanField(default=True)
+    payPercent =  models.CharField(max_length=60, blank=True, null=True)
     created_date = models.DateTimeField(blank=True, null=True)
     createdBy = models.CharField(max_length=60, blank=True, null=True)
 

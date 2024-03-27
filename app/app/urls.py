@@ -42,6 +42,7 @@ urlpatterns = [
     path('update_item_price/<id>',views.update_item_price),
     path('po_list/<id>',views.po_list),
     path('internal_po_list/',views.internal_po_list),
+    path('get_internal_po_list/<estatus>',views.get_internal_po_list),
     path('update_po/<id>/<woID>/<selectedvs>',views.update_po),
     path('unlink_po/<id>/<woID>',views.unlink_po),
     path('delete_po/<id>/<woID>',views.delete_po),

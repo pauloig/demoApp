@@ -369,6 +369,8 @@ class subcontractorForm(forms.ModelForm):
     contactPhone = forms.CharField(label="Contact Phone",max_length=50, widget=forms.TextInput(attrs={'class':'form-control'}), required=False)
     description = forms.CharField(max_length=200, widget=forms.TextInput(attrs={'class':'form-control'}), required=False)
     #is_active = forms.BooleanField(label="Is Active", required=False)
+    #pay70Percent = forms.BooleanField()
+    payPercent = forms.CharField(label="Pay Percent", max_length=200, widget=forms.TextInput(attrs={'class':'form-control'}), required=False)  
     created_date = forms.CharField(label="Created Date",max_length=200, widget=forms.TextInput(attrs={'class':'form-control'}), required=False)
     createdBy = forms.CharField(label="Created By",max_length=200, widget=forms.TextInput(attrs={'class':'form-control'}), required=False)
 
@@ -384,6 +386,8 @@ class subcontractorForm(forms.ModelForm):
             'contactPhone',
             'description',
             'is_active',
+            'pay70Percent',
+            'payPercent',
             'created_date',
             'createdBy'        
         ]

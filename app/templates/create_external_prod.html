@@ -15,7 +15,7 @@
                     <h6 class="card-header card-header-wc">External Production</h6>
                         <div class="card-body">                    
                             <div class="row">
-                                <div class="col-sm-6">
+                                <div class="col-sm-4">
                                     <div class="mb-3">
                                         <label for="{{ form.woID.id_for_label }}" class="form-label">Selected Work Order</label>
                                         {% if id != None %}
@@ -36,7 +36,14 @@
                                     {% endif %}    
                                     
                                     <div class="invalid-feedback">{{ form.subcontractor.errors|first }}</div>
-                                </div>                                   
+                                </div>     
+                                <div class="col-sm-2">
+                                    <label for="{{ form.subcontractor.id_for_label }}" class="form-label">Pay Percent</label>
+                                    
+                                    
+                                    <input type="text" class="form-control" id="name" name="name" value="{{payPercent}}" disabled/>                                
+                                    <div class="invalid-feedback">{{ form.subcontractor.errors|first }}</div>
+                                </div>                                 
                             </div>  
                             <div class="row">
                                 <div class="col-sm-6">
@@ -132,8 +139,9 @@
                                             <thead>
                                                 <tr class="table-primary">                                                    
                                                     <td width="40%" class="p-1">Item</td>
-                                                    <td width="15%" class="p-1">Qty.</td>
-                                                    <td width="15%" class="p-1">Price</td>
+                                                    <td width="5%" class="p-1">Qty.</td>
+                                                    <td width="10%" class="p-1">Price</td>
+                                                    <td width="15%" class="p-1">Emp. Payout</td>
                                                     <td width="15%" class="p-1">Total</td>  
                                                     <td width="15%" class="p-1">     
                                                         {% if emp.is_superAdmin or emp.is_admin or user.is_staff  %}     
@@ -149,6 +157,7 @@
                                                     <tr>
                                                         <td class="p-1">{{itemd.itemID.item.itemID}}</td>
                                                         <td class="p-1">{{itemd.quantity}}</td>
+                                                        <td class="p-1">${{itemd.itemID.price|floatformat:2|intcomma}}</td>
                                                         <td class="p-1">${{itemd.itemID.emp_payout|floatformat:2|intcomma}}</td>
                                                         <td class="p-1">${{itemd.total|floatformat:2|intcomma}}</td>   
                                                         <td class="p-1">

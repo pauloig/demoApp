@@ -1542,7 +1542,7 @@ def internal_po_list(request):
     context = {}    
     per = period.objects.filter(status__in=(1,2)).first()
     context["per"] = per
-
+    context["selectEstatus"] = "-1"
     
     context["emp"] = emp
 
@@ -1558,6 +1558,8 @@ def internal_po_list(request):
 
     if request.method == 'POST':       
         poStatus =  request.POST.get('status')
+        context["selectEstatus"] = poStatus
+
 
         if poStatus != "0":
             context["po"] = internalPO.objects.filter(Status=poStatus).order_by('-id')
@@ -1566,6 +1568,96 @@ def internal_po_list(request):
 
 
     return render(request, "internal_po_list.html", context)
+
+
+@login_required(login_url='/home/')
+def get_internal_po_list(request,estatus):
+    
+
+    wb = xlwt.Workbook(encoding='utf-8')
+    ws = wb.add_sheet('Internal PO', cell_overwrite_ok = True) 
+
+    # Sheet header, first row
+    row_num = 7
+
+    font_title = xlwt.XFStyle()
+    font_title.font.bold = True
+    font_title = xlwt.easyxf('font: bold on, color black;\
+                     borders: top_color black, bottom_color black, right_color black, left_color black,\
+                              left thin, right thin, top thin, bottom thin;\
+                     pattern: pattern solid, fore_color light_blue;')
+
+    font_style =  xlwt.XFStyle()              
+
+       
+
+
+    columns = ['Vendor', 'PO', 'WO ID', 'Supervisor','Total','Non Billable','Created Date', 'Created By', 'Status','Transfer From', 'Transfer Date','Transfer By']
+
+    for col_num in range(len(columns)):
+        ws.write(row_num, col_num, columns[col_num], font_title) # at 0 row 0 column 
+    
+
+    if estatus != "0":
+        ordenes =  internalPO.objects.filter(Status=estatus).order_by('-id')
+    else:
+        ordenes = internalPO.objects.all().order_by('-id')
+
+    for item in ordenes:
+        row_num += 1
+        ws.write(row_num, 0, item.vendor, font_style) # at 0 row 0 column 
+        ws.write(row_num, 1, item.poNumber, font_style) # at 0 row 0 column 
+        ws.write(row_num, 2, item.woID.prismID, font_style) # at 0 row 0 column 
+        if item.supervisor != None:
+            ws.write(row_num, 3, item.supervisor.first_name + " " + item.supervisor.last_name, font_style)
+        else:
+            ws.write(row_num, 3, " ", font_style)
+
+        ws.write(row_num, 4, item.total, font_style) 
+        ws.write(row_num, 5, item.nonBillable, font_style)
+        if item.transfer_date != None: 
+            ws.write(row_num, 6, item.created_date.strftime("%m/%d/%Y"), font_style) 
+        else:
+            ws.write(row_num, 6, "", font_style) 
+            
+        ws.write(row_num, 7, item.createdBy, font_style) 
+
+        if item.Status == 1:
+             ws.write(row_num, 8, "Open", font_style) 
+        elif item.Status == 2:
+             ws.write(row_num, 8, "Estimated", font_style) 
+        elif item.Status == 3:
+             ws.write(row_num, 8, "Invoiced", font_style)
+        else:
+             ws.write(row_num, 8, "", font_style)
+        
+        
+        if item.transferFromPO != None:
+            ws.write(row_num, 9, item.transferFromPO.prismID + "-" + item.transferFromPO.workOrderId + "-" + item.transferFromPO.PO, font_style) 
+        else:
+            ws.write(row_num, 9, "", font_style) 
+
+        if item.transfer_date != None:
+            ws.write(row_num, 10, item.transfer_date.strftime("%m/%d/%Y"), font_style) 
+        else:
+            ws.write(row_num, 10, "", font_style) 
+            
+        ws.write(row_num, 11, item.transferBy, font_style) 
+
+        
+
+        ws.col(3).width = 5000
+        ws.col(5).width = 3500
+        ws.col(9).width = 7000
+
+
+    filename = 'Internal PO.xls'    
+    response = HttpResponse(content_type='application/ms-excel')
+    response['Content-Disposition'] = 'attachment; filename=' + filename 
+
+    wb.save(response)
+
+    return response    
 
 @login_required(login_url='/home/')
 def update_po(request, id, woID, selectedvs):
@@ -6667,8 +6759,14 @@ def get_external_prod(request, id):
     obj = get_object_or_404(externalProduction , id = id )
 
     context["external"] = externalProduction.objects.filter(id = id).first()
+    
 
     form = extProdForm(request.POST or None, instance = obj)
+
+    if obj.subcontractor.pay70Percent == True:
+        context["payPercent"] = "70%"
+    else:
+        context["payPercent"] = obj.subcontractor.payPercent + "%"
 
     context["id"] = id
     context["items"] = externalProdItem.objects.filter(externalProdID = obj)
