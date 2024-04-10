@@ -9068,6 +9068,9 @@ def vendor_subcontractor_list(request,woID, tipoOp, id):
 
 def date_difference(orders):
     day_diff = []
+    partial_inv = 0
+
+
     for i in orders:
         
         if validate_decimals(i.Status) >= 2 and validate_decimals(i.Status) <=4:   
@@ -9078,12 +9081,19 @@ def date_difference(orders):
                 b = datetime.strptime(i.UploadDate[0:10], date_format)
                 delta = a - b
                 days_overdue = delta.days
+
+                #getting the WO
+                wo = workOrder.objects.filter(id = i.id).first()                
+                partial_inv = woInvoice.objects.filter(woID = wo).count()
+
             except Exception as e:
                 days_overdue = 0
+                partial_inv = 0
         else:
             days_overdue = 0
+            partial_inv = 0
 
-        day_diff.append({'id':i.id, 'days': days_overdue, 'prismID': i.prismID, 'workOrderId': i.workOrderId, 'PO': i.PO, 'POAmount':i.POAmount, 'Status': i.Status,  'Location':i.Location, 'WCSup': i.WCSup, 'created_date': i.created_date, 'UploadDate':i.UploadDate, 'IssuedBy':i.IssuedBy, 'JobName': i.JobName, 'JobAddress': i.JobAddress })
+        day_diff.append({'id':i.id, 'days': days_overdue, 'prismID': i.prismID, 'workOrderId': i.workOrderId, 'PO': i.PO, 'POAmount':i.POAmount, 'Status': i.Status,  'Location':i.Location, 'WCSup': i.WCSup, 'created_date': i.created_date, 'UploadDate':i.UploadDate, 'IssuedBy':i.IssuedBy, 'JobName': i.JobName, 'JobAddress': i.JobAddress, 'partial_inv': partial_inv  })
     
     return day_diff
 

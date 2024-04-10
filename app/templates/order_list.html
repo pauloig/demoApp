@@ -159,8 +159,10 @@
                                     <tbody>                                       
                                         {% for order in day_diff %}
                                             <tr                                                                                         
-                                                {%if order.days > 8%}
+                                                {%if order.days > 8 and order.partial_inv == 0 %}
                                                     style = "background: yellow;"
+                                                {%elif order.days > 8 and order.partial_inv > 0 %}
+                                                    style = "background: #9CFF33;"
                                                 {%endif%}
                                             >
                                                 <td class="p-1">{{order.prismID}} - {{order.workOrderId}} - {{order.PO}} </td>
@@ -172,22 +174,31 @@
                                                 {% if order.Status == "1" %}
                                                     <td class="p-1">Not Started</td>
                                                 {% elif order.Status == "2" %}
-                                                    <td class="p-1">Work in Progress</td>
+                                                    <td class="p-1">Work in Progress
+                                                        {%if order.days > 8 and order.partial_inv > 0 %}    
+                                                        / Partial Est.
+                                                        {%endif%}
+                                                    </td>
                                                 {% elif order.Status == "3" %}
-                                                    <td class="p-1">Pending Docs</td>
+                                                    <td class="p-1">Pending Docs
+
+                                                        {%if order.days > 8 and order.partial_inv > 0 %}    
+                                                        / Partial est.
+                                                        {%endif%}
+                                                    </td>
                                                 {% elif order.Status == "4" %}
                                                     <td class="p-1">Pending Revised WO</td>
                                                 {% elif order.Status == "5" %}
                                                     <td class="p-1">Invoiced</td>
                                                 {%else%}
                                                     <td class="p-1"></td>
-                                                {% endif %}
+                                                {% endif %} 
                                                 <td class="p-1">{{order.Location}}</td>
                                                 <td class="p-1">{{order.WCSup}}</td>
                                                 <td class="p-1">{{order.created_date|date:'Y-m-d H:i'}}</td> 
                                                 <td class="p-1">{{order.UploadDate}}</td>      
                                                 <td class="p-1">
-                                                            {{order.days}}
+                                                            {{order.days}} 
                                                 </td>              
                                                 <td class="p-1">{{order.IssuedBy}}</td>
                                                 <td class="p-1">{{order.JobName}}</td>
