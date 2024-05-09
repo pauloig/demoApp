@@ -5227,11 +5227,12 @@ def get_list_orders(request,estatus, loc, pid,addR,invNumber,invAmount,invAmount
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     per = period.objects.filter(status__in=(1,2)).first()
 
+    context= {} 
+
     if loc == None or loc =="":
         loc = "0"
 
     locationObject = Locations.objects.filter(LocationID=loc).first()    
-    
 
     if emp:
         if emp.is_superAdmin:                
@@ -5282,7 +5283,8 @@ def get_list_orders(request,estatus, loc, pid,addR,invNumber,invAmount,invAmount
             ordenes=orders
             return ordenes                                    
         
-        if emp.is_admin:  
+        if emp.is_admin:              
+         
             context["perfil"]="Admin"  
             
             locaList = employeeLocation.objects.filter(employeeID = emp)
@@ -5295,11 +5297,11 @@ def get_list_orders(request,estatus, loc, pid,addR,invNumber,invAmount,invAmount
                     
             if emp.Location!= None:
                 if estatus == "0" and loc == "0":                                         
-                    if pid != None and pid != "":
+                    if pid != None and pid != "-1":
                         orders = workOrder.objects.filter(prismID__exact = pid, Location__LocationID__in = locationList).exclude(linkedOrder__isnull = False, uploaded = False)    
-                    elif addR != None and addR !="":
+                    elif addR != None and addR !="-1":
                         orders = workOrder.objects.filter(JobAddress__contains = addR, Location__LocationID__in = locationList).exclude(linkedOrder__isnull = False, uploaded = False)   
-                    elif invNumber !="" and invNumber != None:                
+                    elif invNumber !="-1" and invNumber != None:                
                         #Getting the OrderList by Invoice Number                        
                         woInv = woInvoice.objects.filter(invoiceNumber = invNumber)
                         woInvLits = []                        
@@ -5307,7 +5309,7 @@ def get_list_orders(request,estatus, loc, pid,addR,invNumber,invAmount,invAmount
                             woInvLits.append(i.woID.id)
                         orders = workOrder.objects.filter(id__in = woInvLits, Location__LocationID__in = locationList ).exclude(linkedOrder__isnull = False, uploaded = False) 
                         
-                    elif  invAmount !="" and invAmount != None and invAmountF !="" and invAmountF != None:      
+                    elif  invAmount !="-1" and invAmount != None and invAmountF !="" and invAmountF != None:      
                         #Getting the OrderList by Invoice Number                        
                         woInv = woInvoice.objects.filter(total__gte = float(invAmount), total__lte = float(invAmount))
                         woInvLits = []
@@ -5316,7 +5318,7 @@ def get_list_orders(request,estatus, loc, pid,addR,invNumber,invAmount,invAmount
                             woInvLits.append(i.woID.id)
 
                         orders = workOrder.objects.filter(id__in = woInvLits, Location__LocationID__in = locationList ).exclude(linkedOrder__isnull = False, uploaded = False)                         
-                    elif  invAmount !="" and invAmount != None:   
+                    elif  invAmount !="-1" and invAmount != None:   
                         #Getting the OrderList by Invoice Number
                         
                         woInv = woInvoice.objects.filter(total = float(invAmount))
@@ -5347,7 +5349,7 @@ def get_list_orders(request,estatus, loc, pid,addR,invNumber,invAmount,invAmount
                             orders = workOrder.objects.filter(Location__LocationID__in = locationList).exclude(linkedOrder__isnull = False, uploaded = False )                             
                             
             else:
-                orders = None
+                orders = workOrder.objects.filter(id = -1) 
             
             ordenes=orders
             return ordenes
@@ -5459,7 +5461,8 @@ def get_order_list(request,estatus, loc,pid,addR,invNumber,invAmount,invAmountF,
     
 
     if superV == "False":
-        ordenes = get_list_orders(request, estatus, loc,pid,addR,invNumber,invAmount,invAmountF)  
+        #Validate difference bwteen bySupervisor and the other Function --- 08/05/2024
+        ordenes = get_list_orders(request, estatus, loc,pid,addR,invNumber,invAmount,invAmountF)          
     else:
         ordenes = get_list_orders_bySupervisor(request, estatus, loc,pid,addR,invNumber,invAmount,invAmountF)  
 
