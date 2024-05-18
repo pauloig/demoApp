@@ -1723,6 +1723,8 @@ def update_po(request, id, woID, selectedvs):
 
     if request.user.is_staff or emp.is_superAdmin:
         form = InternalPOFormAdmin(request.POST or None, instance = obj )
+    elif emp.accounts_payable:
+        form = InternalPOFormAccounPay(request.POST or None, instance = obj )
     else:
         form = InternalPOForm(request.POST or None, instance = obj )
 
@@ -1861,7 +1863,9 @@ def create_po(request, id, selectedvs):
     wo = workOrder.objects.filter(id=id).first()
     
     if request.user.is_staff or emp.is_superAdmin:
-        form = InternalPOFormAdmin(request.POST or None, initial={'woID': wo})
+        form = InternalPOFormAdmin(request.POST or None, initial={'woID': wo})    
+    elif emp.accounts_payable:
+        form = InternalPOFormAccounPay(request.POST or None, initial={'woID': wo})
     else:
         form = InternalPOForm(request.POST or None, initial={'woID': wo})
     
