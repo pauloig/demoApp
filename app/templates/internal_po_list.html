@@ -20,15 +20,17 @@
                                         <div class="input-group mb-3">   
                                             <select class="form-select" aria-label="Default select example" name="status" id="status">                                                                                           
                                                 {%if selectEstatus == "-1"%} 
-                                                    <option value ="-1" selected>Select an Option</option>
+                                                    <option value ="0" selected>Select an Option</option>
                                                 {%else%}
-                                                    <option value ="-1">Select an Option</option>
+                                                    <option value ="0">Select an Option</option>
                                                 {%endif%}
-                                                {%if selectEstatus == "0"%} 
+                                               <!-- 
+                                               {%if selectEstatus == "0"%} 
                                                     <option value ="0" selected >All PO</option>
                                                 {%else%}
                                                     <option value ="0">All PO</option>
-                                                {%endif%}
+                                                {%endif%} 
+                                               --> 
                                                 {%if selectEstatus == "1"%}
                                                     <option value ="1" selected>Open</option>
                                                 {%else%}
@@ -49,14 +51,32 @@
                                         </div>
                                 </div>                                                                
                             </div>    
-                        </div> 
+                            <div class="col-lg-3">
+                                <div class="mb-3">
+                                    <label for="employee" class="form-label">PO Number</label>                
+                                        <div class="input-group mb-3">   
+                                            <input class="form-control" type="text" name="poNumber" id="poNumber" value={{selectedPO}}>
+                                        </div>
+                                  
+                                </div>
+                            </div>
+                            <div class="col-lg-3">
+                                <div class="mb-3">
+                                    <label for="employee" class="form-label">PID</label>                
+                                        <div class="input-group mb-3">   
+                                            <input class="form-control" type="text" name="pid" id="pid" value={{selectedPID}}>
+                                        </div>
+                                  
+                                </div>
+                            </div>
+                        </div>
                         <div class="row">
                             
                             <div class="col-lg-5">                                                              
                                 <div class="form-outline" style="align-items: center;">
                                     <input class="btn btn-primary" type="submit" value="Search">     
                                     
-                                    <a class="btn btn-primary" href="/get_internal_po_list/{{selectEstatus}}" role="button">Download</a>
+                                    <a class="btn btn-primary" href="/get_internal_po_list/{{selectEstatusd}}/{{selectedPOd}}/{{selectedPIDd}}" role="button">Download</a>
                                     
                                     <a href="/" type="button" class="btn btn-danger">Close</a>                             
                                 </div>

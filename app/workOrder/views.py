@@ -1539,11 +1539,18 @@ def po_list(request, id):
 @login_required(login_url='/home/')
 def internal_po_list(request):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
-    context = {}    
     per = period.objects.filter(status__in=(1,2)).first()
+
+
+    context = {}  
+    poStatus = "0"
+    poNumber = ""
+    pid = ""
+
+
+    
     context["per"] = per
     context["selectEstatus"] = "-1"
-    
     context["emp"] = emp
 
     vendorList = vendorSubcontrator(request) 
@@ -1557,21 +1564,57 @@ def internal_po_list(request):
 
 
     if request.method == 'POST':       
-        poStatus =  request.POST.get('status')
+        poStatus = request.POST.get('status')
+        poNumber = request.POST.get('poNumber')
+        pid = request.POST.get('pid')
         context["selectEstatus"] = poStatus
+        context["selectedPO"] = poNumber
+        context["selectedPID"] = pid
+        
 
+   
 
         if poStatus != "0":
-            context["po"] = internalPO.objects.filter(Status=poStatus).order_by('-id')
+            if poNumber != "" and pid != "":
+                context["po"] = internalPO.objects.filter(Status=poStatus, poNumber = poNumber, woID__prismID = pid).order_by('-id')
+            else:
+                if pid != "":
+                    context["po"] = internalPO.objects.filter(Status=poStatus, woID__prismID = pid).order_by('-id')
+                elif poNumber != "":
+                    context["po"] = internalPO.objects.filter(Status=poStatus, poNumber = poNumber).order_by('-id')
+                else:
+                    context["po"] = internalPO.objects.filter(Status=poStatus).order_by('-id')
         else:
-            context["po"] = internalPO.objects.all().order_by('-id')
+            if poNumber != "" and pid != "":
+                context["po"] = internalPO.objects.filter(poNumber = poNumber, woID__prismID = pid).order_by('-id')
+            else:
+                if pid != "":
+                    context["po"] = internalPO.objects.filter(woID__prismID = pid).order_by('-id')
+                elif poNumber != "":
+                    context["po"] = internalPO.objects.filter(poNumber = poNumber).order_by('-id')
+                else:
+                    context["po"] = internalPO.objects.filter(id = -1).order_by('-id')
 
+    if poStatus == None or poStatus == "":
+        context["selectEstatusd"] = "-1"
+    else:
+        context["selectEstatusd"] = poStatus
+    
+    if poNumber == None or poNumber =="":        
+        context["selectedPOd"] = "-1"
+    else:
+        context["selectedPOd"] = poNumber
 
+    if pid == None or pid == "":
+        context["selectedPIDd"] = "-1"
+    else: 
+        context["selectedPIDd"] = pid
+                
     return render(request, "internal_po_list.html", context)
 
 
 @login_required(login_url='/home/')
-def get_internal_po_list(request,estatus):
+def get_internal_po_list(request,estatus,poNumber, pid):
     
 
     wb = xlwt.Workbook(encoding='utf-8')
@@ -1598,10 +1641,32 @@ def get_internal_po_list(request,estatus):
         ws.write(row_num, col_num, columns[col_num], font_title) # at 0 row 0 column 
     
 
-    if estatus != "0":
+    """if estatus != "0":
         ordenes =  internalPO.objects.filter(Status=estatus).order_by('-id')
     else:
-        ordenes = internalPO.objects.all().order_by('-id')
+        ordenes = internalPO.objects.all().order_by('-id')"""
+    
+    if estatus != "0":
+        if poNumber != "-1" and pid != "-1":
+            ordenes = internalPO.objects.filter(Status=estatus, poNumber = poNumber, woID__prismID = pid).order_by('-id')
+        else:
+            if pid != "-1":
+                ordenes = internalPO.objects.filter(Status=estatus, woID__prismID = pid).order_by('-id')
+            elif poNumber != "-1":
+                ordenes = internalPO.objects.filter(Status=estatus, poNumber = poNumber).order_by('-id')
+            else:
+               ordenes = internalPO.objects.filter(Status=estatus).order_by('-id')
+    else:
+        if poNumber != "-1" and pid != "-1":
+            ordenes= internalPO.objects.filter(poNumber = poNumber, woID__prismID = pid).order_by('-id')
+        else:
+            if pid != "-1":
+                ordenes = internalPO.objects.filter(woID__prismID = pid).order_by('-id')
+            elif poNumber != "-1":
+                ordenes = internalPO.objects.filter(poNumber = poNumber).order_by('-id')
+            else:
+                ordenes = internalPO.objects.filter(id = -1).order_by('-id')
+                
 
     for item in ordenes:
         row_num += 1
