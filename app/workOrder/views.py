@@ -977,6 +977,15 @@ def order(request, orderID):
  
     form = workOrderForm(request.POST or None, instance = obj)
 
+    status_update = (
+    ('1', 'Not Started'),
+    ('2', 'Work in Progress'),
+    ('3', 'Pending Docs'),
+    ('4', 'Pending Revised WO'),
+    )
+
+    if obj.Status != '5':
+        form.fields['Status'].choices = status_update
 
 
     if form.is_valid(): 
@@ -3705,8 +3714,10 @@ def orders_payroll(request, dailyID, LocID):
     daily = Daily.objects.filter(id = dailyID).first()    
     loca = list(Locations.objects.all().exclude(LocationID = daily.Location.LocationID))
     
+    WOdailyList = list(Daily.objects.filter(Period = daily.Period, day = daily.day, Location__LocationID = LocID).exclude(woID = None).values_list('woID__id',flat=True))
 
-    wo = workOrder.objects.filter(Status__in = [1,2]).exclude(Location__in = loca)
+
+    wo = workOrder.objects.filter(Status__in = [1,2]).exclude(Location__in = loca).exclude(id__in = WOdailyList )
     context = {}    
     context["orders"] = wo
     context["emp"] = emp    
@@ -3715,6 +3726,7 @@ def orders_payroll(request, dailyID, LocID):
 
     per = period.objects.filter(status__in=(1,2)).first()
     context["per"] = per
+    #context["WOdailyList"] = WOdailyList
 
     return render(request, "orders_payroll.html", context)
 
