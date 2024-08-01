@@ -54,10 +54,16 @@
                                     {%elif order.Status == "2"%}
                                         <input type="text" name="Status" id="Status" class="form-control" value="Work in Progress" disabled>
                                     {%elif order.Status == "3"%}
-                                        <input type="text" name="Status" id="Status" class="form-control" value="Pending D                                        <input type="text" name="Status" id="Status" class="form-control" value="Pending Revised WO" disabled>
+                                        <input type="text" name="Status" id="Status" class="form-control" value="Pending Docs" disabled>
+                                    {%elif order.Status == "4"%}                                     
+                                         <input type="text" name="Status" id="Status" class="form-control" value="Pending Revised WO" disabled>
                                     {%elif order.Status == "5"%}
                                         <input type="text" name="Status" id="Status" class="form-control" value="Invoiced" disabled>
-                                    {%endif%}                                                                                                                                            
+                                    {%elif order.Status == "6"%}
+                                        <input type="text" name="Status" id="Status" class="form-control" value="Transferred" disabled>
+                                    {% else %}
+                                        <input type="text" name="Status" id="Status" class="form-control" value="" disabled>
+                                    {%endif%}                                                                                                                                           
                                 </div>
                             </div>
                         </div>   

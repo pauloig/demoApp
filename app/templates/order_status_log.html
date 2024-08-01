@@ -54,6 +54,8 @@
                                                     <td>Pending Revised WO</td>
                                                 {% elif data.currentStatus == "5" %}
                                                     <td>Invoiced</td>
+                                                {% elif data.currentStatus == "6" %}
+                                                    <td>Transferred</td>
                                                 {% endif %}
 
                                                 {% if data.nextStatus == None %}
@@ -68,6 +70,8 @@
                                                     <td>Pending Revised WO</td>
                                                 {% elif data.nextStatus == "5" %}
                                                     <td>Invoiced</td>
+                                                {% elif data.nextStatus == "6" %}
+                                                    <td>Transferred</td>
                                                 {% endif %}                                                
                                                                                              
                                                 <td>{{data.createdBy}}</td>                                                

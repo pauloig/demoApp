@@ -73,6 +73,8 @@
                                         <input type="text" name="Status" id="Status" class="form-control" value="Pending Revised WO" disabled>
                                     {%elif order.Status == "5"%}
                                         <input type="text" name="Status" id="Status" class="form-control" value="Invoiced" disabled>
+                                    {%elif order.Status == "6"%}
+                                        <input type="text" name="Status" id="Status" class="form-control" value="Transferred" disabled>
                                     {%endif%}                                                                                                                                            
                                 </div>
                             </div>

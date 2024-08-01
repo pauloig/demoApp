@@ -15,6 +15,7 @@ status_choice = (
     ('3', 'Pending Docs'),
     ('4', 'Pending Revised WO'),
     ('5', 'Invoiced'),
+    ('6', 'Transferred')
 )
 
 prodStatus_choice = (

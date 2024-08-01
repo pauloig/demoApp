@@ -49,6 +49,11 @@
                                     {%else%}
                                         <option value="5">Invoiced</option>
                                     {%endif%}
+                                    {%if selectEstatus == "6"%}
+                                        <option value="6" selected>Transferred</option>
+                                    {%else%}
+                                        <option value="6">Transferred</option>
+                                    {%endif%}
                                   </select>
                             </div>
                             <div class="col-lg-2">  
@@ -189,7 +194,9 @@
                                                 {% elif order.Status == "4" %}
                                                     <td class="p-1">Pending Revised WO</td>
                                                 {% elif order.Status == "5" %}
-                                                    <td class="p-1">Invoiced</td>
+                                                    <td class="p-1">Invoiced</td>                                               
+                                                {% elif order.Status == "6" %}
+                                                    <td class="p-1">Transferred</td>
                                                 {%else%}
                                                     <td class="p-1"></td>
                                                 {% endif %} 

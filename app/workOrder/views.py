@@ -982,6 +982,7 @@ def order(request, orderID):
     ('2', 'Work in Progress'),
     ('3', 'Pending Docs'),
     ('4', 'Pending Revised WO'),
+    ('6', 'Transferred'),
     )
 
     if obj.Status != '5':
