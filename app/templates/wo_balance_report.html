@@ -1,0 +1,203 @@
+{% extends 'index.html' %} 
+{%load static%}
+{% load humanize %}
+{% block container %}
+
+<div class="container">
+    <form method='post' enctype="multipart/form-data">
+        {% csrf_token %}
+
+        
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="card">
+                    <h6 class="card-header card-header-wc" >Filters</h6>
+                    <div class="card-body">
+                        <div class="row"> 
+                            <div class="col-lg-2">   
+                                Status                                                  
+                                <select class="form-select" aria-label="Default select example" name="status" id="status"> 
+                                    
+                                    {%if selectEstatus == "0"%} 
+                                        <option value ="0"  selected >Status</option>
+                                    {%else%}
+                                        <option value ="0" >Status</option>
+                                    {%endif%}
+                                    {%if selectEstatus == "1"%}
+                                        <option value="1" selected>Not Started</option>
+                                    {%else%}
+                                        <option value="1" >Not Started</option>
+                                    {%endif%}
+                                    {%if selectEstatus == "2"%}
+                                        <option value="2" selected>Work in Progress</option>
+                                    {%else%}
+                                        <option value="2">Work in Progress</option>
+                                    {%endif%}
+                                    {%if selectEstatus == "3"%}
+                                        <option value="3" selected>Pending Docs</option>
+                                    {%else%}
+                                        <option value="3" >Pending Docs</option>
+                                    {%endif%}
+                                    {%if selectEstatus == "4"%}
+                                        <option value="4" selected>Pending Revised WO</option>
+                                    {%else%}
+                                        <option value="4">Pending Revised WO</option>
+                                    {%endif%}
+                                    {%if selectEstatus == "5"%}
+                                        <option value="5" selected>Invoiced</option>
+                                    {%else%}
+                                        <option value="5">Invoiced</option>
+                                    {%endif%}
+                                    {%if selectEstatus == "6"%}
+                                        <option value="6" selected>Invoiced</option>
+                                    {%else%}
+                                        <option value="6">Transferred</option>
+                                    {%endif%}
+                                  </select>
+                            </div>
+                            <div class="col-lg-2">  
+                                Location                          
+                                {%if emp.is_superAdmin or user.is_staff or emp.is_admin %} 
+                                    <select class="form-select" aria-label="Default select example" name="location" id="location">                                                
+                                {%else%}
+                                    <select class="form-select" aria-label="Default select example" name="location" id="location" hidden>                                    
+                                {%endif%}
+                                {%if selectLoc == "0" %}
+                                    <option value ="0" selected>Location</option>
+                                {%else%}
+                                    <option value ="0">Location</option>
+                                {%endif%}
+                                {% for data in location %}
+                                    {%if data.LocationID|slugify == selectLoc%}                              
+                                        <option value="{{data.LocationID}}" selected>{{data.name}}</option>
+                                    {%else%}
+                                        <option value="{{data.LocationID}}">{{data.name}}</option>
+                                    {%endif%}
+                                {% endfor %}    
+                                  </select>
+                            </div>
+                            
+                                             
+                     
+                            <div class="col-lg-6 pt-4">                                                              
+                                <div class="form-outline" style="align-items: center;">
+                                    <input class="btn btn-primary" type="submit" value="Search">   
+                                                                      
+                                    {% if selectEstatus != None and selectEstatus != "0" or selectLoc != None and selectLoc != "0"%} 
+                                        <a class="btn btn-primary" href="/get_balance_report/{{selectEstatus}}/{{selectLoc}}" role="button">Download</a>                            
+                                    {%endif%}
+                                </div>
+                            </div>
+                            <div class="col-lg-1 pt-4">  
+                                <a href="/" type="button" class="btn btn-danger">Close</a>
+                            </div>
+                        </div> 
+                        
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+
+  
+        <div class="row">
+            <div class="col-sm-12 my-3">
+                <div class="card">
+                    <h6 class="card-header card-header-wc" >WO Balance report  - 
+                    {%if selectEstatus == "0"%} 
+                        All Status
+                    {%elif selectEstatus == "1"%}                       
+                         Not Started
+                    {%elif selectEstatus == "2"%}
+                        Work in Progress
+                    {%elif selectEstatus == "3"%}
+                        Pending Docs
+                    {%elif selectEstatus == "4"%}
+                        Pending Revised WO
+                    {%elif selectEstatus == "5"%}
+                        Invoiced
+                    {%elif selectEstatus == "6"%}
+                        Transferred
+                    {%endif%}    
+                    - {% for data in location %}
+                            {%if data.LocationID|slugify == selectLoc%}                              
+                                {{data.name}}                         
+                            {%endif%}
+                        {% endfor %}    
+                    </h6>
+                    <div class="card-body">
+                        <div class="row">                                          
+                            <div class="col-lg-12"> 
+                                <table id="orders" class="table table-sm table-bordered table-striped">
+                                    <thead class="table-primary">
+                                        <tr>
+                                            <th scope="col" class="p-1">Prism ID </th>                                                                                     
+                                                                                                                            
+                                            <th scope="col" class="p-1">PO Amount</th>    
+                                            <th scope="col" class="p-1">Payroll</th>
+                                            <th scope="col" class="p-1">Pending P. Balance</th>
+                                            <th scope="col" class="p-1">Internal PO</th>
+                                            <th scope="col" class="p-1">Pending PO Balance</th>
+                                            <th scope="col" class="p-1">Status</th>
+                                            <th scope="col" class="p-1">Location</th>
+                                            <th scope="col" class="p-1">Supervisor</th>
+                                            <th scope="col" class="p-1">Address</th>                                            
+                                              
+                                        </tr>              
+                                    </thead>
+                                    <tbody>                                       
+                                        {% for item in woInvoice %}
+                                            <tr>                                                                                        
+                                                
+                                                <td class="p-1">{{item.woID}}</td>
+                                                <td class="p-1">{{item.POAmount|floatformat:2|intcomma}}</td>
+                                                <td class="p-1">{{item.Payroll|floatformat:2|intcomma}}</td>
+                                                <td class="p-1">
+                                                                {{item.PendingPayroll|floatformat:2|intcomma}}
+                                                </td>
+                                                <td class="p-1">{{item.internalPO|floatformat:2|intcomma}}</td>                                      
+                                                <td class="p-1">{{item.PendingInternalPO|floatformat:2|intcomma}}</td>
+                                                <td class="p-1">
+                                                    {%if item.Status == "0"%} 
+                                                        All Status
+                                                    {%elif item.Status == "1"%}                       
+                                                        Not Started
+                                                    {%elif item.Status == "2"%}
+                                                        Work in Progress
+                                                    {%elif item.Status == "3"%}
+                                                        Pending Docs
+                                                    {%elif item.Status == "4"%}
+                                                        Pending Revised WO
+                                                    {%elif item.Status == "5"%}
+                                                        Invoiced
+                                                    {%elif item.Status == "6"%}
+                                                        Transferred
+                                                    {%endif%}    
+                                                   
+                                                
+                                                </td>
+                                                <td class="p-1">{{item.Location}}</td>
+                                                <td class="p-1">{{item.supervisor}} </td>
+                                                <td class="p-1">{{item.address}}</td> 
+                                               
+                                                
+                                            </tr>                                             
+                                        {% endfor %}
+                                    </tbody>                              
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    
+        
+        
+    </form>
+
+    <script>
+
+    </script>
+</div>
+{% endblock %}

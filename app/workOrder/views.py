@@ -9032,6 +9032,212 @@ def get_monthly_report(request, dateSelected, dateSelected2, status):
 
 
 @login_required(login_url='/home/')
+def wo_balance_Report(request):
+    context ={}
+
+    emp = Employee.objects.filter(user__username__exact = request.user.username).first()    
+    per = period.objects.filter(status__in=(1,2)).first()
+    context["per"] = per
+    context["emp"] = emp
+
+    opType = "Access Option"
+    opDetail = "Invoice Monthly Report"
+    logInAuditLog(request, opType, opDetail)
+    estatus = ""
+    loc = ""
+
+    locationList = Locations.objects.all()
+    context["location"]=locationList
+
+    if request.method == 'POST':       
+    
+       estatus = request.POST.get('status')
+       loc = request.POST.get('location') 
+
+       if loc == None or loc =="":
+            loc = "0"
+       locationObject = Locations.objects.filter(LocationID=loc).first()
+      
+       if estatus != "0" and loc != "0":
+            result = workOrder.objects.filter(Status = estatus, Location = locationObject).exclude(linkedOrder__isnull = False, uploaded = False )     
+       else:
+            if estatus != "0":
+                result = workOrder.objects.filter(Status = estatus).exclude(linkedOrder__isnull = False, uploaded = False ) 
+            else:
+                result = workOrder.objects.filter(Location = locationObject).exclude(linkedOrder__isnull = False, uploaded = False ) 
+       
+       resultList = []
+        # Calculating Labor
+
+       for i in result:
+            #Payroll Detail
+            dailys = Daily.objects.filter(woID = i)
+
+            empTotal = 0
+            empBalance = 0
+            for item in dailys:
+                dailyEmp = DailyEmployee.objects.filter(DailyID = item)
+
+                for empI in dailyEmp:
+                    empTotal += validate_decimals(empI.payout)
+
+                    if empI.invoice == None:
+                        empBalance += validate_decimals(empI.payout)
+
+            
+            #Internal PO Detail
+            internalpo = internalPO.objects.filter(woID=i)
+            poTotal = 0
+            poBalance = 0
+            for po in internalpo:
+                poTotal += validate_decimals(po.total)
+
+                if po.invoice == None:
+                    poBalance += validate_decimals(po.total)
+
+            resultList.append({'woID': i,'POAmount': i.POAmount,'Payroll': empTotal,'PendingPayroll': empBalance,'internalPO' : poTotal,'PendingInternalPO': poBalance, 
+                             'Status' : i.Status, 'Location':i.Location, 'supervisor': i.WCSup ,'address' : i.JobAddress })
+    
+
+       context["woInvoice"] = resultList
+       context["selectEstatus"] =  estatus
+       context["selectLoc"]=loc
+
+    return render(request, "wo_balance_report.html", context)
+
+
+@login_required(login_url='/home/')
+def get_balance_report(request, status, location):
+    
+
+    wb = xlwt.Workbook(encoding='utf-8')
+    ws = wb.add_sheet('monthly-report', cell_overwrite_ok = True) 
+
+    locationObject = Locations.objects.filter(LocationID=location).first()
+
+    # Sheet header, first row
+    row_num = 4
+
+    font_title = xlwt.XFStyle()
+    font_title.font.bold = True
+    font_title = xlwt.easyxf('font: bold on, color black;\
+                     borders: top_color black, bottom_color black, right_color black, left_color black,\
+                              left thin, right thin, top thin, bottom thin;\
+                     pattern: pattern solid, fore_color gray25;')
+
+    
+    font_style =  xlwt.XFStyle()              
+
+    font_title2 = xlwt.easyxf('font: bold on, color black;\
+                                align: horiz center;\
+                                pattern: pattern solid, fore_color gray25;')
+    
+                              
+    ws.write_merge(3, 3, 0, 9, 'WO Balance Report ',font_title2)   
+
+
+    columns = ['WO ID', 'PO Amount', 'Payroll', 'Pending Payroll Balance', 'Internal PO','Pending Internal PO Balance','Status', 'Location','Supervisor','Address' ] 
+
+    for col_num in range(len(columns)):
+        ws.write(row_num, col_num, columns[col_num], font_title) # at 0 row 0 column 
+
+
+    if status != "0" and location != "0":
+        result = workOrder.objects.filter(Status = status, Location = locationObject).exclude(linkedOrder__isnull = False, uploaded = False )     
+    else:
+        if status != "0":
+            result = workOrder.objects.filter(Status = status).exclude(linkedOrder__isnull = False, uploaded = False ) 
+        else:
+            result = workOrder.objects.filter(Location = locationObject).exclude(linkedOrder__isnull = False, uploaded = False ) 
+    
+    for i in result:
+        #Payroll Detail
+        dailys = Daily.objects.filter(woID = i)
+
+        empTotal = 0
+        empBalance = 0
+        for item in dailys:
+            dailyEmp = DailyEmployee.objects.filter(DailyID = item)
+
+            for empI in dailyEmp:
+                empTotal += validate_decimals(empI.payout)
+
+                if empI.invoice == None:
+                    empBalance += validate_decimals(empI.payout)
+
+        
+        #Internal PO Detail
+        internalpo = internalPO.objects.filter(woID=i)
+        poTotal = 0
+        poBalance = 0
+        for po in internalpo:
+            poTotal += validate_decimals(po.total)
+
+            if po.invoice == None:
+                poBalance += validate_decimals(po.total)
+      
+        row_num += 1
+        ws.write(row_num, 0, i.prismID + " - " + i.workOrderId  + " - " + i.PO, font_style) # at 0 row 0 column 
+        ws.write(row_num, 1, '$' + '{0:,.2f}'.format(validate_decimals(i.POAmount)) , font_style)
+        ws.write(row_num, 2, '$' + '{0:,.2f}'.format(validate_decimals(empTotal)) , font_style)
+        ws.write(row_num, 3, '$' + '{0:,.2f}'.format(validate_decimals(empBalance)) , font_style)
+        ws.write(row_num, 4, '$' + '{0:,.2f}'.format(validate_decimals(poTotal)) , font_style)
+        ws.write(row_num, 5, '$' + '{0:,.2f}'.format(validate_decimals(poBalance)) , font_style)
+       
+        # at 0 row 0 column 
+        
+        if i.Status == "1": 
+            ws.write(row_num, 6, "Not Started", font_style)       
+        elif i.Status == "2":   
+            ws.write(row_num, 6, "Work in Progress", font_style)                                           
+        elif i.Status == "3":   
+            ws.write(row_num, 6, "Pending Docs", font_style)  
+        elif i.Status == "4":   
+            ws.write(row_num, 6, "Pending Revised WO", font_style)  
+        elif i.Status == "5":   
+            ws.write(row_num, 6, "Invoiced", font_style)  
+        elif i.Status == "6":   
+            ws.write(row_num, 6, "Transferred", font_style)                                         
+        else:
+            ws.write(row_num, 6, "", font_style)                                         
+                                                         
+        
+        if i.Location != None:
+            ws.write(row_num, 7, i.Location.name, font_style) # at 0 row 0 column 
+        else:
+            ws.write(row_num, 7, '', font_style) 
+
+        if i.WCSup != None:
+            ws.write(row_num, 8, i.WCSup.first_name + ' ' + i.WCSup.last_name, font_style) # at 0 row 0 column 
+        else:
+            ws.write(row_num, 8, '', font_style) 
+        
+        ws.write(row_num, 9, str(i.JobAddress), font_style) # at 0 row 0 column 
+
+    ws.col(0).width = 9000
+    ws.col(1).width = 6000
+    ws.col(2).width = 6000
+    ws.col(3).width = 6000
+    ws.col(4).width = 6000
+    ws.col(5).width = 6000
+    ws.col(6).width = 6000
+    ws.col(7).width = 8000
+    ws.col(8).width = 9000
+    ws.col(9).width = 14000
+    ws.col(10).width = 6000
+    ws.col(11).width = 6000
+    ws.col(12).width = 3000
+    ws.col(13).width = 6000
+
+    filename = 'WO Balance report.xls'
+    response = HttpResponse(content_type='application/ms-excel')
+    response['Content-Disposition'] = 'attachment; filename=' + filename 
+
+    wb.save(response)
+
+    return response
+
+@login_required(login_url='/home/')
 def wo_comment_log(request, woID, isSupervisor):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     context ={}

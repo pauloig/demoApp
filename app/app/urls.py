@@ -131,6 +131,8 @@ urlpatterns = [
     path('employee_list_pay_report/',views.employee_list_pay_report),  
     path('get_daily_report/<dateSelected>',views.get_daily_report),
     path('get_monthly_report/<dateSelected>/<dateSelected2>/<status>',views.get_monthly_report),
+    path('wo_balance_Report/',views.wo_balance_Report),
+    path('get_balance_report/<status>/<location>', views.get_balance_report),
     path('wo_comment_log/<woID>/<isSupervisor>',views.wo_comment_log),
     path('get_wo_comment_log/<id>',views.get_wo_comment_log),
     #Temp URL's
