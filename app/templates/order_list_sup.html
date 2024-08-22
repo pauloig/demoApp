@@ -147,34 +147,34 @@
                                              <th scope="col" class="p-1">Issue By</th>
                                              <th scope="col" class="p-1">Job Name</th>
                                              <th scope="col" class="p-1">Job Address</th> 
-                                            <th scope="col">Manage</th>
+                                            <th scope="col" class="p-1">Manage</th>
                                         </tr>              
                                     </thead>
                                     <tbody>                                       
                                         {% for order in day_diff %}
-                                            <tr                                                                                         
+                                            <tr 
                                                 {%if order.days > 8%}
                                                     style = "background: yellow;"
                                                 {%endif%}
-                                            >
+                                                >
                                                     <td class="p-1">{{order.prismID}} - {{order.workOrderId}} - {{order.PO}} </td>
                                                     <td>${{order.POAmount|floatformat:2|intcomma}}</td>
                                                     <!-- <td>{{order.Status}}</td> -->
                                                     {% if order.Status == "1" %}
-                                                        <td>Not Started</td>
-                                                    {% endif %}
-                                                    {% if order.Status == "2" %}
+                                                        <td>Not Started</td>                                                    
+                                                    {% elif order.Status == "2" %}
                                                         <td>Work in Progress</td>
-                                                    {% endif %}
-                                                    {% if order.Status == "3" %}
+                                                    {% elif order.Status == "3" %}
                                                         <td>Pending Docs</td>
-                                                    {% endif %}
-                                                    {% if order.Status == "4" %}
+                                                    {% elif order.Status == "4" %}
                                                         <td>Pending Revised WO</td>
-                                                    {% endif %}
-                                                    {% if order.Status == "5" %}
+                                                    {% elif order.Status == "5" %}
                                                         <td>Invoiced</td>
-                                                    {% endif %}
+                                                    {% elif order.Status == "6" %}
+                                                        <td>Transferred</td>
+                                                    {%else%}
+                                                        <td></td>
+                                                    {% endif %} 
                                                     <td class="p-1">{{order.Location}}</td>
                                                     <td class="p-1">{{order.WCSup}}</td>
                                                     <td class="p-1">{{order.created_date|date:'Y-m-d H:i'}}</td> 
