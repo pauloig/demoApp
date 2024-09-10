@@ -6834,19 +6834,13 @@ def create_external_prod(request, woID):
 
 @login_required(login_url='/home/')
 def get_external_prod(request, id):
-    emp = Employee.objects.filter(user__username__exact = request.user.username).first()
+    
     context ={}
+    emp = Employee.objects.filter(user__username__exact = request.user.username).first()   
     per = period.objects.filter(status__in=(1,2)).first()
-    context["per"] = per
-
-    context["externalProduction"] = externalProduction.objects.filter(id = id).first()
-
-    obj = get_object_or_404(externalProduction , id = id )
-
-    context["external"] = externalProduction.objects.filter(id = id).first()
     
 
-    form = extProdForm(request.POST or None, instance = obj)
+    obj = get_object_or_404(externalProduction , id = id )
 
     if obj.subcontractor.pay70Percent == True:
         context["payPercent"] = "70%"
@@ -6856,25 +6850,19 @@ def get_external_prod(request, id):
     context["id"] = id
     context["items"] = externalProdItem.objects.filter(externalProdID = obj)
 
-    woid = workOrder.objects.filter(id = obj.woID.id).first()
-
-    context["order"] = woid 
-    context["form"] = form
+    context["per"] = per
+    context["form"] = obj
     context["emp"] = emp
-    return render(request, "create_external_prod.html", context)
+    return render(request, "get_external_prod.html", context)
 
 @login_required(login_url='/home/')
 def update_external_prod(request, id):
-    emp = Employee.objects.filter(user__username__exact = request.user.username).first()
+
     context ={}
+    emp = Employee.objects.filter(user__username__exact = request.user.username).first()
     per = period.objects.filter(status__in=(1,2)).first()
-    context["per"] = per
-
-    context["externalProduction"] = externalProduction.objects.filter(id = id).first()
-
+    
     obj = get_object_or_404(externalProduction , id = id )
-
-    context["external"] = externalProduction.objects.filter(id = id).first()
 
     form = extProdForm(request.POST or None, instance = obj)
 
@@ -6886,14 +6874,9 @@ def update_external_prod(request, id):
             None
         form.save()
 
-        return HttpResponseRedirect("/get_external_prod/" + str(obj.id))
+        return HttpResponseRedirect("/get_external_prod/" + str(id))
 
-    context["id"] = id
-    context["items"] = externalProdItem.objects.filter(externalProdID = obj)
-
-    woid = workOrder.objects.filter(id = obj.woID.id).first()
-
-    context["order"] = woid 
+    context["per"] = per
     context["form"] = form
     context["emp"] = emp
     return render(request, "update_external_prod.html", context)
@@ -7611,7 +7594,13 @@ def billing_list(request, id, isRestoring):
 
                 itemResult = next((i for i, item in enumerate(itemResume) if item["item"] == data.itemID.item.itemID), None)
                 amount = 0
-                amount = Decimal(str(data.quantity)) * Decimal(str(data.itemID.price))  
+                
+                
+                amount = Decimal(str(validate_decimals(data.quantity))) * Decimal(str(validate_decimals(data.itemID.price)))  
+
+                if amount == 0:
+                    errorMessage = "There is a Problem with " + data.itemID.item.itemID + ' - ' + data.itemID.item.name + ' Price: '+ str(validate_decimals(data.itemID.price)) + ' Amount ' + str(validate_decimals(amount))
+
                 if itemResult != None:                                      
                     itemResume[itemResult]['quantity'] += data.quantity
                     itemResume[itemResult]['amount'] += amount
@@ -7629,11 +7618,9 @@ def billing_list(request, id, isRestoring):
                     currentItem.isAuthorized = True               
                     currentItem.authorized_date = datetime.now()
                     currentItem.save()
-
-
-            
+        
         except Exception as e:
-            errorMessage += str(e) + '\n\n'
+            errorMessage += str(e) + ' \n\n'
             print(str(e)) 
 
         # Group External Production by Item
@@ -7666,7 +7653,7 @@ def billing_list(request, id, isRestoring):
                     currentItem.save() 
             
         except Exception as e:
-            errorMessage += str(e) + '\n\n'
+            errorMessage += str(e) + ' segundo \n\n'
             print(str(e)) 
 
         itemFinal = []    
@@ -7739,7 +7726,7 @@ def billing_list(request, id, isRestoring):
         context["itemResume"] = sorted(itemFinal, key=lambda d: d['item']) 
         context["totals"] = {'qtyP':qtyP, 'totalP':totalP,'qtyA':qtyA,'totalA':totalA  }
     except Exception as e:
-        errorMessage += str(e) + '\n'
+        errorMessage += str(e) + 'ultimo \n'
         print(str(e)) 
      
     context["errorMessage"] = errorMessage

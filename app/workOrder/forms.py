@@ -440,7 +440,7 @@ class subcontractorForm(forms.ModelForm):
       
 class extProdForm(forms.ModelForm):
     
-    woID = forms.ModelChoiceField(label = "Selected Work Order", queryset=workOrder.objects.all(), widget=forms.Select(attrs={'class':'form-control'}))
+    #woID = forms.ModelChoiceField(label = "Selected Work Order", queryset=workOrder.objects.all(), widget=forms.Select(attrs={'class':'form-control'}))
     subcontractor = forms.ModelChoiceField(queryset=subcontractor.objects.filter(is_active=True), widget=forms.Select(attrs={'class': 'form-control'})) 
     invoiceNumber = forms.CharField(label="Invoice Number", max_length=200, widget=forms.TextInput(attrs={'class':'form-control'}))  
     total_invoice = forms.CharField(label="Total Invoice", max_length=200, widget=forms.TextInput(attrs={'class':'form-control'}))  
