@@ -57,9 +57,9 @@
                             <label class="form-label" for="file">Invoice</label>
                             <div class="input-group-btn">
                                 <div class="input-group mb-3">
-                                    <div class="form-outline" style="align-items: center;">
-                                        {% if external.invoice != '' and external.invoice != None %}
-                                            <a class="btn btn-info" href="/static/media/{{external.invoice}}" target="_blank">View Invoice</a>
+                                    <div class="form-outline" style="align-items: center;">                                       
+                                        {% if form.invoice != '' and form.invoice != None %}
+                                            <a class="btn btn-info" href="/static/media/{{form.invoice}}" target="_blank">View Invoice</a>
                                         {%endif%}
                                         {%if emp.is_supervisor == False and order.Status != "5" %}
                                             <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#staticBackdrop">
