@@ -140,6 +140,8 @@ urlpatterns = [
     path('update_item_payout/',views.update_item_payout),
     path('update_emp_payout/',views.update_emp_payout),
     path('update_estimate_address/<woID>/<addressID>/<estimateID>',views.update_estimate_address),
+    path('wo_adjustment/<woID>/<estimateID>',views.wo_adjustment),
+    path('update_wo_adjustment/<woID>/<estimateID>',views.update_wo_adjustment),
     path('list_linked_orders/',views.list_linked_orders),
     path('update_total_invoice/',views.update_total_invoice),
     path('logout/', LogoutView.as_view(next_page='/login/'), name='logout'),

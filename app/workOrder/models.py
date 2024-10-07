@@ -551,3 +551,12 @@ class billingAddress(models.Model):
 
     def __str__(self):
         return str(self.zipCode) + " - " + str(self.state) + " - " + str(self.city)
+    
+
+class woAdjustment(models.Model):
+    woID = models.ForeignKey(workOrder, on_delete=models.CASCADE, db_column ='woID')
+    estimateNumber = models.CharField(max_length=50, null=True, blank=True)
+    invoiceNumber = models.CharField(max_length=50, null=True, blank=True)
+    adjustment = models.FloatField(null=True, blank=True)
+    created_date = models.DateTimeField(null=True, blank=True)
+    createdBy = models.CharField(max_length=60, blank=True, null=True)

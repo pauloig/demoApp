@@ -567,3 +567,24 @@ class woCommentLogForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['woID'].disabled = True
+
+
+class woAdjustEstimateForm(forms.ModelForm):
+
+    invoiceNumber = forms.CharField(required=False)
+    estimateNumber = forms.CharField(required=False)
+
+    class Meta:
+        model = woAdjustment
+        fields = [
+           'woID',
+           'estimateNumber',
+           'invoiceNumber',
+            'adjustment',
+
+        ]
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['woID'].disabled = True
+        self.fields['estimateNumber'].disabled = True
+        self.fields['invoiceNumber'].disabled = True

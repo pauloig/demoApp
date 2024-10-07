@@ -2130,7 +2130,17 @@ def estimate(request, id, estimateID):
         itemHtml = itemHtml + '</tr> '
         
     context["itemPrice"] = itemHtml
-    context["total"] = total
+
+    # If Estimate have an Adjust
+
+    adj = woAdjustment.objects.filter(woID = wo, estimateNumber = estimateID).first()
+
+    if adj:    
+        context["total"] = Decimal(total) + Decimal(adj.adjustment)
+    else:
+        context["total"] = total 
+
+    #context["total"] = total
 
 
     template_path = 'invoice_template.html'
@@ -2391,6 +2401,12 @@ def partial_estimate(request, id, isPartial, Status, addressID):
                 iItem.save()
             
 
+            #adjustments
+
+            adj = woAdjustment.objects.filter(woID = wo, estimateNumber = estimateID).first()    
+            adj.invoiceNumber = invoiceID
+            adj.save()
+
             est = woEstimate.objects.filter(woID = wo, estimateNumber = estimateID).first()       
             est.Status = 2
             est.save()
@@ -2566,7 +2582,17 @@ def invoice(request, id, invoiceID):
         itemHtml = itemHtml + '</tr> '
         
     context["itemPrice"] = itemHtml
-    context["total"] = total
+    #context["total"] = total
+
+     # If Estimate have an Adjust
+
+    adj = woAdjustment.objects.filter(woID = wo, invoiceNumber = invoiceID).first()
+
+    if adj:    
+        context["total"] = Decimal(total) + Decimal(adj.adjustment)
+    else:
+        context["total"] = total 
+    
 
     template_path = 'invoice_template.html'
     
@@ -2968,7 +2994,15 @@ def estimate_preview(request, id, estimateID):
 
     context["estimateID"] = estimateID    
     context["itemPrice"] = itemHtml
-    context["total"] = total
+    
+    # If Estimate have an Adjust
+
+    adj = woAdjustment.objects.filter(woID = wo, estimateNumber = estimateID).first()
+
+    if adj:    
+        context["total"] = Decimal(total) + Decimal(adj.adjustment)
+    else:
+        context["total"] = total 
 
     return render(request, "invoice_template_preview.html", context)
 
@@ -3134,7 +3168,17 @@ def invoice_preview(request, id, invoiceID):
         itemHtml = itemHtml + '</tr> '
         
     context["itemPrice"] = itemHtml
-    context["total"] = total
+    #context["total"] = total
+
+    # If Estimate have an Adjust
+
+    adj = woAdjustment.objects.filter(woID = wo, invoiceNumber = invoiceID).first()
+
+    if adj:    
+        context["total"] = Decimal(total) + Decimal(adj.adjustment)
+    else:
+        context["total"] = total 
+    
     
     if woInv.Status == 3:
         context["invoiceID"] = str(invoiceID) + "R"
@@ -7580,8 +7624,14 @@ def billing_list(request, id, isRestoring):
                 invoiceNum = invoiceO.invoiceNumber
             else:
                 invoiceNum = 0
+
+            adjustment = woAdjustment.objects.filter(woID = wo, estimateNumber = eList.estimateNumber).first()
+            adj = False
+
+            if adjustment:
+                adj = True
             
-            estimateFList.append({'woID': eList.woID, 'estimateNumber': eList.estimateNumber, 'invoiceNumber':invoiceNum, 'Status':eList.Status, 'is_partial':eList.is_partial, 'created_date': eList.created_date, 'createdBy': eList.createdBy })
+            estimateFList.append({'woID': eList.woID, 'estimateNumber': eList.estimateNumber, 'invoiceNumber':invoiceNum, 'Status':eList.Status, 'is_partial':eList.is_partial, 'created_date': eList.created_date, 'createdBy': eList.createdBy, 'adjustment': adj})
 
         context["estimateList"] = estimateFList
 
@@ -9635,3 +9685,50 @@ def update_total_invoice(request):
     #except Exception as e:
         #return render(request,'landing.html',{'message':'Somenthing went Wrong!' + str(e), 'alertType':'danger','emp':emp, 'per': per})
     
+
+
+@login_required(login_url='/home/')
+def wo_adjustment(request, woID, estimateID):
+    emp = Employee.objects.filter(user__username__exact = request.user.username).first()
+    context ={}
+    per = period.objects.filter(status__in=(1,2)).first()
+    context["per"] = per
+
+
+    wo = workOrder.objects.filter(id=woID).first()
+    form = woAdjustEstimateForm(request.POST or None, initial={'woID': wo, 'estimateNumber': estimateID})
+                            
+    if form.is_valid():
+        form.instance.createdBy = request.user.username
+        form.instance.created_date = datetime.now()
+        form.save()               
+        return HttpResponseRedirect("/billing_list/" + str(woID) + "/False")
+         
+    context['form']= form
+    context["emp"]=emp
+    return render(request, "wo_adjustment_estimate.html", context)
+
+def update_wo_adjustment(request, woID, estimateID):
+
+    emp = Employee.objects.filter(user__username__exact = request.user.username).first()        
+    context ={}
+    context["emp"] = emp
+
+    per = period.objects.filter(status__in=(1,2)).first()
+    context["per"] = per
+
+    wo = workOrder.objects.filter(id = woID).first()
+
+    obj = woAdjustment.objects.filter(woID = wo, estimateNumber = estimateID).first()
+
+    form = woAdjustEstimateForm(request.POST or None, instance = obj)
+ 
+    if form.is_valid():
+        form.instance.createdBy = request.user.username
+        form.instance.created_date = datetime.now()
+        form.save()               
+        return HttpResponseRedirect("/billing_list/" + str(woID) + "/False")
+
+    context["form"] = form
+    context["emp"] = emp
+    return render(request, "wo_adjustment_estimate.html", context)

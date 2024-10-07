@@ -146,9 +146,25 @@
                                                     role="button"><i class="fa-solid fa-download"
                                                         style="color: green;"></i></a>
                                                 {% if emp.is_superAdmin or user.is_staff %}
-                                                &nbsp; <a
+                                                &nbsp; <a data-bs-toggle="tooltip" data-bs-placement="top"
+                                                    title="Update Estimate"
                                                     href="/update_estimate/{{order.id}}/{{itemd.estimateNumber}}"><i
                                                         class="fa-solid fa-pen-to-square" style="color: green;"></i></a>
+                                                &nbsp; 
+                                                    
+                                                    {%if itemd.adjustment%}
+                                                        <a
+                                                        data-bs-toggle="tooltip" data-bs-placement="top"
+                                                        title="Adjust Estimate"
+                                                        hx-get="/update_wo_adjustment/{{order.id}}/{{itemd.estimateNumber}}"
+                                                        hx-target="#dialog"><i class="fa-solid fa-sliders" style="color: green;"></i></a>
+                                                    {%else%}
+                                                        <a
+                                                        data-bs-toggle="tooltip" data-bs-placement="top"
+                                                        title="Adjust Estimate"
+                                                        hx-get="/wo_adjustment/{{order.id}}/{{itemd.estimateNumber}}"
+                                                        hx-target="#dialog"><i class="fa-solid fa-sliders" style="color: green;"></i></a>
+                                                    {%endif%}
                                                 {%endif%}
 
                                                 {% if itemd.Status == 1 %}
@@ -156,7 +172,7 @@
 
 
 
-
+                                                &nbsp;
                                                 <button type="button" class="btn shadow-none m-0 p-0"
                                                     data-bs-toggle="modal" data-bs-target="#invoice-alert">
                                                     <i class="fa-solid fa-circle-arrow-right fa-lg "
