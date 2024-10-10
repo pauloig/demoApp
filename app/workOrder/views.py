@@ -2403,9 +2403,10 @@ def partial_estimate(request, id, isPartial, Status, addressID):
 
             #adjustments
 
-            adj = woAdjustment.objects.filter(woID = wo, estimateNumber = estimateID).first()    
-            adj.invoiceNumber = invoiceID
-            adj.save()
+            adj = woAdjustment.objects.filter(woID = wo, estimateNumber = estimateID).first() 
+            if adj:   
+                adj.invoiceNumber = invoiceID
+                adj.save()
 
             est = woEstimate.objects.filter(woID = wo, estimateNumber = estimateID).first()       
             est.Status = 2
