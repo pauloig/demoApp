@@ -2136,7 +2136,7 @@ def estimate(request, id, estimateID):
     adj = woAdjustment.objects.filter(woID = wo, estimateNumber = estimateID).first()
 
     if adj:    
-        context["total"] = Decimal(total) + Decimal(adj.adjustment)
+        context["total"] = Decimal(total) + Decimal(validate_decimals(adj.adjustment))
     else:
         context["total"] = total 
 
@@ -2277,7 +2277,7 @@ def partial_estimate(request, id, isPartial, Status, addressID):
                     createdBy = request.user.username
                 )
                 invoiceObject.save()
-            else:
+            else:               
                 estimateID = 0
                 invoiceID = 0
         else:
@@ -2590,7 +2590,7 @@ def invoice(request, id, invoiceID):
     adj = woAdjustment.objects.filter(woID = wo, invoiceNumber = invoiceID).first()
 
     if adj:    
-        context["total"] = Decimal(total) + Decimal(adj.adjustment)
+        context["total"] = Decimal(total) + Decimal(validate_decimals(adj.adjustment))
     else:
         context["total"] = total 
     
@@ -3001,7 +3001,7 @@ def estimate_preview(request, id, estimateID):
     adj = woAdjustment.objects.filter(woID = wo, estimateNumber = estimateID).first()
 
     if adj:    
-        context["total"] = Decimal(total) + Decimal(adj.adjustment)
+        context["total"] = Decimal(total) + Decimal(validate_decimals(adj.adjustment))
     else:
         context["total"] = total 
 
@@ -3176,7 +3176,7 @@ def invoice_preview(request, id, invoiceID):
     adj = woAdjustment.objects.filter(woID = wo, invoiceNumber = invoiceID).first()
 
     if adj:    
-        context["total"] = Decimal(total) + Decimal(adj.adjustment)
+        context["total"] = Decimal(total) + Decimal(validate_decimals(adj.adjustment))
     else:
         context["total"] = total 
     
@@ -9687,6 +9687,92 @@ def update_total_invoice(request):
         #return render(request,'landing.html',{'message':'Somenthing went Wrong!' + str(e), 'alertType':'danger','emp':emp, 'per': per})
     
 
+
+@login_required(login_url='/home/')
+def update_pending_invoice(request):
+
+    emp = Employee.objects.filter(user__username__exact = request.user.username).first()
+    per = period.objects.filter(status__in=(1,2)).first()
+
+
+    woInvoices = woInvoice.objects.filter(invoiceNumber__gte = 64676, invoiceNumber__lte = 64723 )
+
+    for inv in woInvoices:
+        wo = inv.woID
+        invoiceID = inv.invoiceNumber
+        estimateID = inv.estimateNumber
+
+        #Update dailyItems
+        dailyI = DailyItem.objects.filter(DailyID__woID = wo, estimate = estimateID)
+
+        for i in dailyI:
+            dItem = DailyItem.objects.filter(id = i.id).first()
+
+            dItem.Status = 3
+            dItem.invoice = invoiceID
+            dItem.save()
+        
+
+        #Update daily Employees
+        dailyE = DailyEmployee.objects.filter(DailyID__woID = wo, estimate = estimateID).exclude(Status=4)
+
+        for e in dailyE:
+            
+            if e.total_hours > 0:
+                dEmp = DailyEmployee.objects.filter(id = e.id).first()
+                
+                dEmp.Status = 3
+                dEmp.invoice = invoiceID
+                dEmp.save()
+
+        #Update externalProdItem
+        epItem = externalProdItem.objects.filter(externalProdID__woID = wo, estimate = estimateID)
+
+        for j in epItem:
+            eItem = externalProdItem.objects.filter(id = j.id).first()
+
+            eItem.Status = 3
+            eItem.invoice = invoiceID
+            eItem.save()
+
+        #Update authorizedItem
+        authItem = authorizedBilling.objects.filter(woID = wo, estimate = estimateID)
+
+        for k in authItem:
+            aItem = authorizedBilling.objects.filter(id = k.id).first()
+
+            aItem.Status = 3
+            aItem.invoice = invoiceID
+            aItem.save()
+        
+        #Update Internal PO
+        internal = internalPO.objects.filter(woID = wo, estimate = estimateID)
+
+        for l in internal:
+            iItem = internalPO.objects.filter(id = l.id).first()
+
+            iItem.Status = 3
+            iItem.invoice = invoiceID
+            iItem.save()
+        
+
+        #adjustments
+
+        adj = woAdjustment.objects.filter(woID = wo, estimateNumber = estimateID).first() 
+        if adj:   
+            adj.invoiceNumber = invoiceID
+            adj.save()
+
+        est = woEstimate.objects.filter(woID = wo, estimateNumber = estimateID).first()       
+        est.Status = 2
+        est.save()
+
+
+        calculate_invoice_total(request,wo.id,int(invoiceID))
+    
+        
+    return render(request,'landing.html',{ 'message': ' Invoices updated Successfully.... Detail:  ' , 'alertType':'success','emp':emp, 'per':per})
+    
 
 @login_required(login_url='/home/')
 def wo_adjustment(request, woID, estimateID):

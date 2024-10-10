@@ -137,6 +137,7 @@ urlpatterns = [
     path('get_wo_comment_log/<id>',views.get_wo_comment_log),
     #Temp URL's
     path('update_linked_orders/',views.update_linked_orders),
+    path('update_pending_invoice/',views.update_pending_invoice),
     path('update_item_payout/',views.update_item_payout),
     path('update_emp_payout/',views.update_emp_payout),
     path('update_estimate_address/<woID>/<addressID>/<estimateID>',views.update_estimate_address),
