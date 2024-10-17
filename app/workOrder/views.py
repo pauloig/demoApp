@@ -942,7 +942,7 @@ def truncateData(request):
 @login_required(login_url='/home/')
 def duplicatelistOrders(request):
     emp = Employee.objects.filter(user__username__exact = request.user.username).first()
-    orders = workOrderDuplicate.objects.all()
+    orders = workOrderDuplicate.objects.all().exclude(prismID = None, workOrderId = None, PO = None)
 
     opType = "Access Option"
     opDetail = "Duplicate Orders"
