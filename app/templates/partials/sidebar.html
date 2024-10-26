@@ -1,0 +1,125 @@
+{%load static%}
+{% load humanize %}
+<style>
+  #sidebar ul li a:hover {
+    color: #fff;
+    font-weight:600;
+    background-color: #009bf9 !Important;
+  }
+</style>
+
+<nav id="sidebar">
+
+  <div class="logo pt-2 m-0 bg-white">
+    <!--<a class="navbar-brand" href="/home/"><img src= "http://134.122.27.250/static/media/WC_logo.png" alt="" width="100px" /></a>-->
+    <a class="navbar-brand mt-0 pt-0" href="/home/"><img class="mt-0 pt-0" src="{% static 'images/WC_logo.jpg'%}" alt="Wiring Connection" width="250px;"/></a>
+  </div>
+
+    <div class="custom-menu">
+      <button type="button" id="sidebarCollapse" class="btn btn-primary">
+      <i class="fa fa-bars"></i>
+      <span class="sr-only">Toggle Menu</span>
+      </button>
+    </div>
+    
+    <div class="p-3 pt-5">      
+      <ul class="list-unstyled components mb-5">
+
+        <!--Orders Menu-->  
+        <li class="active">
+          <a href="#homeSubmenu2" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle"><span class="fa fa-business-time"></span> Orders </a>
+          <ul class="collapse list-unstyled" id="homeSubmenu2">
+            {% if emp.is_superAdmin  or emp.is_admin or user.is_staff %} 
+            <li class="active">
+                <a aria-current="page" class="d-block text-light p-2" href="/order_list/"><i class="icon ion-md-clipboard"></i> List</a>
+            </li> 
+            {% endif %}
+
+            {% if emp.is_superAdmin or emp.is_admin or user.is_staff %}
+              <a aria-current="page" class="d-block text-light p-2" href="/upload/"><i class="icon ion-md-cloud"></i> upload Orders</a>
+           
+            {% endif %}
+           
+            {% if emp.is_superAdmin  or emp.is_admin or user.is_staff %}
+              <a aria-current="page" class="d-block text-light p-2" href="/duplicate_order_list/"><i class="icon ion-md-clipboard"></i> Duplicate Orders</a>
+              
+            {% endif %}         
+
+            {%if emp.is_supervisor%}
+              <a aria-current="page" class="d-block text-light p-2" href="/order_list_sup/"> <i class="icon ion-md-business mr-2 lead" ></i> WOs by Sup</a>
+            {%endif%}
+            
+          </ul>
+        </li>   
+
+        <!--Catalog Menu-->
+        
+            <li class="active">
+              {% if emp.is_superAdmin  or emp.is_admin or user.is_staff %}
+                <a href="#homeSubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle"><span class="fa fa-book"></span> Catalog</a>
+                <ul class="collapse list-unstyled" id="homeSubmenu">
+
+                  <li><a aria-current="page" class="d-block text-light p-2" href="/period_list/"><i class="icon ion-md-calendar lead" ></i> Periods</a></li>
+                   {% if emp.is_superAdmin  or user.is_staff %}
+                      <li><a aria-current="page" class="d-block text-light p-2" href="/location_list/"><i class="icon ion-md-business mr-2"></i>  Locations</a></li> 
+                      <li><a aria-current="page" class="d-block text-light p-2" href="/employee_list/"><i class="icon ion-md-people"></i> Employees</a></li> 
+                      <li><a aria-current="page" class="d-block text-light p-2" href="/item_list/"><i class="icon ion-md-pricetags mr-2 lead"></i> Items</a></li> 
+                      <li><a aria-current="page" class="d-block text-light p-2" href="/vendor_list/"><i class="icon ion-md-barcode"></i> Vendors</a></li> 
+                      <li><a aria-current="page" class="d-block text-light p-2" href="/subcontractor_list/"><i class="icon ion-md-barcode"></i> Subcontractor</a></li> 
+                      <li><a aria-current="page" class="d-block text-light p-2" href="/billing_address_list/"><i class="icon ion-md-pin"></i> Billing Address</a></li> 
+                      <li><a aria-current="page" class="d-block text-light p-2" href="/login_audit/"><i class="icon ion-md-alert"></i> Login Audit</a></li> 
+                    {% endif %}
+                  
+                </ul>
+              {% endif %}
+            </li>
+        
+        
+        <!--Reports Menu-->
+        
+        <li class="active">
+          {% if emp.is_superAdmin  or emp.is_admin or user.is_staff %}  
+            <a href="#pageSubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle"><span class="fa fa-list"></span>  Reports</a>
+            <ul class="collapse list-unstyled" id="pageSubmenu">
+              <li>  <a aria-current="page" class="d-block text-light p-2" href="/invoice_daily_report/"><span class="fa fa-calendar-days"></span>   Daily Report</a></li>
+              <li>  <a aria-current="page" class="d-block text-light p-2" href="/invoice_monthly_report/"><span class="fa fa-calendar-days"></span>  WO Activities report</a></li>
+              <li>  <a aria-current="page" class="d-block text-light p-2" href="/payroll_employee_report/0/"><span class="fa fa-calendar-days"></span>  Payroll Report</a></li>
+              <li>  <a aria-current="page" class="d-block text-light p-2" href="/wo_balance_Report/"><span class="fa fa-calendar-days"></span>  WO Balance Report</a></li>             
+            </ul>
+          {%endif%}
+        </li>
+
+
+          <li class="active">
+            {% if emp.is_admin or emp.is_supervisor or user.is_staff%} 
+                <a href="#pageSubmenu3" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle"><i class="icon ion-md-today mr-2 lead" ></i></span>  Payroll</a>                
+                <ul class="collapse list-unstyled" id="pageSubmenu3">  
+                    <li><a aria-current="page" class="d-block text-light p-2" href="/payroll/0/0/0/0"><i class="icon ion-md-today mr-2 lead" ></i>  Payroll</a></li>     
+                    <li class="active">
+                      <a href="/timesheet/supervisor_list/"><span class="fa fa-list"></span> Timesheet</a>
+                  </li>                                
+                </ul>
+                
+                      
+                 
+            {%endif%}
+
+          </li>
+ 
+          {% if emp.is_superAdmin  or emp.is_admin or emp.accounts_payable or user.is_staff %}
+            <a aria-current="page" class="d-block text-light p-2" href="/internal_po_list/"><i class="icon ion-md-barcode"></i> Internal PO</a>
+          {%endif%}
+        
+      <div class="mb-5">
+        <!--<h3 class="h6">Subscribe for newsletter</h3>-->
+        <form action="#" class="colorlib-subscribe-form">
+          <div class="form-group d-flex">
+            <div class="icon"><span class="icon-paper-plane"></span></div>
+            <!--<input type="text" class="form-control" placeholder="Enter Email Address">-->
+          </div>
+        </form>
+      </div>
+
+
+    </div>
+  </nav>

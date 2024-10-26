@@ -1,0 +1,60 @@
+:root {
+  --primary: ##15202B;
+  --light: #ffffff;
+  --grey: #efefef;
+  --danger: #F12E5E;
+  --success: #00C6A3;
+  --card-header: #006079;
+
+}
+
+.btn-danger {
+  background-color: var(--danger) !important;
+  border-color: var(--danger) !important;
+  color: #F7F9FF !important;
+}
+
+.btn-success {
+  background-color: var(--success) !important;
+  border-color: var(--success) !important;
+  color: #F7F9FF !important;
+}
+
+.btn-info {
+  color: #F7F9FF !important;
+}
+
+.btn-primary {
+  color: #F7F9FF !important;
+}
+
+.btn-warning {
+  color: #F7F9FF !important;
+}
+
+
+.bg-primary {
+  background-color: var(--primary) !important;
+  color: #F7F9FF !important;
+}
+
+.bg-dark-wc {
+  background-color: #d0e0fc !important;
+  color: #0f1113 !important;
+}
+
+.card-header {
+  background-color: var(--card-header) !important;
+  color: #F7F9FF !important;
+  font-size: large;
+}
+
+.card-header h6 {
+  font-size: 1.5em;
+}
+
+
+#sidebar ul li a:hover {
+  color: #fff;
+  background-color: #F12E5E !important;
+}

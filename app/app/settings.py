@@ -57,6 +57,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'authentication',
     'workOrder',
+    'timesheet',
     'import_export',
     'sequences.apps.SequencesConfig',
     'django.contrib.humanize',

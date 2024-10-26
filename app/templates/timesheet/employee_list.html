@@ -1,0 +1,142 @@
+{% extends 'base.html' %} 
+{%load static%}
+{% block title %} Duplicate Order List {% endblock %} 
+
+{% block container %}
+
+<div class="container">
+    <form method='post' enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <!--<div class="row">      
+            <div class="col-sm-10 my-3"></div>  
+            <div class="col-sm-2 my-3">
+                <a class="btn btn-success" href="/timesheet/create/" role="button">New</a>
+                <a href="/home/" type="button" class="btn btn-danger">Close</a> 
+            </div>
+               
+        </div> -->
+
+        <style>
+            @media only screen and (max-width: 600px) {
+                .mobile-100 {height:85vh}
+              }
+            
+              .hell {
+                float: left
+                }
+            
+                .fright {
+                    float: right
+                    }
+
+            .scroll {
+                max-height: 85vh;
+                overflow-y: auto;
+                }
+</style>
+        
+
+        <div class="row pl-0 pr-0">
+            <div class="col-sm-12 my-0 px-0">
+                <div class="card">
+                    <div class="card-header-2 card-header-wc">  
+                        
+                        <div class="d-flex justify-content-between">
+                            <div class="p-2"> 
+                                <a href="/logout/"><i class="fa fa-arrow-left fa-xl mx-0.5 pt-2" style="color:#006079;" ></i> </a>  
+                            </div>
+                            <div class="p-2"><img src="{% static 'images/WC_logo.jpg'%}" alt="Logo WC" width="90px;"/></div>
+                            <div class="p-2">                                                              
+                                <a href="/timesheet/create/" ><i class="fa fa-square-plus fa-xl mx-0.5 pt-2" style="color:#006079;" ></i></a>  
+                            </div>
+                        </div>
+                                      
+                    </div>  
+                    
+                    <div class="card-footer p-0" align="center">
+                        <a type="button" class="btn btn-light hell m-0"  aria-haspopup="true" aria-expanded="false" style="width:50%"><font size="2" muted>Not Completed</font>
+                        </a>
+                        <a type="button" href="/timesheet/employee_submitted_list" class="btn btn-info" aria-haspopup="true" aria-expanded="false" style="width:50%"><font size="2">Submitted</font>
+                        </a>
+                      </div>
+                    </div> 
+                    <div class="card-body mobile-100 scroll">
+                        <div class="row">                   
+                            <div class="col-lg-12 mx-0 px-0">   
+                                
+                                {% for data in dataset %}
+                                    
+                                    <div class="card" style="border-radius: 1.3em; margin-bottom:7px;">                  
+                                        <div class="card-body pl-3 d-flex justify-content-between align-items-center" style="padding-top: 0px; padding-bottom: 0px; margin-top: 0px; margin-bottom: 0px;">                    
+                                            
+                                            <div>
+                                                <div>
+                                                    <h3 class="my-1" style="font-size: 22px; font-weight: 600; color: #154a86; margin:0px;">{{data.date}}  </h3> 
+                                                </div>
+                                                
+                                                <span style="font-size: 15px; color: #828997; margin: 0px"> 
+                                                    {%if data.total_hours == None %}
+                                                        <strong> 0</strong> hrs |
+                                                    {%else%}
+                                                        <strong> {{data.total_hours}}</strong> hrs |  
+                                                    {%endif%}
+                                                </span>
+                                                <span style="font-size: 15px; color: #828997; margin: 0px">
+                                                    {%if data.total_mileage == None %}
+                                                        <strong> 0</strong> mi |
+                                                    {%else%}
+                                                        <strong> {{data.total_mileage}}</strong> mi |  
+                                                    {%endif%}                                                    
+                                                  
+                                                <span style="font-size: 15px; color: #828997; margin: 0px"><strong>
+                                                    {% if data.Status == 1 %} Draft
+                                                    {% elif  data.Status == 2%} Sent
+                                                    {% elif  data.Status == 3%} Pending
+                                                    {% elif  data.Status == 4%} Approved
+                                                    {% elif  data.Status == 5%} Rejected
+                                                    {% endif %}
+                                                </strong> 
+                                                </span>
+                                            </div>
+                                            <a href="/timesheet/update/{{data.id}}"><i class="fa fa-arrow-right fa-xl mx-0.5" ></i> </a>
+                                            
+                                            
+                                            
+                                            <!--<i class="fa-sharp fa-solid fa-basket-shopping fa-2x mx-3" style=" width:60px; height: 60px; line-height: 60px; border-radius: 50%; text-align: center; color: #fff; background: #7c73ed; margin: 0px;"></i>-->
+                                        </div>
+                                    </div>
+                                    
+                                {% endfor %}
+                               <!-- 
+                               <table id="orders" class="table table-sm table-bordered table-striped">
+                                        <thead class="table-primary">
+                                            <tr>
+                                                
+                                                <th scope="col" style="width: 7%">Date</th>
+                                            
+                                                <th scope="col" style="width: 3%"></th>
+                                            </tr>              
+                                        </thead>
+                                        <tbody>                                       
+                                            {% for data in dataset %}
+                                                <tr>
+                                                    
+                                                    <td>{{data.date}}</td>                                                    
+                                                    <td> 
+                                                        <a href="/update_employee/{{data.employeeID}}"><i class="fa-solid fa-pen-to-square" style="color: green;"></i></a>
+                                                        
+                                                    </td>
+                                                </tr>                                             
+                                            {% endfor %}
+                                        </tbody>                              
+                                    </table> 
+                               --> 
+                                </div>
+                            </div>
+                        </div>
+                    </div>                    
+            </div>
+    </form>
+</div>
+{% endblock %}

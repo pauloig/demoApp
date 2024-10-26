@@ -1,0 +1,264 @@
+{% extends 'base.html' %} 
+{%load static%}
+{% load widget_tweaks%}
+{% load humanize %}
+
+{% block container %}
+
+<script src="{% static 'js/timesheet.js' %}"></script>
+
+<style>
+    @media only screen and (max-width: 600px) {
+        .mobile-100 {
+            max-height:90vh;
+            height:85vh;
+        }
+      }
+
+    .scroll {
+    max-height: 90vh;
+    overflow-y: auto;
+    }
+    
+.hell {
+float: left
+}
+
+.fright {
+float: right}
+
+.input-prefix {
+    display: flex;
+    align-items: center;
+}
+
+.prefix {
+    position: absolute;
+    color: rgb(163, 158, 158);
+    padding-left: 5px;
+    font-size: 1vmax;
+}
+
+cc
+</style>
+
+<div class="container">
+    <form method='post' enctype="multipart/form-data" onload="validarCampos" id="Timesheet">
+        {% csrf_token %}
+        
+        <div class="row pl-0 pr-0">
+            <div class="col-lg-12  my-0 px-0">
+                <div class="card rounded">
+                    <div class="card-header card-header-wc">   
+
+
+                        <div class="d-flex justify-content-between">
+                            <div class="p-2"> 
+                                <a href="/timesheet/employee_list"><i class="fa fa-arrow-left fa-l mx-0.5" style="color:white;" ></i> </a>  
+                            </div>
+                            <div class="p-2">Timesheet</div>
+                            <div class="p-2">
+                                <a name = "save_btn" id = "save_btn" href=""   onClick="updateStatus(this, 0, 'Are you sure to save this timesheet?')" ><i class="fa fa-floppy-disk fa-xl mr-3" style="color:white;" ></i></a>                                
+                                <a name = "savesend_btn" id = "savesend_btn" href=""   onClick="updateStatus(this, 2, 'Are you sure to save and send this timesheet?')" ><i class="fa fa-share-from-square fa-xl mx-0.5" style="color:white;" ></i></a>  
+                            </div>
+                        </div>
+                        
+                     
+                       <!-- <div class="position-relative py-0 px-4" >                     
+                            <a href="/timesheet/employee_list" class="position-absolute top-50 start-0 translate-middle"><i class="fa fa-arrow-left fa-l mx-0.5" style="color:white;" ></i> </a>  
+                            <span class="position-absolute top-50 start-50 translate-middle"> Timesheet </span>
+                            
+                            {% if form.instance.Status == 1 or form.instance.Status == 5 %}
+                                <div class = "position-relative top-50 start-100 translate-right p-0 m-0">
+                                    <a name = "save_btn" id = "save_btn" href="" class="position-absolute top-50"  onClick="updateStatus(this, 0, 'Are you sure to save this timesheet?')" ><i class="fa fa-floppy-disk  mx-0.5" style="color:lime;" ></i></a>                                
+                                    <a name = "savesend_btn" id = "savesend_btn" href=""  class="position-absolute top-50 pr-1"  onClick="updateStatus(this, 2, 'Are you sure to save and send this timesheet?')" ><i class="fa fa-share-from-square  mx-0.5" style="color:lime;" ></i></a>     
+                                </div>
+                            {%endif%}
+                                <!--
+                                <a name = "save_btn" id = "save_btn" href="" onClick="updateStatus(this, 1, 'Are you sure to save this timesheet?')" class="position-absolute top-50 start-80 translate-middle"><i class="fa fa-floppy-disk  mx-0.5" style="color:lime;" ></i></a>                                
+                                <a name = "savesend_btn" id = "savesend_btn" href="" onClick="updateAndSend(this, 1, 'Are you sure to save and send this timesheet?')" class="position-absolute top-50 start-100 translate-middle"><i class="fa fa-share-from-square  mx-0.5" style="color:lime;" ></i></a>                                
+                            -->  
+                        </div>                  
+                    </div>                    
+                    <div class="card-body scroll">                    
+                            <!--<div class="row">
+                                   Using the formset
+                                {{ form.as_p }} 
+                            </div>-->
+
+                            <div class="row">
+                                <div class="col-sm-12">
+                                                                   
+                                    <label for="{{ form.date.id_for_label }}" class="form-label2">Date</label>
+                                        {% render_field form.date type="date" name="date" id="date" class="form-control2" %}
+                                        <div class="invalid-feedback">{{ form.date.errors|first }}</div>
+
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-sm-12">
+                                                                   
+                                        <label for="{{ form.start_time.id_for_label }}" class="form-label2 ">Clock In</label>                                                 
+                                        {% render_field form.start_time class="form-control2" name="start_time" id="start_time" placeholder="E.g. 800" onchange='validateInputs(this)' %}                                                                             
+                                        <div class="invalid-feedback">{{ form.start_time.errors|first }}</div>
+                                        <label id="start_time_text" class="info-text" >  </label>   
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-sm-12">
+                                    <div class="mb3-mobile">
+                                        <label for="{{ form.start_lunch_time.id_for_label }}" class="form-label2">Lunch Start</label>
+                                        {% render_field form.start_lunch_time class="form-control2" name="start_lunch_time" id="start_lunch_time" placeholder="E.g. 1200" onchange='validateInputs(this)'  %}
+                                        <div class="invalid-feedback">{{ form.start_lunch_time.errors|first }}</div>
+                                        <label id="start_lunch_time_text" class="info-text" ></label> 
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-sm-12">
+                                    <div class="mb3-mobile">
+                                        <label for="{{ form.end_lunch_time.id_for_label }}" class="form-label2">Lunch End</label>
+                                        {% render_field form.end_lunch_time class="form-control2" name="end_lunch_time" id="end_lunch_time" placeholder="E.g. 1400" onchange='validateInputs(this)'%}
+                                        <div class="invalid-feedback">{{ form.end_lunch_time.errors|first }}</div>
+                                        <label id="end_lunch_time_text" class="info-text"  ></label>
+                                    </div>
+                                </div>
+                            </div>
+
+
+                            <div class="row">
+                                <div class="col-sm-12">
+                                    <div class="mb3-mobile">
+                                        <label for="{{ form.end_time.id_for_label }}" class="form-label2">Clock Out</label>
+                                        {% render_field form.end_time class="form-control2" name="end_time" id="end_time" placeholder="E.g. 1700" onchange='validateInputs(this)' %}
+                                        <div class="invalid-feedback">{{ form.end_time.errors|first }}</div>
+                                        <label id="end_time_text" class="info-text" ></label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-sm-12">
+                                    <div class="mb3-mobile">
+                                        <label for="{{ form.total_hours.id_for_label }}" class="form-label2">Worked Hours</label>
+                                        {% render_field form.total_hours class="form-control2" name="total_hours" id="total_hours" %}
+                                        <div class="invalid-feedback">{{ form.total_hours.errors|first }}</div>
+                                        
+                                    </div>
+                                </div>
+                            </div>
+                            
+
+                            <div class="row">
+                                <div class="col-sm-12">
+                                    <div class="mb3-mobile">
+                                        <label for="{{ form.start_mileage.id_for_label }}" class="form-label2">Starting Mileage</label>
+                                        {% render_field form.start_mileage class="form-control2" name="start_mileage" id="start_mileage" placeholder="E.g. 1000" onchange='setMilleage(this)'  %}
+                                        <div class="invalid-feedback">{{ form.start_mileage.errors|first }}</div>
+                                        <label id="start_mileage_text" class="error-text"></label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            
+
+                            <div class="row">
+                                <div class="col-sm-12">
+                                    <div class="mb3-mobile">
+                                        <label for="{{ form.start_mileage.id_for_label }}" class="form-label2">Ending Mileage</label>
+                                        {% render_field form.end_mileage class="form-control2" name="end_mileage" id="end_mileage" placeholder="E.g. 1200" onchange='setMilleage(this)' %}
+                                        <div class="invalid-feedback">{{ form.start_mileage.errors|first }}</div>
+                                        <label id="end_mileage_text" class="error-text"></label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-sm-12">
+                                    <div class="mb3-mobile">
+                                        <label for="{{ form.total_mileage.id_for_label }}" class="form-label2">Total Mileage</label>
+                                        {% render_field form.total_mileage class="form-control2" name="total_mileage" id="total_mileage" %}
+                                        <div class="invalid-feedback">{{ form.total_mileage.errors|first }}</div>
+                                       
+                                    </div>
+                                </div>
+                            </div> 
+
+                            <div class="row">
+                                <div class="col-sm-12">
+                                    <div class="mb3-mobile">
+                                        <label for="{{ form.Location.id_for_label }}" class="form-label2">Location</label>
+                                        {% render_field form.Location class="form-control2" name="Location" id="Location" %}
+                                        <input type="text" id="newTotalM" name="newTotalM" minlength="4" maxlength="8" size="10" hidden/>
+                                        <div class="invalid-feedback">{{ form.Location.errors|first }}</div>
+                                       
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            
+                            <div class="row">
+                                <div class="col-sm-12">
+                                    <div class="mb3-mobile">
+                                        <label for="{{ form.Status.id_for_label }}" class="form-label2">Status</label>
+                                        <input type="text" id="newstatus" name="newstatus" minlength="4" maxlength="8" size="10" hidden/>
+                                        {% render_field form.Status class="form-control2" name="estatus" id="estatus" %}
+                                        <div class="invalid-feedback">{{ form.Status.errors|first }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+<!--
+                            <div class="row">
+                                <div class="col-sm-12">
+                                    <div class="mb3-mobile">
+                                        <label for="{{ form.created_date.id_for_label }}" class="form-label2">Created Date</label>
+                                        {% render_field form.created_date class="form-control2" %}
+                                        <div class="invalid-feedback">{{ form.created_date.errors|first }}</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">                               
+                                <div class="col-sm-12">  
+                                    <div class="mb3-mobile">                              
+                                        <label for="{{ form.updated_date.id_for_label }}" class="form-label2">updated Date</label>
+                                        {% render_field form.updated_date class="form-control2" %}
+                                        <div class="invalid-feedback">{{ form.updated_date.errors|first }}</div>
+                                    </div>                                                                     
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-12">  
+                                    
+                                </div>
+                            </div>    -->                                
+                    </div>
+                    <!--<div class="card-footer" align="center">
+                        <!--<a type="button" href="/timesheet/employee_list" class="btn btn-info hell m-0"  aria-haspopup="true" aria-expanded="false" style="width:50%"><font size="2" muted>Not Completed</font>
+                            </a>
+                            <a type="button"  class="btn btn-light" aria-haspopup="true" aria-expanded="false" style="width:50%"><font size="2">Submitted</font>
+                            </a>
+                        
+                        <div class="form-outline" style="align-items: center;">                                       
+                                      
+                            <input class="btn btn-primary" name = "save_btn" id = "save_btn" type="submit" value="Save">
+                            
+                            <!--<a class="btn btn-success send-btn"  href="/timesheet/update_status/{{id}}/2" role="button">Send</a> 
+                           
+                            {% if object.id > 0 %}
+                                <a class = "btn btn-success" href="" onClick="prueba(this)">Save and Send</a>                   
+                            {%endif%}
+
+                            
+                        </div>
+                    </div>-->
+                </div>                 
+            </div>
+        </div>      
+    </form>
+</div>
+{% endblock %}

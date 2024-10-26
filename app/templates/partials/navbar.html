@@ -1,54 +1,37 @@
 {%load static%}
 {% load humanize %}
 
-<div class="menu">
-  <!-- {{ menu | safe }}     -->
-  {% if emp.is_superAdmin or emp.is_admin or user.is_staff %}
-    <a aria-current="page" class="d-block text-light p-2" href="/upload/"><i class="icon ion-md-cloud"></i> upload Orders</a>
-    <!--<a aria-current="page" class="d-block text-light p-2" href="/upload_payroll/"><i class="icon ion-md-cloud"></i> upload payroll</a>-->
-   {% endif %}
-  {% if emp.is_superAdmin  or emp.is_admin or user.is_staff %} 
-    <a aria-current="page" class="d-block text-light p-2" href="/order_list/"><i class="icon ion-md-clipboard"></i> Orders</a>
-  {% endif %}
-  {% if emp.is_superAdmin  or emp.is_admin or user.is_staff %}
-    <a aria-current="page" class="d-block text-light p-2" href="/duplicate_order_list/"><i class="icon ion-md-clipboard"></i> Duplicate Orders</a>
-    <a style="color: white;"><hr></a>
-  {% endif %} 
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+	<div class="container-fluid">
 
-{% if emp.is_superAdmin  or user.is_staff %}
-    <a aria-current="page" class="d-block text-light p-2" href="/location_list/"><i class="icon ion-md-business mr-2"></i>  Locations</a>
-    <a aria-current="page" class="d-block text-light p-2" href="/employee_list/"><i class="icon ion-md-people"></i> Employees</a>
-    <a aria-current="page" class="d-block text-light p-2" href="/item_list/"><i class="icon ion-md-pricetags mr-2 lead"></i> Items</a>
-    <a aria-current="page" class="d-block text-light p-2" href="/vendor_list/"><i class="icon ion-md-barcode"></i> Vendors</a>
-    <a aria-current="page" class="d-block text-light p-2" href="/subcontractor_list/"><i class="icon ion-md-barcode"></i> Subcontractor</a>
-    <a aria-current="page" class="d-block text-light p-2" href="/billing_address_list/"><i class="icon ion-md-pin"></i> Billing Address</a>
-    <a aria-current="page" class="d-block text-light p-2" href="/login_audit/"><i class="icon ion-md-alert"></i> Login Audit</a>
-{% endif %}
-
-{% if emp.is_superAdmin  or emp.is_admin or emp.accounts_payable or user.is_staff %}
-  <a aria-current="page" class="d-block text-light p-2" href="/internal_po_list/"><i class="icon ion-md-barcode"></i> Internal PO</a>
-{%endif%}
-
-{% if emp.is_superAdmin  or emp.is_admin or user.is_staff %} 
-  <a aria-current="page" class="d-block text-light p-2" href="/period_list/"><i class="icon ion-md-calendar lead" ></i> Periods</a>
-  <a aria-current="page" class="d-block text-light p-2" href="/invoice_daily_report/"><i class="icon ion-md-copy lead" ></i> Daily Report</a>
-  <a aria-current="page" class="d-block text-light p-2" href="/invoice_monthly_report/"><i class="icon ion-md-copy lead" ></i>WO Activities report</a>
-  <a aria-current="page" class="d-block text-light p-2" href="/payroll_employee_report/0/"><i class="icon ion-md-copy lead" ></i>Payroll Report</a>
-  <a aria-current="page" class="d-block text-light p-2" href="/wo_balance_Report/"><i class="icon ion-md-copy lead" ></i>WO Balance Report</a>
-{%endif%}
+	
+	  <button class="btn btn-dark d-inline-block d-lg-none ml-auto" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+		  <i class="fa fa-bars"></i>
+	  </button>
 
 
-<!-- <a aria-current="page" class="d-block text-light p-2" href="/order_list_location/{{user.username}}">
-  <i class="icon ion-md-business mr-2 lead" lead></i> WOs by Location</a> -->
-  {%if emp.is_supervisor%}
-    <a aria-current="page" class="d-block text-light p-2" href="/order_list_sup/"> <i class="icon ion-md-business mr-2 lead" ></i> WOs by Sup</a>
-  {%endif%}
-  
-  {% if emp.is_admin or emp.is_supervisor %} 
-    <a aria-current="page" class="d-block text-light p-2" href="/payroll/0/0/0/0"><i class="icon ion-md-today mr-2 lead" ></i>  Payroll</a>
-  {%endif%}
-<!--<a style="color: white;"><hr></a>
-<a aria-current="page" class="d-block text-light p-2 {% if app_selected == 7 %} active {% endif %}" href="#"><i
-  class="icon ion-md-business mr-2 lead" lead></i> Menu 3</a>
-<a style="color: white;"><hr></a>-->
-</div>
+
+	<i class="icon ion-md-contact lead"></i> {{ user.username }}  -  {{ emp }}			
+	&nbsp;&nbsp;&nbsp;<i class="icon ion-md-locate lead ml-3"></i> {{ emp.Location }}
+	&nbsp;&nbsp;&nbsp;<i class="icon ion-md-calendar"></i> <a href="/payroll/0/0/0/0"> {{per.weekRange}}</a>
+	 
+
+	  <div class="collapse navbar-collapse" id="navbarSupportedContent">
+		<ul class="nav navbar-nav ml-auto">
+		  <li class="nav-item">
+			  <a class="nav-link" href="/home/">Home</a>
+		  </li>
+		  <!--<li class="nav-item">
+			  <a class="nav-link" href="#">About</a>
+		  </li>
+		  <li class="nav-item">
+			  <a class="nav-link" href="#">Portfolio</a>
+		  </li>  -->
+
+		  <li class="nav-item">
+			  <a class="nav-link" href="/logout/"><i class="icon ion-md-exit"></i> Logout</a> 
+		  </li>
+		</ul>
+	  </div>
+	</div>
+  </nav>

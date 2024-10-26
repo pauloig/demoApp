@@ -1,0 +1,229 @@
+{% extends 'index.html' %} 
+{%load static%}
+{% block title %} Duplicate Order List {% endblock %} 
+
+{% block container %}
+
+<div class="container">
+    <form method='post' enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <div class="row">      
+            <div class="col-sm-10 my-3"></div>  
+                        
+        </div>
+
+
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="card">
+                    <h6 class="card-header card-header-wc" >Filters</h6>
+                    <div class="card-body">
+                        <div class="row">                   
+                            <div class="col-lg-1">  
+                                <div class="mb-3">    
+                                    <label for="PID" class="form-label">Status</label>                
+                                    <div class="input-group mb-3">   
+                                                                                  
+                                        <select class="form-select" aria-label="Default select example" name="status" id="status"> 
+                                            
+                                            {%if selectEstatus == "0"%} 
+                                                <option value ="0"  selected >Status</option>
+                                            {%else%}
+                                                <option value ="0" >Status</option>
+                                            {%endif%}
+                                            {%if selectEstatus == "1"%} 
+                                                <option value ="1"  selected >Draft</option>
+                                            {%else%}
+                                                <option value ="1" >Draft</option>
+                                            {%endif%}
+                                            
+                                            {%if selectEstatus == "2"%}
+                                                <option value="2" selected>Sent</option>
+                                            {%else%}
+                                                <option value="2">Sent</option>
+                                            {%endif%}
+                                            {%if selectEstatus == "3"%}
+                                                <option value="3" selected>Pending</option>
+                                            {%else%}
+                                                <option value="3" >Pending</option>
+                                            {%endif%}
+                                            {%if selectEstatus == "4"%}
+                                                <option value="4" selected>Approved</option>
+                                            {%else%}
+                                                <option value="4">Approved</option>
+                                            {%endif%}   
+                                            {%if selectEstatus == "5"%}
+                                                <option value="5" selected>Rejected</option>
+                                            {%else%}
+                                                <option value="5">Rejected</option>
+                                            {%endif%}                                   
+                                        </select> 
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-2"> 
+                                <div class="mb-3">    
+                                    <label for="PID" class="form-label">Date From</label>                
+                                    <div class="input-group mb-3">  
+                                        <input type="date" name="date" 
+                                            placeholder="mm-dd-yyyy" value=""
+                                            min="1997-01-01" max="2030-12-31" class="form-control" required>
+                                    </div>       
+                                </div>                               
+                            </div>    
+                            <div class="col-lg-2"> 
+                                <div class="mb-3">    
+                                    <label for="PID" class="form-label">To</label>                
+                                    <div class="input-group mb-3">  
+                                        <input type="date" name="date2" 
+                                            placeholder="mm-dd-yyyy" value=""
+                                            min="1997-01-01" max="2030-12-31" class="form-control" required>
+                                    </div>       
+                                </div>               
+                            </div> 
+                            <div class="col-lg-2 pt-1"> 
+                                Search By: 
+                                <div class="form-check">
+                                    {%if radio == "byWork" or radio == None%}
+                                        <input class="form-check-input" type="radio" name="searchBy" id="byWork" value="byWork" checked>
+                                    {%else%}
+                                        <input class="form-check-input" type="radio" name="searchBy" id="byWork" value="byWork">
+                                    {%endif%}
+                                    <label class="form-check-label" for="byWork">
+                                        work date
+                                    </label>
+                                  </div>
+                                  <div class="form-check">
+                                    {%if radio == "byCreated"%}
+                                        <input class="form-check-input" type="radio" name="searchBy" id="byCreated" value="byCreated" checked>
+                                    {%else%}
+                                        <input class="form-check-input" type="radio" name="searchBy" id="byCreated" value="byCreated">
+                                    {%endif%}
+                                    <label class="form-check-label" for="byCreated">
+                                        created date
+                                    </label>
+                                  </div>
+                            </div>     
+                            <div class="col-lg-2">                                                              
+                                <label for="PID" class="form-label">Location</label>                
+                                <div class="input-group mb-3"> 
+                                    <select class="form-select" aria-label="Select Location" name="location" id="location">                                    
+                                       
+                                        {%if selectLoc == "0" %}
+                                            <option value ="0" selected>Select a Location</option>
+                                        {%else%}
+                                            <option value ="0">Select a Location</option>
+                                        {%endif%}
+                                        {% for data in location %}
+                                            {%if data.LocationID|slugify == selectLoc%}                              
+                                                <option value="{{data.LocationID}}" selected>{{data.name}}</option>
+                                            {%else%}
+                                                <option value="{{data.LocationID}}">{{data.name}}</option>
+                                            {%endif%}
+                                        {% endfor %}    
+                                    </select>     
+                                </div>                              
+                            </div>    
+                            <div class="col-lg-2">                                                              
+                                <label for="PID" class="form-label">Employee</label>                
+                                <div class="input-group mb-3"> 
+                                    <select class="form-select" aria-label="Select Employee" name="emp" id="emp">                                    
+                                       
+                                        {%if selectEmployee == "0" %}
+                                            <option value ="0" selected>Select a Employee</option>
+                                        {%else%}
+                                            <option value ="0">Select a Employee</option>
+                                        {%endif%}
+                                        {% for data in empList %}
+                                            {%if data.employeeID|slugify == selectEmployee%}                              
+                                                <option value="{{data.employeeID}}" selected>{{data.first_name}} {{data.last_name}} </option>
+                                            {%else%}
+                                                <option value="{{data.employeeID}}">{{data.first_name}} {{data.last_name}}</option>
+                                            {%endif%}
+                                        {% endfor %}    
+                                    </select>     
+                                </div>                              
+                            </div>      
+                            <div class="col-lg-3 my-4">
+                                <input class="btn btn-primary" type="submit" value="Search"> 
+                                {%if dateSelected%}
+                                    <a class="btn btn-primary" href="/timesheet/get_report_list/{{dateSelected|date:'Y-m-d'}}/{{dateSelected2|date:'Y-m-d'}}/{{selectEstatus}}/{{selectLoc}}/{{selectEmployee}}/{{radio}}" role="button">Download</a>
+                                {%endif%}  
+                            </div>
+                            <div class="col-lg-1 my-4">
+                                <a href="/home/" type="button" class="btn btn-danger">Close</a> 
+                            </div>  
+                                               
+                        
+                            <div class="col-lg-4">                                                              
+                                <div class="form-outline" style="align-items: center;">
+                                    
+                                </div>
+                            </div>
+                            
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-sm-12 my-3">
+                <div class="card">
+                    
+                        <h6 class="card-header card-header-wc" >Report List From {{dateSelected|date:'Y-m-d'}} To {{dateSelected2|date:'Y-m-d'}}</h6>
+                    
+                    <div class="card-body">
+                        <div class="col-lg-12">   
+                            <table id="orders" class="table table-sm table-bordered table-striped">
+                                <thead class="table-primary">
+                                    <tr>
+                                        <th scope="col" style="width: 10%">Date</th>
+                                        <th scope="col" style="width: 10%">Created Date</th>
+                                        <th scope="col" style="width: 20%">Name</th>
+                                        <th scope="col" style="width: 20%">Location</th>
+                                        <th scope="col" style="width: 10%">Clock In</th>
+                                        <th scope="col" style="width: 10%">Lunch Start</th>
+                                        <th scope="col" style="width: 10%">Lunch End</th>
+                                        <th scope="col" style="width: 10%">Clock Out</th>
+                                        <th scope="col" style="width: 10%">Hours worked</th>
+                                        <th scope="col" style="width: 10%">Starting Mileage</th>
+                                        <th scope="col" style="width: 10%">Ending Mileage</th>
+                                        <th scope="col" style="width: 10%">Total Mileage</th>                                        
+                                        <th scope="col" style="width: 10%">Status</th> 
+                                        <th scope="col" style="width: 4%">Updated By</th>           
+                                        <th scope="col" style="width: 4%">Comments</th>           
+                                    </tr>              
+                                </thead>
+                                <tbody>                                       
+                                    {% for data in dataset %}
+                                        <tr>
+                                            <td>{{data.date|date:"m-d-Y" }}</td>  
+                                            <td>{{data.created_date|date:"m-d-Y" }}</td>  
+                                            <td>{{data.EmployeeID}}</td>
+                                            <td>{{data.Location}}</td> 
+                                            <td>{{data.start_time}}</td>
+                                            <td>{{data.start_lunch_time}}</td>
+                                            <td>{{data.end_lunch_time}}</td>
+                                            <td>{{data.end_time}}</td>   
+                                            <td>{{data.total_hours}}</td>   
+
+                                            <td>{{data.start_mileage}}</td> 
+                                            <td>{{data.end_mileage}}</td> 
+                                            <td>{{data.total_mileage}}</td> 
+                                            <td>{{data.get_Status_display}}</td>    
+                                            <td>{{data.updatedBy}}</td>
+                                            <td>{{data.comments}}</td>
+                                        </tr>                                             
+                                    {% endfor %}
+                                </tbody>                              
+                        </table> 
+                        </div>
+                    </div>                  
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}

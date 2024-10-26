@@ -269,7 +269,7 @@ class Daily(models.Model):
     created_date = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
-        return str(self.Period) + " - " + str(self.day)
+        return str(self.crew) + " - " + str(self.day)
     
     class Meta:
         unique_together = ('Period','Location','day', 'crew')
