@@ -1,1 +1,1 @@
-# WiringConnectionAdmin
+# Payroll demo App
