@@ -1,5 +1,4 @@
 /*=== MEDIA QUERY ===*/
-@import url("https://fonts.googleapis.com/css?family=Muli:300,400,600,700,800,900");
 body {
   line-height: 1.5;
   font-family: "Muli", sans-serif;
@@ -2702,6 +2701,50 @@ form textarea {
 
 #return_info strong{
   font-weight: bold;
+}
+
+
+/* COVER BG */
+.img{
+	background-size: cover;
+	background-repeat: repeat;
+	background-position: center center;
+}
+
+.login-wrap{
+	position: relative;
+	color: rgba(255,255,255,.9);
+	h3{
+		font-weight: 300;
+		color: white;
+	}
+	.social{
+		width: 100%;
+		a{
+			width: 100%;
+			display: block;
+			border: 1px solid rgba(255,255,255,.4);
+			color: black;
+			background: white;
+			&:hover{
+				background: black;
+				color: white;
+				border-color: black;
+			}
+		}
+	}
+}
+
+.form-group{
+	position: relative;
+}
+
+.field-icon {
+	position: absolute;
+	top: 50%;
+	right: 15px;
+	transform: translateY(-50%);
+	color: rgba(255,255,255,.9);
 }
 
 /*# sourceMappingURL=maps/style.css.map */

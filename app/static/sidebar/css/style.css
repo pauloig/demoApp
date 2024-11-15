@@ -6631,7 +6631,7 @@ a.close.disabled {
     padding: 0.75rem;
 }
 
-.modal-open {
+/*.modal-open {
     overflow: hidden;
 }
 
@@ -6883,7 +6883,7 @@ a.close.disabled {
         max-width: 1140px;
     }
 }
-
+*/
 .tooltip {
     position: absolute;
     z-index: 1070;
@@ -9484,8 +9484,9 @@ button.bg-dark:focus {
     padding-left: 1rem !important;
 }
 
+/* PJIG */
 .p-4 {
-    padding: 0rem 1rem 1rem 4rem !important;
+    padding: 0rem 1rem 1rem 1rem !important;
 }
 
 .pt-4,

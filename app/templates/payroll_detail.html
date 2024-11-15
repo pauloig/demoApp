@@ -154,7 +154,10 @@
                                             <td>{{item.empName}}</td>
                                             <td>${{item.payout|floatformat:2|intcomma}}</td>
                                             <td>
-                                                <a href="/static/media/{{item.pdf}}" target="_blank"> <i class="fa-solid fa-magnifying-glass" style="color: green;"></i></a> 
+                                                {% if  item.pdf %}
+                                                    <a href="/static/media/{{item.pdf}}" target="_blank"> <i class="fa-solid fa-magnifying-glass" style="color: green;"></i></a> 
+                                                
+                                                {% endif %} 
                                                 
                                             </td>
                                         </tr>

@@ -1195,7 +1195,7 @@ def create_order(request):
          
     context['form']= form
     context['emp'] = emp
-    return render(request, "order.html", context)
+    return render(request, "create_order.html", context)
 
 @login_required(login_url='/home/')
 def create_location(request):
